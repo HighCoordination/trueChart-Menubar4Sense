@@ -1,0 +1,13 @@
+{
+	"name" : "trueChart-Menubar",
+	"description" : "trueChart-Menubar: comprehensive navigational options, (pre-)selection and other trigger-based actions",
+	"icon" : "list",
+	"type" : "visualization",
+	"version" : "1.0.8_152",
+	"author" : "HighCoordination GmbH",
+	"preview": "img/tcmenu_logo.jpg",
+	"homepage" : "http://www.highcoordination.de/",
+	"keywords" : "qlik-sense, visualization, trueChart, menu bar, navigation, actions, trigger, selection",
+	"license" : "HighCoordination GmbH © 2017",
+    "dependencies" : { "qlik-sense" : ">=3.1.x" }
+}

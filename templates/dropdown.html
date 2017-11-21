@@ -1,0 +1,58 @@
+<div class="hico-fullHeight">
+	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.screenWidth < 768" class="hico-fullHeight">
+		<div id="item_{{itemId}}" class="hico-fullHeight">
+			<button class="accordion" qva-activate="handleDropdown(item, firstItem)"
+					ng-style="
+					item.show && !item.props.isCustomSize && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor, 'height': '56px'}
+					|| !item.show && !item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': '56px'}
+					|| item.show && item.props.isCustomSize && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor, 'height': item.props.height + px}
+					|| !item.show && item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': item.props.height + px}"
+					change-background item="item" colors="colors">
+				<div class="hico-btn-container">
+					<labeldirective item="item" type="'Button Dropdown'" layout="layout"></labeldirective>
+				</div>
+			</button>
+			<div ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')" ng-show="item.show"
+				 ng-style="{'background-color': colors.subItemBackgroundColor}">
+				<div class="" ng-repeat="dropdownItem in item.dropdownItems"
+					 ng-style="{'border-top': 'solid ' + colors.subItemSeparatorColor + ' 1px',
+					 'background-color': 'rgba(1,1,1,0)', 'color': colors.textSubColor}"
+					 change-background item="dropdownItem" issubitem="true" colors="colors">
+					<div class="hico-relative hico-item-vertical-default">
+						<div data-tcmenu-button states="dropdownItem.stateItems" active-states="dropdownItem.activeStates" evaluate-states="evaluateStates"
+									   on-states-update="handleButtonStates(states, dropdownItem, itemindex)" default-styles="item.labelStyle"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- different layout -->
+
+	<div id="hico-item-horizontal_{{itemId}}" class="hico-item-horizontal hico-item-horizontal-default"
+		 ng-mouseleave="closeDropdown(item)" ng-if="layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767">
+		<button class="accordion hico-fullHeight" qva-activate="handleDropdown(item, firstItem)"
+				ng-style="item.show && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor} ||
+				 {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor}"
+				change-background item="item" colors="colors">
+			<div class="hico-btn-container">
+				<labeldirective item="item" type="'Button Dropdown'" layout="layout"></labeldirective>
+			</div>
+		</button>
+		<div id="panel_{{itemId}}" class="hico-panel-scrollcontainer" ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')"
+			 ng-show="item.show" ng-style="{'transform' : 'translate(0px,-1px)', 'background-color' : colors.backgroundColor}">
+			<div  class="hico-panel-horizontal" ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')" scrollable
+				  ng-style="{'background-color': colors.subItemBackgroundColor}">
+				<div class="" ng-repeat="dropdownItem in item.dropdownItems"
+					 ng-style="{'border-top': 'solid ' + colors.subItemSeparatorColor + ' 1px',
+					 'background-color': 'rgba(1,1,1,0)', 'color': colors.textSubColor}"
+					 change-background item="dropdownItem" issubitem="true" colors="colors">
+					<div class="hico-relative hico-item-vertical-default">
+						<div data-tcmenu-button states="dropdownItem.stateItems" active-states="dropdownItem.activeStates" evaluate-states="evaluateStates"
+									   on-states-update="handleButtonStates(states, dropdownItem, itemindex)" default-styles="item.labelStyle"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

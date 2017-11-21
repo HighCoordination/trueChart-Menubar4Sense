@@ -1,0 +1,28 @@
+<div class="hico-fullHeight hico-flex hico-labeldirective">
+	<div class="hico-relative hico-flex-row hico-flex hico-flex-direction-column hico-flex-textwrap hico-rightspace">
+		<div class="hico-flex hico-flex-column"
+			 ng-style="{'justify-content' : item.props.horAlignLabel, 'align-items' : item.props.verAlignLabel}">
+			<span class="hico-flex-textwrap hico-flex-text-padding" ng-style="item.selectionStyle">
+				<span ng-style="item.labelStyle">
+					<span ng-if="item.props.icon !== 'noIcon'" class=" hico-rightspace {{item.props.icon}}" ng-class="{'fa':item.props.icon !== 'noIcon'}"></span>
+				</span>
+				<strong class="" ng-style="item.labelStyle">{{item.props.itemLabel}}</strong>
+				<span class="hico-flex-textwrap" ng-if="item.props.textLayout === 'single' && item.props.selectedValue !== '' &&
+			 		item.props.selectedValue && item.type !== 'Button Dropdown' && !item.props.isCustomSelection"
+					ng-style="item.selectionStyle">
+				<span ng-if="item.props.itemLabel !== ''">&nbsp;</span>{{item.props.selectedValue}}</span>
+				<span class="hico-flex-textwrap" ng-if="item.props.textLayout === 'single' && item.props.selectionLabel !== '' && item.props.isCustomSelection"
+					  ng-style="item.selectionStyle">
+					&nbsp;{{item.props.selectionLabel}}</span>
+			</span>
+		</div>
+		<div class="hico-flex hico-flex-column"
+			 ng-if="item.props.textLayout === 'multi'"
+			 ng-style="{'justify-content' : item.props.horAlignSelectionLabel, 'align-items' : item.props.verAlignSelectionLabel}">
+			<span class="hico-flex-textwrap" ng-if="!item.props.isCustomSelection" ng-style="item.selectionStyle">{{item.props.selectedValue}}</span>
+			<span class="hico-flex-textwrap" ng-if="item.props.isCustomSelection" ng-style="item.selectionStyle">{{item.props.selectionLabel}}</span>
+		</div>
+	</div>
+	<span class="hico-flex hico-flex-container-middle fa" ng-class="{'fa-angle-down':!item.show, 'fa-angle-up': item.show}"
+			ng-if="type !== 'dropdownItem'"></span>
+</div>

@@ -1,0 +1,20 @@
+<div >
+	<button class="action" qva-activate="handleAction(item)" change-background item="item" colors="colors"
+			ng-style="
+					!item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'height': '56px'}
+					||item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'height': item.props.height + px}"
+			ng-if="layout.appearance.orientation==='btn-block' || utilService.screenWidth < 768">
+
+		<div class="hico-btn-container hico-fullHeight">
+			<labeldirective item="item" type="'Button'" layout="layout"></labeldirective>
+		</div>
+	</button>
+
+	<button class="action" qva-activate="handleAction(item)" change-background item="item" colors="colors"
+			ng-style="{'background-color': 'rgba(1,1,1,0)'}"
+			ng-if="layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767">
+		<div class="hico-btn-container hico-fullHeight">
+			<labeldirective item="item" type="'Button'" layout="layout"></labeldirective>
+		</div>
+	</button>
+</div>

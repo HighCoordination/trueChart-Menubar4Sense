@@ -1,0 +1,41 @@
+<div class="hico-fullHeight">
+	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.screenWidth < 768" class="hico-fullHeight">
+		<button class="accordion" qva-activate="openSenseSelect(item)" ng-class="{'active':item.show}"
+				change-background item="item" colors="colors"
+				ng-style="
+					item.show && !item.props.isCustomSize && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor, 'height': '56px'}
+					|| !item.show && !item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': '56px'}
+					|| item.show && item.props.isCustomSize && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor, 'height': item.props.height + px}
+					|| !item.show && item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': item.props.height + px}">
+			<div class="hico-btn-container">
+				<labeldirective item="item" type="'Sense Select'" layout="layout"></labeldirective>
+			</div>
+		</button>
+		<div id="panel_{{itemId}}" class="hico-senseselect-panel" ng-mouseover="mouseOver()" ng-mouseleave="mouseLeave()" ng-show="item.show"
+			 qva-activate="changeSize(item,$event)">
+			<div class="hico-senseselect-content" id="QV05_{{itemId}}">
+
+			</div>
+		</div>
+	</div>
+
+	<div id="hico-item-horizontal_{{itemId}}" class="hico-item-horizontal hico-item-horizontal-default"
+		 ng-mouseleave="closeDropdown(item)" ng-if="layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767">
+		<button class="accordion hico-fullHeight" qva-activate="openSenseSelect(item)" ng-class="{'active':item.show}"
+				change-background item="item" colors="colors"
+				ng-style="item.show && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor} ||
+				 		{'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor}">
+			<div class="hico-btn-container">
+				<labeldirective item="item" type="'Sense Select'" layout="layout"></labeldirective>
+			</div>
+		</button>
+		<div id="panel_{{itemId}}" class="hico-senseselect-panel hico-senseselect-panel-horizontal" ng-mouseover="mouseOver()" ng-mouseleave="mouseLeave()"
+			 ng-show="item.show">
+			<div class="hico-senseselect-content" id="QV05_{{itemId}}">
+
+			</div>
+		</div>
+	</div>
+
+</div>
+

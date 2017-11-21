@@ -1,0 +1,32 @@
+{
+  "name": "truechart-menubar",
+  "version": "1.0.8",
+  "description": "trueChart-Menubar4Sense** is a visualization extension for [Qlik Sense](http://www.qlik.com/us/products/qlik-sense) providing a customizable menu bar with buttons and select widgets.",
+  "main": "tcmenu.js",
+  "keywords": [
+    "Qlik Sense",
+    "Trigger",
+    "Action",
+    "Selection",
+    "Navigation",
+    "HighCoordination"
+  ],
+  "author": "HighCoordination GmbH",
+  "license": "Apache 2.0",
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "codemirror": "^5.29.0",
+    "font-awesome": "^4.7.0",
+    "jquery-slimscroll": "^1.3.8",
+    "jquery-ui-npm": "^1.12.0",
+    "leonardo-ui": "^1.2.0",
+    "promise-polyfill": "^6.0.2",
+    "tinycolor2": "^1.4.1",
+    "toastr": "^2.1.2"
+  },
+  "homepage": "https://www.highcoordination.com/en/products/truechart-menubar/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HighCoordination/trueChart-Menubar4Sense.git"
+  }
+}

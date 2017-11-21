@@ -1,0 +1,25 @@
+<div class="bootstrap">
+	<div class="pp-component pp-string-component">
+		<div class="label">{{definition.label}}</div>
+
+		<div class="">
+			<div class="hico-property-flex" ng-class="{'activeInput': showColorPicker}">
+				<div class="right-extendable-group">
+					<div class="hico-property-nopadding-right hico-property-nopadding-top" >
+						<select class="lui-input-group__item lui-input-group__input lui-input lui-select hico-property-select"
+							ng-change="update()"
+							ng-model="refValue"
+							ng-options="item.label for item in definition.options"></select>
+					</div>
+				</div>
+
+				<div class="flex hico-fullWidth">
+					<div class=" hico-property-nopadding hico-property-nopadding-left hico-property-noborder-left hico-property-nopadding-top" include-pp-component
+						 x-component="qComponents.string"
+						 x-definition="text"
+						 x-data="data" x-args="args"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

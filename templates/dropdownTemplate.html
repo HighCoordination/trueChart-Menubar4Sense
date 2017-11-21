@@ -1,0 +1,5 @@
+<div class="pp-component">
+	<select class="lui-select" ng-model="refValue" ng-change="update()" init="refValue.qName = item."
+			ng-options="item.label group by item.group for item in items | orderBy:['group']">
+	</select>
+</div>

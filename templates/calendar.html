@@ -1,0 +1,35 @@
+<div class="hico-fullHeight">
+
+	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.screenWidth < 768" class="hico-fullHeight">
+		<button class="accordion" qva-activate="handleDropdown(item, itemindex)"
+				ng-style="
+					item.show && !item.props.isCustomSize && {'background-color': colors.hoverActiveColor, 'height': '56px'}
+					|| !item.show && !item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'height': '56px'}
+					|| item.show && item.props.isCustomSize && {'background-color': colors.hoverActiveColor, 'height': item.props.height + px}
+					|| !item.show && item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'height': item.props.height + px}"
+				change-background item="item" colors="colors">
+			<labeldirective item="item" type="'Calendar'" layout="layout"></labeldirective>
+		</button>
+		<div ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')" ng-show="item.show">
+			<div class="hico-calendar">
+				:)
+			</div>
+		</div>
+	</div>
+
+	<div id="hico-item-horizontal_{{itemId}}"  ng-if="layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767"
+		 class="hico-item-horizontal hico-item-horizontal-default">
+		<button class="accordion hico-fullHeight" qva-activate="handleDropdown(item, itemindex)"
+				ng-style="item.show && {'background-color': colors.hoverActiveColor} || {'background-color': 'rgba(1,1,1,0)'}"
+				change-background item="item" colors="colors">
+			<labeldirective item="item" type="'Calendar'" layout="layout"></labeldirective>
+		</button>
+		<div id="panel_{{itemId}}" class="hico-panel-horizontal" ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')"
+			 ng-show="item.show">
+			<div class="hico-calendar" ng-style="{'background-color': 'rgba(1,1,1,0)'}">
+				:)
+			</div>
+		</div>
+	</div>
+
+</div>
