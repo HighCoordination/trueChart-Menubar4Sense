@@ -42,7 +42,7 @@ version is to be preferred.
 
 ## Download and installation
 
-[Get trueChart-Menubar4Sense!](./dist/tcmenu-1.0.8.zip) 
+[Get trueChart-Menubar4Sense!](./dist/tcmenu-1.0.8.zip?raw=true) 
 
 ### _Qlik Sense Desktop_
 
@@ -61,7 +61,7 @@ For _Qlik Sense Desktop_, simply extract the contents of the ZIP file to your
 The trueChart-Menubar4Sense also includes a complete user documentation and from 
 installation, configuration to use everything is explained.
 The documentation can be accessed through properties panel **Display** → **Info** 
-via link **Manual[PDF]** or directly here [User Manual](./doc/tcmenu.pdf).
+via link **Manual[PDF]** or directly here [User Manual](./doc/tcmenu.pdf?raw=true).
 
 ## Contacts
 * Web: [HighCoordination GmbH](https://www.highcoordination.com/en)
