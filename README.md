@@ -7,6 +7,8 @@ providing a customizable menu bar with buttons and select widgets.
 
 ## Features
 
+### Overview
+
 * **Responsive** vertical and horizontal design
 * Create **buttons** and assign _Triggers_ and _Actions_ to
   - navigate through Qlik Sense and within self-created MashUps,
@@ -18,6 +20,16 @@ providing a customizable menu bar with buttons and select widgets.
 * Create _Variable_ widgets to set **variable values** just by a click.
 * **Maximum space gain** by optionally hiding the Qlik Sense® menus 
 (menu, selection and title bar) 
+
+### Showcase
+
+#### Selection and navigation
+
+![Selection and navigation](./assets/selection-and-navigation.gif)
+
+#### Triggers and actions
+
+![Triggers and actions](./assets/triggers-and-actions.gif)
 
 ## Prerequisities
 
@@ -42,7 +54,7 @@ version is to be preferred.
 
 ## Download and installation
 
-[Get trueChart-Menubar4Sense!](./dist/tcmenu-1.0.8.zip?raw=true) 
+[Get trueChart-Menubar4Sense!](./dist/tcmenu-1.0.8.zip) 
 
 ### _Qlik Sense Desktop_
 
@@ -61,7 +73,7 @@ For _Qlik Sense Desktop_, simply extract the contents of the ZIP file to your
 The trueChart-Menubar4Sense also includes a complete user documentation and from 
 installation, configuration to use everything is explained.
 The documentation can be accessed through properties panel **Display** → **Info** 
-via link **Manual[PDF]** or directly here [User Manual](./doc/tcmenu.pdf?raw=true).
+via link **Manual[PDF]** or directly here [User Manual](./doc/tcmenu.pdf).
 
 ## Contacts
 * Web: [HighCoordination GmbH](https://www.highcoordination.com/en)
