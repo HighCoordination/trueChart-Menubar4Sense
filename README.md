@@ -3,6 +3,8 @@
 **trueChart-Menubar4Sense** is a visualization extension for [Qlik Sense®](http://www.qlik.com/us/products/qlik-sense)
 providing a customizable menu bar with buttons and select widgets.
 
+[Get trueChart-Menubar4Sense!](../../releases/download/v1.0.8/tcmenu-1.0.8_152.zip) 
+
 ![trueChart Menubar Example](./assets/example.gif)
 
 ## Features
@@ -54,7 +56,7 @@ version is to be preferred.
 
 ## Download and installation
 
-[Get trueChart-Menubar4Sense!](./dist/tcmenu-1.0.8.zip) 
+[Get trueChart-Menubar4Sense!](../../releases/download/v1.0.8/tcmenu-1.0.8_152.zip) 
 
 ### _Qlik Sense Desktop_
 
