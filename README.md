@@ -101,4 +101,4 @@ Qlik Sense® and technical support.
 
 [Buy trueChart-Menubar support](https://www.highcoordination.com/en/learn-more/contact/?formular=kontaktformular-vertrieb#section-kontaktformular-vertrieb)
 
-If you have any questions regarding licensing - please contact us. [info@highcoordination.de](mailto:info@highcoordination.de).
+If you have any questions regarding licensing - please [contact us](https://www.highcoordination.com/en/learn-more/contact).
