@@ -2,7 +2,7 @@
 
 The **trueChart menubar** allows for vertical and horizontal buttons and selections (fields, master dimensions and variables) as well as unlimited trigger based Actions. This visualization extension supports [Qlik Sense®](http://www.qlik.com/us/products/qlik-sense) from version 3.0.0 up to currently latest version November 2017. 
 
-[Get trueChart-Menubar4Sense!](../../releases/download/v1.0.8/tcmenu-1.0.8_152.zip) 
+[Get trueChart-Menubar!](../../releases/download/v1.0.8/tcmenu-1.0.8_152.zip) 
 
 ![trueChart Menubar Example](./assets/example.gif)
 
@@ -35,14 +35,14 @@ The **trueChart menubar** allows for vertical and horizontal buttons and selecti
 ## Prerequisities
 
 ### Qlik Sense® Support
-trueChart-Menubar4Sense supports Qlik Sense® from version 3.0.0 up to currently
+trueChart-Menubar supports Qlik Sense® from version 3.0.0 up to currently
 latest version November 2017.
 
 Qlik Sense® exporting capability is currently not supported. We working on this and
 plan to push this until the end of this year.
 
 ### Browser Support
-At present trueChart-Menubar4Sense supports the browsers listed below:
+At present trueChart-Menubar supports the browsers listed below:
 
 * Microsoft Internet Explorer 11
 * Microsoft Edge
@@ -55,7 +55,7 @@ version is to be preferred.
 
 ## Download and installation
 
-[Get trueChart-Menubar4Sense!](../../releases/download/v1.0.8/tcmenu-1.0.8_152.zip) 
+[Get trueChart-Menubar!](../../releases/download/v1.0.8/tcmenu-1.0.8_152.zip) 
 
 ### _Qlik Sense Desktop_
 
@@ -71,7 +71,7 @@ For _Qlik Sense Desktop_, simply extract the contents of the ZIP file to your
 
 ## Documentation
 
-The trueChart-Menubar4Sense also includes a complete user documentation and from 
+The trueChart-Menubar also includes a complete user documentation and from 
 installation, configuration to use everything is explained.
 The documentation can be accessed through properties panel **Display** → **Info** 
 via link **Manual[PDF]** or directly here [User Manual](./doc/tcmenu.pdf).
@@ -85,20 +85,20 @@ via link **Manual[PDF]** or directly here [User Manual](./doc/tcmenu.pdf).
 * Xing: [highcoordinationgmbh](https://www.xing.com/companies/highcoordinationgmbh)
 
 ## Links
-* [trueChart-Menubar4Sense Website](https://www.highcoordination.com/en/products/truechart-menubar)
-* [Buy trueChart-Menubar4Sense support](https://www.highcoordination.com/en/learn-more/contact/?formular=kontaktformular-vertrieb#section-kontaktformular-vertrieb)
-* [trueChart-Menubar4Sense Support](https://www.highcoordination.com/en/support)
-* [trueChart-Menubar4Sense Demo](https://sense.highcoordination.de/demo/extensions/HiCoDemo/HiCoDemo.html)
+* [trueChart-Menubar Website](https://www.highcoordination.com/en/products/truechart-menubar)
+* [Buy trueChart-Menubar support](https://www.highcoordination.com/en/learn-more/contact/?formular=kontaktformular-vertrieb#section-kontaktformular-vertrieb)
+* [trueChart-Menubar Support](https://www.highcoordination.com/en/support)
+* [trueChart-Menubar Demo](https://sense.highcoordination.de/demo/extensions/HiCoDemo/HiCoDemo.html)
 
 ## License
 
 This project is licensed under the terms of the [Apache 2.0 license](./LICENSE).
 
 The project published here can be used directly, but without support. 
-For trueChart-Menubar4Sense a commercial license including support can be purchased 
+For trueChart-Menubar a commercial license including support can be purchased 
 via HighCoordination. In particular, this includes support for future versions of 
 Qlik Sense® and technical support.
 
-[Buy trueChart-Menubar4Sense support](https://www.highcoordination.com/en/learn-more/contact/?formular=kontaktformular-vertrieb#section-kontaktformular-vertrieb)
+[Buy trueChart-Menubar support](https://www.highcoordination.com/en/learn-more/contact/?formular=kontaktformular-vertrieb#section-kontaktformular-vertrieb)
 
 If you have any questions regarding licensing - please contact us. [info@highcoordination.de](mailto:info@highcoordination.de).
