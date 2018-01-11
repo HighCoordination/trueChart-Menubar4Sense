@@ -1,7 +1,7 @@
 trueChart-Menubar v1.1.0
 ====================================================================================
-++ DATE: 		2018-01-04
-++ BUILD:		v1.1.0_156
+++ DATE: 		##DATE##
+++ BUILD:		v1.1.0_##BUILD_NUMBER##
 ++ DESCRIPTION:	trueChart-Menubar v1.1.0 (v1.1 Major Release - Export & master, drill down & expression-based dimension support)
 
 ** Features and Improvements
@@ -24,7 +24,7 @@ trueChart-Menubar v1.1.0
 
 trueChart-Menubar v1.0.8
 ====================================================================================
-++ DATE: 		2017-11-23
+++ DATE: 		2017-11-22
 ++ BUILD:		v1.0.8_152
 ++ DESCRIPTION:	trueChart-Menubar v1.0.8 (v1.0 Service Release 8)
 
@@ -32,10 +32,10 @@ trueChart-Menubar v1.0.8
     * [HICO-2324] - Automatic line breaks in button+ text
 
 ** Bugs
-    * [HICO-2897] - Button+ overwrites default hover color of the tCMenu, although no hover color is defined in Button+
+    * [HICO-2897] - Button+ overwrites default hover color of the trueChart Menubar, although no hover color is defined in Button+
     * [HICO-2905] - Button+ code editor not working in tc menubar
     * [HICO-2933] - Scrolling with the mouse wheel in Sense Select does not work with IE11
-    * [HICO-28625] - Single select description text im menubar not initial visible on iPad
+    * [HICO-28625] - Single select description text in menubar not initial visible on iPad
     * [HICO-31517] - Sense select breakes after selection with dynamic dimensions
 
 trueChart-Menubar v1.0.7

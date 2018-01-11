@@ -1,0 +1,310 @@
+// fixes for bootstrap overrides
+.bootstrap {
+  .lui-input, .lui-button, .lui-select, .lui-textarea {
+    font-size: 13px;
+  }
+
+  .lui-list {
+    margin-bottom: 0;
+  }
+
+  .input-xs {
+    padding: 1px 5px;
+    font-size: 12px;
+    line-height: 1.5;
+    height: 22px;
+  }
+
+  label {
+    font-weight: inherit;
+    margin-bottom: 0;
+  }
+  .lui-select optgroup {
+    color: #595959;
+  }
+
+  .pp-component .label {
+    display: block;
+    color: inherit;
+    padding: 0;
+    font-size: 13px;
+    font-weight: inherit;
+    text-align: left;
+  }
+}
+
+.hico, .HiCo {
+
+  div[data-hico-button],
+  div[data-tcmenu-button]{
+    display: flex;
+    min-height: 100%;
+    min-width: 100%;
+
+    > .hico.button {
+      display: flex;
+      min-height: 100%;
+      min-width: 100%;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  .lui-list__action, .lui-list__text {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-align-self: stretch;
+    -ms-flex-item-align: stretch;
+    align-self: stretch;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    background-color: rgba(255,255,255,0);
+  }
+
+  .lui-list__action, .lui-list__text + .lui-list__aside {
+    padding-right: 10px;
+    padding-left: 10px;
+    min-width: 34px;
+  }
+
+  .lui-list__action:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+  }
+
+  .fa-lg.lui-icon {
+    line-height: inherit;
+  }
+
+  .editor {
+    min-width: 400px;
+    max-width: 800px;
+    width: 100%;
+  }
+
+  .button-editor {
+    box-shadow: none;
+
+    .lui-tabset, .tab-content {
+      border: 1px solid @border-color;
+      box-sizing: border-box;
+    }
+
+    .lui-tabset {
+      overflow: visible;
+    }
+
+    .tab-content {
+      padding: 10px;
+      height: 400px;
+      width: 100%;
+    }
+
+    .lui-fade-button:focus,
+    .lui-list__header .lui-select,
+    .lui-list__header .lui-select:focus {
+      box-shadow: none;
+    }
+
+    .action-list {
+      margin-left: 34px;
+      margin-right: 8px;
+      border: 1px solid @border-color;
+      border-top-width: 0;
+      border-bottom-width: 0;
+      background-color: white;
+
+      .action-item {
+        position: relative;
+
+        &:last-child {
+          margin-bottom: 17px;
+        }
+        &.ui-sortable-helper {
+          .add-action-item {
+            display: none;
+          }
+        }
+
+        .add-action-item,
+        .sortable-handle {
+          width: 34px;
+          margin-left: -34px;
+        }
+        .sortable-handle {
+          position: relative;
+          margin-top: 17px;
+          margin-bottom: 17px;
+        }
+        .add-action-item {
+          position: absolute;
+          bottom: -17px;
+          height: 34px;
+        }
+      }
+
+      .action-item-placeholder {
+        background: rgba(0, 0, 0, 0.05);
+      }
+    }
+
+    select > option[disabled] {
+      background-color: #eeeeee;
+      cursor: not-allowed;
+    }
+
+    .codearea {
+      .CodeMirror {
+        height: 140px;
+        border: 1px solid @border-color;
+      }
+
+      .CodeMirror-placeholder {
+        color: lightgray;
+      }
+    }
+  }
+
+  .button-preview {
+    position: relative;
+    margin: 0 auto 10px;
+    height: 80px;
+    width: 300px;
+    background-color: #eee;
+    overflow: auto;
+  }
+
+  .button-container {
+    display: flex;
+    position: absolute;
+    right: 0;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: visible;
+    visibility: hidden;
+    justify-content: center;
+    align-items: center;
+
+    .custom.lui-button, .image.lui-button {
+      min-width: 0;
+    }
+
+    .custom.hico-custom-custom-button,
+    .image.hico-custom-image-button,
+    .simple.hico-custom-simple-button {
+      border-radius: inherit;
+      border: inherit;
+      width: 100%;
+      height: 100%;
+      padding: 6px 10px; // same padding as in tcmenu
+      background-position: center;
+      background-repeat: no-repeat;
+
+      &:not(.lui-active):not(.lui-disabled){
+        background-color: inherit;
+        color: inherit;
+
+        &:hover:not(.no-action-button){
+          background-color: rgba(159,159,159,0.4);
+        }
+        div[data-tcmenu-button] &:hover:not(.no-action-button){
+          background-color: inherit;
+        }
+      }
+
+      &.no-action-button {
+        cursor: default;
+      }
+
+      > div, > div > span, > div > span * {
+        font-family: inherit;
+        font-weight: inherit;
+        font-size: inherit;
+        font-style: inherit;
+      }
+    }
+
+    >.button-state {
+      display: flex;
+      line-height: inherit;
+      justify-content: center;
+      align-items: center;
+      max-width: 100%;
+      visibility: visible;
+      white-space: normal;
+    }
+
+    .lui-overlay-button:hover, .lui-overlay-button.lui-hovered {
+      transition: none;
+    }
+  }
+
+  .alignment-helper {
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+  }
+
+  .no-border-right:not(:hover), .no-border-right .pp-component button:not(:hover) {
+    border-right-width: 0;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+  }
+  .no-border-left:not(:hover), .no-border-left .pp-component button:not(:hover) {
+    border-left-width: 0;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+  }
+  .no-border-right:hover, .no-border-right .pp-component button:hover {
+    box-sizing: border-box;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+  }
+  .no-border-left:hover, .no-border-left .pp-component button:hover {
+    box-sizing: border-box;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+  }
+
+  .right-extendable-group {
+    .pp-component {
+      padding-right: 0;
+    }
+    .lui-input-group .lui-input-group__item:last-child,
+    .lui-button:last-child, .lui-input:last-child {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      margin-right: -1px;
+    }
+  }
+
+  .left-extendable-group {
+    .pp-component {
+      padding-left: 0;
+    }
+    .lui-input-group .lui-input-group__item:last-child,
+    .lui-button:first-child, .lui-input:first-child {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+  }
+
+  .hico-select-dropdown-button,
+  .hico-select-dropdown-button:focus {
+    color: rgba(255, 255, 255, 0); /* IE don't always like "transparent" as color value */
+    width: 28px;
+    min-width: 0;
+  }
+
+
+  /* workarounds for IE */
+  .hico-select-dropdown-button:focus::-ms-value {
+    color: rgba(255, 255, 255, 0);
+  }
+
+}

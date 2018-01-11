@@ -1,0 +1,157 @@
+.no(@prop) {
+  .no-@{prop} {
+      @{prop}: 0;
+  }
+}
+
+.no(@prop; @also) {
+  .no-@{prop}, .no-@{prop} @{also} {
+      @{prop}: 0;
+  }
+}
+
+.hico, .HiCo {
+
+  .auto-scrollable-container {
+    overflow: auto;
+  }
+
+  .bold, .heading {
+    font-weight: bold;
+  }
+  .bolder {
+    font-weight: bolder;
+  }
+
+  .fa {
+    font-family: FontAwesome;
+  }
+
+  .p-xs {
+    padding: 6px;
+  }
+  .p-l-xs, .p-h-xs {
+    padding-left: 6px;
+  }
+  .p-r-xs, .p-h-xs {
+    padding-right: 6px;
+  }
+  .p-t-xs, .p-v-xs {
+    padding-top: 6px;
+  }
+  .p-b-xs, .p-v-xs {
+    padding-bottom: 6px;
+  }
+
+  .m-xs {
+    margin: 6px
+  }
+  .m-l-xs {
+    margin-left: 6px;
+  }
+  .m-r-xs {
+    margin-right: 6px;
+  }
+  .m-t-xs {
+    margin-top: 6px;
+  }
+  .m-b-xs {
+    margin-bottom: 6px;
+  }
+
+  .flex-container {
+    display: flex;
+
+    .flex {
+      flex: 1 1 100%;
+    }
+
+    &.vertical {
+      flex-direction: column;
+    }
+
+    &.j-c-center {
+      justify-content: center;
+    }
+
+    &.j-c-space-between {
+      justify-content: space-between;
+    }
+    &.j-c-space-around {
+      justify-content: space-around;
+    }
+
+    &.j-c-flex-end {
+      justify-content: flex-end;
+    }
+
+    &.a-i-center {
+      align-items: center;
+    }
+  }
+
+  .border-bottom {
+    &.only {
+      border-top-width: 0;
+      border-right-width: 0;
+      border-left-width: 0;
+    }
+    &:not(.keep) {
+      border-bottom: 1px solid @border-color;
+    }
+  }
+
+  .border-top {
+    &.only {
+      border-right-width: 0;
+      border-left-width: 0;
+      border-bottom-width: 0;
+    }
+    &:not(.keep) {
+      border-top: 1px solid @border-color;
+    }
+  }
+
+  .fixedscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(1, 1, 1, 0);
+  }
+
+  .full-width {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .full-height {
+    max-height: 100%;
+    height: 100%;
+  }
+
+  .auto-width {
+    width: auto;
+  }
+
+  .auto-height {
+    height: auto;
+  }
+
+  .bg-checkered {
+    background-image: linear-gradient(45deg, rgba(128, 128, 128, 0.2) 25%, transparent 25%), linear-gradient(-45deg, rgba(128, 128, 128, 0.2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(128, 128, 128, 0.2) 75%), linear-gradient(-45deg, transparent 75%, rgba(128, 128, 128, 0.2) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+
+  .no(~'border');
+  .no(~'border-radius');
+  .no(~'margin');
+  .no(~'padding'; ~'.pp-component');
+  .no(~'padding-left'; ~'.pp-component');
+  .no(~'padding-right'; ~'.pp-component');
+  .no(~'flex-shrink'; ~'.flex');
+  .no(~'flex-grow'; ~'.flex');
+
+}
