@@ -79,15 +79,6 @@ Here you will find the official release version, which can be used directly in Q
 
 [Get trueChart-Menubar!](https://www.highcoordination.com/downloads/truechart-menubar/)
 
-## Build
-
-In order to further develop the trueChart-Menubar, the git-repo must first be cloned. 
-Then perform locally the following step to build an extension that can be used in Qlik Sense®:
-
-1. npm install
-2. npm run build
-2. npm run zip -> builds/tcmenu-[version]_dev.zip 
-
 ### _Qlik Sense Desktop_
 
 For _Qlik Sense Desktop_, simply extract the contents of the ZIP file to your
@@ -99,6 +90,15 @@ For _Qlik Sense Desktop_, simply extract the contents of the ZIP file to your
 2. Click the **Import** button at the bottom,
 3. In the pop-up dialog, click on **Choose File** to browse the downloaded folder,
 4. Click on **Import**.
+
+## Build
+
+In order to further develop the trueChart-Menubar, the git-repo must first be cloned. 
+Then perform locally the following step to build an extension that can be used in Qlik Sense®:
+
+1. npm install
+2. npm run build
+2. npm run zip -> builds/tcmenu-[version]_dev.zip 
 
 ## Documentation
 
