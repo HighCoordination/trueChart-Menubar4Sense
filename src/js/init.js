@@ -958,6 +958,8 @@ export function Extension(){
 			loadEditor().catch(err => Logger.error('Error ocurred while button-editor was loaded', err));
 		}
 
+		$scope.applyColors(layout);
+		$scope.applyStyles(layout.appearance);
 		$scope.updateListItemsProps($scope.listItemsDub, layout);
 		$scope.updateSelectionLabels();
 
