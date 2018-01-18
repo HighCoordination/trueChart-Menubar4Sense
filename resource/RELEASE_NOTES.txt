@@ -1,7 +1,17 @@
+trueChart-Menubar v1.1.1
+====================================================================================
+++ DATE: 		2018-1-18
+++ BUILD:		v1.1.1_159
+++ DESCRIPTION:	trueChart-Menubar v1.1.1 (v1.1 Service Release 1)
+
+** Bugs
+    * [HICO-40627] - Text settings not changed in edit mode (analysis mode correct)
+    * [HICO-40646] - JS-Exception while migration from v.1.0.4 to v1.1.0
+
 trueChart-Menubar v1.1.0
 ====================================================================================
-++ DATE: 		##DATE##
-++ BUILD:		v1.1.0_##BUILD_NUMBER##
+++ DATE: 		2018-1-4
+++ BUILD:		v1.1.0_156
 ++ DESCRIPTION:	trueChart-Menubar v1.1.0 (v1.1 Major Release - Export & master, drill down & expression-based dimension support)
 
 ** Features and Improvements

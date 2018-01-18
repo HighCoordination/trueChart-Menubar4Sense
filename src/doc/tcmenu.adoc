@@ -52,14 +52,6 @@ An upgrade to the current version requires a migration. If this migration is not
 * [HICO-40461] - New position of edit button state in properties panel
 * [HICO-40463] - Performance: Reduced intial loading time (due to reduced count of extension assets)
 
-==== Bugfixes
-
-* [HICO-2726] - Menubar destroys representation of Sense filter pane objects in same sheet
-* [HICO-2905] - Button+ UI code editor not working
-* [HICO-2939] - [JS-Exception] due to incorrect default value expressions in single select items
-* [HICO-40454] - Custom actions are not visible initially after reopening button+ editor
-* [HICO-40487] - [JS-Exception] TypeError: Cannot read property 'layout' of undefined
-
 ==== Migrate to {tcmenu} ##VERSION
 
 The new {tcmenu} release introduces the support of master and dynamic dimensions.
@@ -643,9 +635,39 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 
 <<<
 [appendix]
-== Previous Releases
+== Releases Notes
 
 :sectnums!:
+=== {tcmenu} v1.1.1
+
+DATE: 		2018-1-18
+
+** Bugs
+    * [HICO-40627] - Text settings not changed in edit mode (analysis mode correct)
+    * [HICO-40646] - JS-Exception while migration from v.1.0.4 to v1.1.0
+
+=== {tcmenu} v1.1.0
+
+DATE: 		2018-1-4
+
+** Features and Improvements
+    * [HICO-2178] - Support of Sense PDF export function for TC-Menu
+    * [HICO-2524] - Improvement when using master item dimensions and expression-based dimensions
+    * [HICO-2560] - Support of DrillDown-dimensions in selections (Single, Sense and Multi)
+    * [HICO-2601] - Specify expressions for dimension defintion directly
+    * [HICO-2889] - Option to enter title, subtitle or footnote
+    * [HICO-2890] - Conditional display and hiding of menu elements
+    * [HICO-40445] - Mark button+ actions for sequential or parallel execution (Execute in order)
+    * [HICO-40461] - New position of edit button state in properties panel
+    * [HICO-40463] - Performance: Reduced initial loading time (due to reduced count of extension assets)
+
+** Bugs
+    * [HICO-2726] - Menubar destroys representation of Sense filter pane objects in same sheet
+    * [HICO-2905] - Button+ UI code editor not working
+    * [HICO-2939] - [JS-Exception] due to incorrect default value expressions in single select items
+    * [HICO-40454] - Custom actions are not visible initially after reopening button+ editor
+    * [HICO-40487] - [JS-Exception] TypeError: Cannot read property 'layout' of undefined
+
 === {tcmenu} v1.0.8
 
 DATE: 		2017-11-22

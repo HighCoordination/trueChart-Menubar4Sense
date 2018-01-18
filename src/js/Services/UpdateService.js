@@ -242,17 +242,19 @@ export default class UpdateService {
 				qData: {dimId: '/dimId', listDef: '/listDef', listLibId: '/listLibId'}
 			};
 
-			// we can stop here, if we do not have any dimensions to update
-			if(!properties.dimensions){
-				return Promise.resolve(updateObject);
-			}
-
 			// add new property "Show Condition"
 			(properties.listItems || []).forEach(listItem =>{
 				if(listItem.showCondition === undefined){
 					listItem.showCondition = '';
 				}
 			});
+
+			// we can stop here, if we do not have any dimensions to update
+			if(!properties.dimensions || !properties.dimensions.length){
+				properties.dimensions = []; // make sure we have a valid dimensions array
+				updateObject.listObjects = [];
+				return Promise.resolve(updateObject);
+			}
 
 			// ensure correct mapping between dimensions and listItems by using dimensions cId as unique key
 			updateDimensions(properties);

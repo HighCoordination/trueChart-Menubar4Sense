@@ -38,6 +38,7 @@ export function Extension(){
 		let _app = qlik.currApp(/*$scope*/), // reference must have backandApi as property ($scope -> backendApi -> model)
 			_waitForUpdates, // Promise, which will be resolved, when updates are finished
 			_model = $scope.backendApi.model,
+			_originalModel = $scope.backendApi.model,
 			_waitForVariable = qlik.Promise.resolve(),
 			_selectionsInProgress = false,
 			_ready = qlik.Promise.defer(),
@@ -129,6 +130,21 @@ export function Extension(){
 
 		//##################### Initialization #####################
 		_waitForUpdates.then(updateObj =>{
+			if(updateObj.isUpdatable === false){
+				// update isUpdatable property with "real" values. In case of required updates, but not updatable model (published app) it will be false
+				$scope.isUpdatable = updateObj.isUpdatable;
+
+				// use updated model in case of not updatable extension
+				_model = updateObj.model;
+
+				// use layout from updated model (session object) in case of no updatable model, otherwise it comes from scopes prototype
+				$scope.layout = _model.layout;
+
+				return updateObj;
+			}else{
+				return qlikService.getLayout(_model).then(() => updateObj);
+			}
+		}).then(updateObj =>{
 			if($scope.isPrinting){
 				$scope.initReady = true;
 				return; // in case of printing, nothing more to do
@@ -140,18 +156,7 @@ export function Extension(){
 			let listObjects = updateObj.listObjects,
 				objectIds = listObjects
 					? listObjects.map(obj => obj.id)
-					: _model.layout.qChildList.qItems.map(item => item.qInfo.qId);
-
-			if(typeof updateObj.isUpdatable === 'boolean'){
-				// update isUpdatable property with "real" values. In case of required updates, but not updatable model (published app) it will be false
-				$scope.isUpdatable = updateObj.isUpdatable;
-
-				// use updated model in case of not updatable extension
-				_model = updateObj.model;
-
-				// use layout from updated model (session object) in case of no updatable model, otherwise it comes from scopes prototype
-				$scope.layout = _model.layout;
-			}
+					: _originalModel.layout.qChildList.qItems.map(item => item.qInfo.qId);
 
 			// set active select items
 			setSelectItems($scope, $scope.layout.listItems);
