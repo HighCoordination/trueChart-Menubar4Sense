@@ -24,7 +24,7 @@ gulp.task('clean', function(){
 gulp.task('resources', function(){
 	let qextFile = _env.PKG_NAME + '.qext';
 
-	let textData = gulp.src(`${_env.resourceDir}/{${qextFile},config.js,RELEASE_NOTES.txt}`)
+	let textData = gulp.src(`${_env.resourceDir}/{${qextFile},config.js}`)
 		.pipe(replace('##DATE##', _env.DATE))
 		.pipe(replace('##VERSION##', _env.VERSION))
 		.pipe(replace('##BUILD_NUMBER##', _env.BUILD_NUMBER))

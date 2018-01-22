@@ -71,7 +71,7 @@ export function Extension(){
 			$scope.selState = _app.selectionState();
 			$scope.selState.OnData.bind(updateSelectionLabels);
 		}else{
-			_waitForUpdates = Promise.resolve();
+			_waitForUpdates = Promise.resolve({});
 		}
 		//##################### End Updates ###################
 
@@ -112,6 +112,7 @@ export function Extension(){
 		$scope.updateSelectionLabels = updateSelectionLabels;
 		$scope.handleButtonStates = handleButtonStates;
 		$scope.updateListItemsProps = updateListItemsProps;
+		$scope.removePropsForPrinting = removePropsForPrinting;
 		$scope.checkAndUpdateListObjects = checkAndUpdateListObjects;
 		$scope.checkExpressionCondition = checkExpressionCondition;
 
@@ -388,7 +389,7 @@ export function Extension(){
 				removeListener(_eventListener, _model.id); // remove previous listener before adding new ones
 				_eventListener[_model.id] = [
 					qlikService.bindListener(_model, 'Validated', setReady),
-				 	qlikService.bindListener(_model, 'Invalidated', () => setReady(false))
+					qlikService.bindListener(_model, 'Invalidated', () => setReady(false))
 				];
 
 				if(_selectionsInProgress){
@@ -751,7 +752,7 @@ export function Extension(){
 						}else{
 							// in case of other values ('1') it is important that the variable is set despite errors
 							return _app.variable.setStringValue(name, value)
-								.catch(qlikService.engineErrorHandler(_app.variable, 'setStringValue', [name, value]));
+							.catch(qlikService.engineErrorHandler(_app.variable, 'setStringValue', [name, value]));
 						}
 					}
 				});
@@ -884,6 +885,18 @@ export function Extension(){
 				});
 			});
 		}
+
+		function removePropsForPrinting(listItemsDub){
+			listItemsDub.forEach(function(listItem){
+
+				if(listItem.type === 'Group'){
+					removePropsForPrinting(listItem.groupItems)
+				}
+
+				delete listItem.listBox;
+
+			});
+		}
 	}
 
 	function getDimTitle(dimId, dimensions){
@@ -931,6 +944,7 @@ export function Extension(){
 
 		if($scope.isPrinting){
 			$scope.listItemsDub = layout.exportListItemsDub;
+			$scope._listObjects = layout.exportListObjects;
 
 			paintingPromise.resolve();
 
@@ -970,6 +984,17 @@ export function Extension(){
 
 		if(!$scope.isPrinting){
 			layout.exportListItemsDub = $scope.listItemsDub;
+			layout.exportListObjects = {};
+
+			$scope.removePropsForPrinting(layout.exportListItemsDub);
+
+			$scope._listObjects && Object.keys($scope._listObjects).forEach(function(key) {
+				if($scope._listObjects[key]){
+					layout.exportListObjects[key] = $scope._listObjects[key].layout;
+				}
+			});
+
+
 		}
 
 		paintingPromise.resolve();

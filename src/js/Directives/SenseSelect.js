@@ -6,7 +6,7 @@ define([
 
 	qvangular.directive('senseselect', ['utilService', prefix + 'QlikService', SenseSelect]);
 
-	function SenseSelect(utilService){
+	function SenseSelect(utilService, qlikService){
 		return {
 			restrict: 'E',
 			scope: {
@@ -26,6 +26,10 @@ define([
 					$element.on('$destroy', onDestroy);
 
 					$scope.utilService = utilService;
+
+					if(qlikService.isPrinting()){
+						$scope.item.show = $scope.item.isOpen = false;
+					}
 
 					$scope.openSenseSelect = function(item){
 						if(qlik.navigation.getMode() !== "edit"){
@@ -84,6 +88,8 @@ define([
 									item.listBox = visual;
 									visual.show($element.find('#QV05_' + $scope.itemId)[0]);
 									$scope.dimensionInfo = visual.model.layout.qListObject.qDimensionInfo;
+
+									$scope.parentscope.removePropsForPrinting($scope.parentscope.layout.exportListItemsDub);
 								});
 							}else{
 								console.warn("No Dimension Selected");

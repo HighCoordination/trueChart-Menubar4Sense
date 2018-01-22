@@ -25,9 +25,7 @@ from version 3.0.0 up to currently latest version November 2017 Patch 1 includin
 
 ## Update
 
-### trueChart-Menubar v1.1.0
-
-**2017-12-21**
+### trueChart-Menubar v1.1.x
 
 > **Features and Improvements**
 * **Support of Sense PDF export function** [HICO-2178]
