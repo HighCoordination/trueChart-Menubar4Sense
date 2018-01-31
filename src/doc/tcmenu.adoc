@@ -4,7 +4,7 @@ HighCoordination GmbH <info@highcoordination.de>
 :Author:    HighCoordination GmbH
 :Email:     <info@highcoordination.de>
 :Date:      ##BUILDDATE
-:Revision:  0.1
+:Revision:  ##VERSION
 :tcmenu:    trueChart Menubar
 :title-logo-image: image:wortbildmarke.png[Logo,400]
 // :title-page-background-image: image:background.jpg[]
@@ -40,17 +40,15 @@ An upgrade to the current version requires a migration. If this migration is not
 
 ==== Features and Improvements
 
-[.text-left]
-* [HICO-2178] - Support of Sense PDF export function for TC-Menu
-* [HICO-2524] - Improvement when using master item dimensions and expression-based +
-                dimensions
-* [HICO-2560] - Support of DrillDown-Dimensions in Selections (Single,Sense and Multi)
-* [HICO-2601] - Specify expressions for dimension defintion directly
-* [HICO-2889] - Technical (MashUp) or visible (on the object) titel, subtitle or footnote
-* [HICO-2890] - Conditional display and hiding of menu elements
-* [HICO-40445] - Mark button+ actions for sequential or parallel execution (Execute in order)
-* [HICO-40461] - New position of edit button state in properties panel
-* [HICO-40463] - Performance: Reduced intial loading time (due to reduced count of extension assets)
+* *Support of Sense PDF export function* [HICO-2178]
+* *Support of drill-down dimensions* in selections (Single, Sense and Multi) [HICO-2560]
+* *Conditional display and hiding of menu elements* [HICO-2890]
+* Improvement when using master item dimensions and expression-based dimensions [HICO-2524]
+* Specify expressions for dimension definition directly [HICO-2601]
+* Option to enter title, subtitle or footnote [HICO-2889]
+* Mark button+ actions for parallel (faster) or sequential (in order)execution [HICO-40445]
+* New position of edit button state in properties panel [HICO-40461]
+* Performance: Reduced initial loading time [HICO-40463]
 
 ==== Migrate to {tcmenu} ##VERSION
 
@@ -638,88 +636,104 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 == Releases Notes
 
 :sectnums!:
-=== {tcmenu} v1.1.1
+=== {tcmenu} ##VERSION
 
-DATE: 		2018-1-18
+##BUILDDATE
 
 ** Bugs
-    * [HICO-40627] - Text settings not changed in edit mode (analysis mode correct)
-    * [HICO-40646] - JS-Exception while migration from v.1.0.4 to v1.1.0
+* Exception when creating new dimensions in extension as master item [HICO-40671]
+* Inline icon in button text is not displayed [HICO-40712]
+
+=== {tcmenu} v1.1.2
+
+2018-1-22
+
+** Bugs
+* Sense export was broken with version 1.1.1 [HICO-40659]
+
+=== {tcmenu} v1.1.1
+
+2018-1-18
+
+** Bugs
+* General text settings do not affect correctly [HICO-40627]
+* JS-Exception while migration from v.1.0.4 to v1.1.0 [HICO-40646]
 
 === {tcmenu} v1.1.0
 
-DATE: 		2018-1-4
+2018-1-4
 
 ** Features and Improvements
-    * [HICO-2178] - Support of Sense PDF export function for TC-Menu
-    * [HICO-2524] - Improvement when using master item dimensions and expression-based dimensions
-    * [HICO-2560] - Support of DrillDown-dimensions in selections (Single, Sense and Multi)
-    * [HICO-2601] - Specify expressions for dimension defintion directly
-    * [HICO-2889] - Option to enter title, subtitle or footnote
-    * [HICO-2890] - Conditional display and hiding of menu elements
-    * [HICO-40445] - Mark button+ actions for sequential or parallel execution (Execute in order)
-    * [HICO-40461] - New position of edit button state in properties panel
-    * [HICO-40463] - Performance: Reduced initial loading time (due to reduced count of extension assets)
+* *Support of Sense PDF export function* [HICO-2178]
+* *Support of drill-down dimensions* in selections (Single, Sense and Multi) [HICO-2560]
+* *Conditional display and hiding of menu elements* [HICO-2890]
+* Improvement when using master item dimensions and expression-based dimensions [HICO-2524]
+* Specify expressions for dimension definition directly [HICO-2601]
+* Option to enter title, subtitle or footnote [HICO-2889]
+* Mark button+ actions for parallel (faster) or sequential (in order)execution [HICO-40445]
+* New position of edit button state in properties panel [HICO-40461]
+* Performance: Reduced initial loading time [HICO-40463]
 
 ** Bugs
-    * [HICO-2726] - Menubar destroys representation of Sense filter pane objects in same sheet
-    * [HICO-2905] - Button+ UI code editor not working
-    * [HICO-2939] - [JS-Exception] due to incorrect default value expressions in single select items
-    * [HICO-40454] - Custom actions are not visible initially after reopening button+ editor
-    * [HICO-40487] - [JS-Exception] TypeError: Cannot read property 'layout' of undefined
+* Menubar destroys representation of Sense filter pane objects in same sheet [HICO-2726]
+* Button+ UI code editor not working [HICO-2905]
+* [JS-Exception] due to incorrect default value expressions in single select items [HICO-2939]
+* Custom actions are not visible initially after reopening button+ editor [HICO-40454]
+* [JS-Exception] TypeError: Cannot read property 'layout' of undefined [HICO-40487]
 
 === {tcmenu} v1.0.8
 
-DATE: 		2017-11-22
+2017-11-22
 
-* Features and Improvements
-    ** [HICO-2324] - Automatic line breaks in button+ text
+** Features and Improvements
+* *Support of Sense 2017.11 Release* (works also with v1.0.7)
+* Button+: Automatic line breaks in button+ text [HICO-2324]
 
-* Bugs
-    ** [HICO-2897] - Button+ overwrites default hover color of the tCMenu, although no hover color is defined in Button+
-    ** [HICO-2905] - Button+ code editor not working in tc menubar
-    ** [HICO-2933] - Scrolling with the mouse wheel in Sense Select does not work with IE11
-    ** [HICO-28625] - Single select description text im menubar not initial visible on iPad
-    ** [HICO-31517] - Sense select breakes after selection with dynamic dimensions
+** Bugs
+* [HICO-2897] - Button+ overwrites default hover color of the tCMenu, although no hover color is defined in Button+
+* [HICO-2905] - Button+ code editor not working in tc menubar
+* [HICO-2933] - Scrolling with the mouse wheel in Sense Select does not work with IE11
+* [HICO-28625] - Single select description text im menubar not initial visible on iPad
+* [HICO-31517] - Sense select breakes after selection with dynamic dimensions
 
 === {tcmenu} v1.0.7
 
-DATE: 		2017-09-28
+2017-09-28
 
-* Features and Improvements
-    ** [HICO-2572] - Support of Sense 2017.09 Release
-    ** [HICO-2718] - Button+: Custom CSS can defined as expression
-    ** [HICO-2834] - HiCo.API: Code-Notification after {tcmenu} painting
+** Features and Improvements
+* *Support of Sense 2017.09 Release* [HICO-2572]
+* Button+: Custom CSS can defined as expression [HICO-2718]
+* HiCo.API: Code-Notification after {tcmenu} painting [HICO-2834]
 
 === {tcmenu} v1.0.6
 
-DATE: 		2017-08-15
+2017-08-15
 
-* Features and Improvements
-    ** [HICO-2301] - Button+: Definition of padding & margin
-    ** [HICO-2506] - Button+: Image library (apps include used images for export)
-    ** [HICO-2559] - Feature to hide sense navigation, title and selection bar
-    ** [HICO-2687] - Button+: Add new toggle fullscreen action
+** Features and Improvements
+* *Option to hide sense navigation, title and selection bar* [HICO-2559]
+* Button+: Definition of padding & margin [HICO-2301]
+* Button+: Image library (apps include used images for export) [HICO-2506]
+* Button+: Add new toggle fullscreen action [HICO-2687]
 
 === {tcmenu} v1.0.5
 
-DATE: 		2017-07-27
+2017-07-27
 
-* Features and Improvements
-    ** [HICO-2571] - Support of Sense 2017.07 Release
+** Features and Improvements
+* *Support of Sense 2017.07 Release* [HICO-2571]
 
-* Bug
-    ** [HICO-2419] - Initial logo does not match the object size
-    ** [HICO-2598] - Change of background color not applied
-    ** [HICO-2675] - JS Exception on click on button dropdown
+** Bug
+* [HICO-2419] - Initial logo does not match the object size
+* [HICO-2598] - Change of background color not applied
+* [HICO-2675] - JS Exception on click on button dropdown
 
 === {tcmenu} v1.0.4
 
-DATE: 		2017-06-28
+2017-06-28
 
-* Features and Improvements
-    ** [HICO-2612] - Improvement in handling session timeouts (selections fail, display not correct)
-    ** [HICO-2620] - Add option to apply default selections sequentially
+** Features and Improvements
+* Improvement in handling session timeouts (selections fail, display not correct) [HICO-2612]
+* Add option to apply default selections sequentially [HICO-2620]
 
 * Bug
     ** [HICO-2453] - Sense Select and Single Select broken with Error from Engine after toggeling qlikSense Mode
@@ -729,13 +743,13 @@ DATE: 		2017-06-28
 
 === {tcmenu} v1.0.3
 
-DATE: 		2017-06-15
+2017-06-15
 
-* Features and Improvements
-    ** [HICO-2369] - Copy dimension name as default value to label
-    ** [HICO-2450] - Show action cursor and hover color only if button actions defined
-    ** [HICO-2473] - Renaming tc-Menu > {tcmenu}
-    ** [HICO-2531] - Hidden field support for select actions in button+
+** Features and Improvements
+* Copy dimension name as default value to label [HICO-2369]
+* Show action cursor and hover color only if button actions defined [HICO-2450]
+* Renaming tc-Menu > {tcmenu} [HICO-2473]
+* Hidden field support for select actions in button+ [HICO-2531]
 
 * Bug
     ** [HICO-2413] - Initial selection is not reset correctly when using dynamic (expression) default selection value for Single Selects
@@ -756,29 +770,29 @@ DATE: 		2017-06-15
 
 === {tcmenu} v1.0.2
 
-DATE: 		2017-05-05
+2017-05-05
 
-* Features and Improvements
-    ** [HICO-2386] - Performance Improvement: Improve variable updates
-    ** [HICO-2391] - Indication of running selections as calculation variable and
-                    minor improvements on button action editor (sorting & add new action)
-    ** [HICO-2392] - User documentation in "Apperance/Info" section in properties panel
+** Features and Improvements
+*  Performance Improvement: Improve variable updates [HICO-2386]
+*  Indication of running selections as calculation variable and
+minor improvements on button action editor (sorting & add new action) [HICO-2391]
+*  User documentation in "Apperance/Info" section in properties panel [HICO-2392]
 
 * Bug
     ** [HICO-2393] - Default selections lead to endles loop when fields hidden by data script
 
 === {tcmenu} v1.0.1
 
-DATE: 		2017-04-25
+2017-04-25
 
-* Features and Improvements
-    ** [HICO-1949] - Position adjustment settings for trueChart & {tcmenu} to remove spaces in sense grid object layout
-    ** [HICO-2224] - Horizontal menu is displayed in the small device (less iPad) as a vertical menu
-    ** [HICO-2225] - Font-Family and Text-Style Settings
-    ** [HICO-2226] - MashUp Support for Button+ and {tcmenu} (incl. HiCo MashUp Template Update)
-    ** [HICO-2227] - Custom Scrolling for TCMenu
-    ** [HICO-2243] - Touch support for trueChart & {tcmenu}
-    ** [HICO-2255] - Performance improvement regarding button+ and trueChart communication with sense
+** Features and Improvements
+* Position adjustment settings for trueChart & {tcmenu} to remove spaces in sense grid object layout [HICO-1949]
+* Horizontal menu is displayed in the small device (less iPad) as a vertical menu [HICO-2224]
+* Font-Family and Text-Style Settings [HICO-2225]
+* MashUp Support for Button+ and {tcmenu} (incl. HiCo MashUp Template Update) [HICO-2226]
+* Custom Scrolling for TCMenu [HICO-2227]
+* Touch support for trueChart & {tcmenu} [HICO-2243]
+* Performance improvement regarding button+ and trueChart communication with sense [HICO-2255]
 
 * Bug
     ** [HICO-2216] - Selection label is empty after opening sheet
@@ -805,10 +819,9 @@ DATE: 		2017-04-25
 
 === {tcmenu} v1.0.0
 
-DATE: 		2017-03-23
+2017-03-23
 
-* Epic
-    ** [HICO-1983] - {tcmenu} Extension
-    ** [HICO-1984] - Trigger Action Button (Button+), supports multiple trigger actions
-                    (OnLoad, OnSelection, OnClick, BeforNavigation) and advanced button styling
-    ** [HICO-2193] - User based customizable button+ actions per extension ({tcmenu} & trueChart)
+** Epic
+* {tcmenu} Extension [HICO-1983]
+* *Trigger Action Button* (Button+), supports multiple trigger actions (OnLoad, OnSelection, OnClick, BeforNavigation) and advanced button styling [HICO-1984]
+* *User based customizable button+ actions* per extension ({tcmenu} & trueChart) [HICO-2193]

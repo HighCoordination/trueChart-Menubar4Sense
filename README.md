@@ -3,7 +3,7 @@
 The **trueChart-Menubar** allows for vertical and horizontal buttons and selections 
 (fields, master dimensions and variables) as well as unlimited trigger based Actions. 
 This visualization extension supports [Qlik Sense®](http://www.qlik.com/us/products/qlik-sense) 
-from version 3.0.0 up to currently latest version November 2017 Patch 1 including exporting and story mode capability. 
+from version 3.0.0 up to currently latest version November 2017 Patch 2 including exporting and story mode capability. 
 
 [Get trueChart-Menubar!](https://www.highcoordination.com/downloads/truechart-menubar/) 
 
@@ -52,7 +52,7 @@ from version 3.0.0 up to currently latest version November 2017 Patch 1 includin
 
 ### Qlik Sense® Support
 trueChart-Menubar supports Qlik Sense® from version 3.0.0 up to currently
-latest version November 2017 Patch 1 including exporting and story mode capability.
+latest version November 2017 Patch 2 including exporting and story mode capability.
 
 #### nPrinting Support
 The trueChart-Menubar does not yet fully support nPrinting. Expression updates are not 

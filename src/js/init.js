@@ -197,6 +197,8 @@ export function Extension(){
 						// make sure we do not create list objects twice by "reserving" dimId
 						$scope._listObjects[dimId] = null;
 						waitForObject = createListObject(qDimension);
+					}else{
+						return Promise.resolve(null);
 					}
 
 					return waitForObject.then(listObject => $scope._listObjects[dimId] = listObject);
@@ -887,7 +889,7 @@ export function Extension(){
 		}
 
 		function removePropsForPrinting(listItemsDub){
-			listItemsDub.forEach(function(listItem){
+			listItemsDub && listItemsDub.forEach(function(listItem){
 
 				if(listItem.type === 'Group'){
 					removePropsForPrinting(listItem.groupItems)
@@ -959,7 +961,6 @@ export function Extension(){
 			$scope.wasEditMode = false;
 
 			setSelectItems($scope, $scope.layout.listItems);
-			$scope.checkAndUpdateListObjects().then(proms => Promise.all(proms)).then(listObjects => $scope.initListObjects(listObjects));
 
 		}else if($scope.inEditMode()){
 			if(!$scope.wasEditMode){
@@ -968,7 +969,8 @@ export function Extension(){
 				$scope.utilService.closeMenus($scope.listItemsDub);
 			}
 
-			setSelectItems($scope, $scope.layout.listItems);
+			$scope.checkAndUpdateListObjects().then(proms => Promise.all(proms)).then(listObjects => $scope.initListObjects(listObjects));
+			setSelectItems($scope, layout.listItems);
 		}
 
 		// load (dynamically) components which are required in edit mode only
@@ -1056,6 +1058,11 @@ export function Extension(){
 
 		const valIndex = isElemNumber ? value : getIndexByText(qList.qDataPages, value), // get element number (qElemNumber)
 			args = ['/qListObjectDef', [valIndex], false, false]; // path, values, toggle, softLock
+
+		if(typeof valIndex !== 'number'){
+			Logger.warn('trying to select a value that does not exists in dimension', value);
+			return Promise.resolve();
+		}
 
 		// select value (without toggle/softLock flags)
 		return listObject.selectListObjectValues(...args).catch(qlikService.engineErrorHandler(listObject, 'selectListObjectValues', ...args));
