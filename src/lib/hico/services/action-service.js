@@ -1,24 +1,18 @@
-import {prefix} from '../prefix';
+import * as qvangular from 'qvangular';
+import * as Modal from '../directives/modal-dialog';
+import {QlikService, qlik} from './qlik-service';
+import {getTranslation, onChange} from '../translations/translation';
+import {Logger} from '../logger';
+import {Toastr} from '../common/toastr';
+import {ConfigService} from './config-service';
 
-define([
-	'qvangular',
-	'qlik',
-	'../translations/translation',
-	'../directives/modal-dialog',
-	'./qlik-service',
-	'./config-service'
-], function(qvangular, qlik, translation, Modal){
+const qlikService = QlikService.getInstance(),
+	_configService = ConfigService.getInstance();
 
-	// Register the angular service
-	qvangular.service(prefix + 'ActionService', [prefix + 'QlikService', prefix + 'ConfigService', ActionService]);
+export class ActionService {
 
-	ActionService.getInstance = function(){
-		return qvangular.getService(prefix + 'ActionService');
-	};
-
-	return ActionService;
-
-	function ActionService(qlikService, configService){
+	constructor(){
+		ActionService._instance = this;
 
 		let _ready = qlik.Promise.defer(),
 			_actions = getActionsDefinition(),
@@ -29,7 +23,9 @@ define([
 		 * Collection of various qlikList layouts
 		 * @type {{variables: null, fields: null, bookmarks: null, stories: null, sheets: null, dimensions: null, measures: null, media: null}}
 		 */
-		let _listLayout = {
+		const _listLayout = {
+			appIds: null,
+			apps: {},
 			variables: null,
 			fields: null,
 			bookmarks: null,
@@ -62,8 +58,8 @@ define([
 				'none': {
 					type: 'None',
 					name: 'none',
-					label: translation.getTranslation('NO_ACTION'),
-					description: translation.getTranslation('NO_ACTION_WILL_BE_PERFORMED'),
+					label: getTranslation('NO_ACTION'),
+					description: getTranslation('NO_ACTION_WILL_BE_PERFORMED'),
 					parameters: ['none'],
 					execute: function(){ /* No action */}
 				},
@@ -71,8 +67,8 @@ define([
 				'custom': {
 					type: 'Custom',
 					name: 'custom',
-					label: translation.getTranslation('CUSTOM'),
-					description: translation.getTranslation('CUSTOM_ACTION'),
+					label: getTranslation('CUSTOM'),
+					description: getTranslation('CUSTOM_ACTION'),
 					parameters: ['custom'],
 					execute: function($, qlik, $scope, $element, contextType, evt, params){
 						try{
@@ -88,34 +84,34 @@ define([
 				'nextSheet': {
 					type: 'Navigation',
 					name: 'nextSheet',
-					label: translation.getTranslation('NEXT_SHEET/PAGE'),
-					description: translation.getTranslation('NAVIGATE_TO_NEXT_SHEET_OR_PAGE_IN_MASHUP'),
+					label: getTranslation('NEXT_SHEET/PAGE'),
+					description: getTranslation('NAVIGATE_TO_NEXT_SHEET_OR_PAGE_IN_MASHUP'),
 					parameters: ['none'],
 					execute: function(){
 						qlik.navigation.nextSheet();
 
 						// Dispatch an "nextPage" event for navigation in MashUps
-						dispatchCustomEvent('nextPage', null);
+						ActionService.dispatchCustomEvent('nextPage', null);
 					}
 				},
 				'prevSheet': {
 					type: 'Navigation',
 					name: 'prevSheet',
-					label: translation.getTranslation('PREVIOUS_SHEET/PAGE'),
-					description: translation.getTranslation('NAVIGATE_TO_PREVIOUS_SHEET_OR_PAGE_IN_MASHUP'),
+					label: getTranslation('PREVIOUS_SHEET/PAGE'),
+					description: getTranslation('NAVIGATE_TO_PREVIOUS_SHEET_OR_PAGE_IN_MASHUP'),
 					parameters: ['none'],
 					execute: function(){
 						qlik.navigation.prevSheet();
 
 						// Dispatch an "nextPage" event for navigation in MashUps
-						dispatchCustomEvent('previousPage', null);
+						ActionService.dispatchCustomEvent('previousPage', null);
 					}
 				},
 				'gotoSheet': {
 					type: 'Navigation',
 					name: 'gotoSheet',
-					label: translation.getTranslation('GO_TO_SHEET'),
-					description: translation.getTranslation('NAVIGATE_TO_A_SPECIFIC_SHEET'),
+					label: getTranslation('GO_TO_SHEET'),
+					description: getTranslation('NAVIGATE_TO_A_SPECIFIC_SHEET'),
 					parameters: ['sheetId'],
 					execute: function(params){
 						if(!params[0]){
@@ -127,8 +123,8 @@ define([
 				'gotoStory': {
 					type: 'Navigation',
 					name: 'gotoStory',
-					label: translation.getTranslation('GO_TO_STORY'),
-					description: translation.getTranslation('NAVIGATE_TO_A_SPECIFIC_STORY'),
+					label: getTranslation('GO_TO_STORY'),
+					description: getTranslation('NAVIGATE_TO_A_SPECIFIC_STORY'),
 					parameters: ['storyId'],
 					execute: function(params){
 						if(!params[0]){
@@ -140,14 +136,184 @@ define([
 				'gotoURL': {
 					type: 'Navigation',
 					name: 'gotoURL',
-					label: translation.getTranslation('GO_TO_URL'),
-					description: translation.getTranslation('NAVIGATE_TO_A_SPECIFIC_WEBSITE'),
+					label: getTranslation('GO_TO_URL'),
+					description: getTranslation('NAVIGATE_TO_A_SPECIFIC_WEBSITE'),
 					parameters: ['url', 'urlTarget', 'mashupOnly'],
 					execute: function(params){
-						if(!params[0] || params[2] && qlik.navigation.inClient){
+						if(!params[0] || params[2] && qlikService.inClient()){
 							return;
 						}
 						window.open(params[0], params[1]);
+					}
+				},
+				'gotoApp': {
+					type: 'Navigation',
+					name: 'gotoApp',
+					label: getTranslation('GO_TO_APP'),
+					description: getTranslation('NAVIGATE_TO_A_SPECIFIC_APP'),
+					parameters: ['appId', 'appSheetId', 'clearSelections', 'currentSelections', 'appTarget', 'customWindowName', 'email', 'emailSubject', 'emailBody'],
+					optionalLabel: getTranslation('OPTIONAL_PARAMETERS'),
+					optionalParameters: {
+						'selectValues': {
+							label: getTranslation('SELECT_VALUE(S)'),
+							parameters: ['appFieldName', 'fieldValues']
+						},
+						'applyBookmark': {
+							label: getTranslation('APPLY_BOOKMARK_SELECTION'),
+							parameters: ['appBookmarkId']
+						}
+					},
+					execute: function(params, optionalParams){
+						let url = `${QlikService.biURL}sense/app/${encodeURIComponent(params[0] || '')}/sheet/${params[1]}/state/analysis/`,
+							clearSelections = params[2],
+							currentSelections = params[3],
+							target = params[4],
+							customWindowName = params[5],
+							email = params[6] || '',
+							emailSubject = params[7] || '',
+							emailBody = (params[8] || '').replace(/(\\n|<br>|<br\/>)/g, '\n'),
+							options = '',
+							selections = {},
+							selectionStr = '',
+							bookmark = '';
+
+						if(clearSelections){
+							options += 'options/clearselections/';
+						}
+
+						if(currentSelections){
+							// collect all current selections, to omit duplications in the url
+							qlikService.selectionProvider.getCurrentSelections().forEach(selection =>{
+								let list = selections[selection.fieldName];
+								if(!list){
+									list = selections[selection.fieldName] = [];
+								}
+								selections[selection.fieldName] = list.concat(selection.selectedValues.map(v => '[' + v + ']'));
+							});
+						}
+
+						optionalParams && optionalParams.forEach(param =>{
+							let fieldName, values, list;
+							switch(param.type){
+								case 'selectValues':
+									fieldName = param.params[0];
+									values = param.params[1];
+									if(fieldName){
+										list = selections[fieldName];
+										if(!list){
+											list = selections[fieldName] = [];
+										}
+										selections[fieldName] = list.concat(values.split(';').map(v => '[' + v + ']'));
+									}
+									break;
+								case 'applyBookmark':
+									if(param.params[0]){
+										bookmark += `bookmark/${param.params[0]}/`;
+									}
+									break;
+							}
+						});
+
+						// build selections string
+						const fieldNames = Object.keys(selections);
+						if(fieldNames.length){
+							selectionStr = fieldNames.reduce((str, fieldName) =>{
+								return str + `select/${encodeURIComponent(fieldName)}/${encodeURIComponent(selections[fieldName].join(';'))}/`;
+							}, '');
+						}
+
+						url += options + selectionStr + bookmark;
+
+						switch(target){
+							case 'clipboard':
+								ActionService.copyTextToClipboard(url)
+									? Toastr.success(
+										`<a target="_blank" href="${url}">${getTranslation('CLICK_HERE_TO_NAVIGATE')}</a>`,
+										getTranslation('LINK_WAS_COPIED_TO_CLIPBOARD'),
+										{escapeHtml: false}
+									)
+									: Toastr.error(url, 'LINK_WASNT_COPIED_TO_CLIPBOARD');
+								break;
+							case 'email':
+								// if no placeholder found append the url to the end, otherwise replace placeholder with generated url
+								!emailBody || emailBody.indexOf('{0}') === -1
+									? emailBody = emailBody + '\n\n' + url
+									: emailBody = emailBody.replace(/\{0\}/g, url);
+
+								ActionService.writeMail(email, '' /*cc*/, emailSubject, emailBody);
+								break;
+							case 'customWindowName':
+								window.open(url, customWindowName);
+								break;
+							default:
+								window.open(url, target);
+						}
+					}
+				},
+				'shareApp': {
+					type: 'Navigation',
+					name: 'shareApp',
+					label: getTranslation('SHARE_APP'),
+					description: getTranslation('HELP_SHARE_APP'),
+					parameters: ['shareAppTarget', 'email', 'emailSubject', 'emailBody'],
+					execute: function(params){
+						const appId = QlikService.getCurrentAppId(),
+							sheetId = QlikService.getCurrentSheetId();
+
+						if(!appId || !sheetId){
+							Toastr.warn(getTranslation('HELP_SHARE_APP_NOT_SUPPORTED'), appId, sheetId);
+							return;
+						}
+
+						let url = `${QlikService.biURL}sense/app/${encodeURIComponent(appId)}/sheet/${sheetId}/state/analysis/`,
+							target = params[0],
+							email = params[1] || '',
+							emailSubject = params[2] || '',
+							emailBody = (params[3] || '').replace(/(\\n|<br>|<br\/>)/g, '\n'),
+							selections = {},
+							selectionStr = '';
+
+
+						// collect all current selections, to omit duplications in the url
+						qlikService.selectionProvider.getCurrentSelections().forEach(selection =>{
+							let list = selections[selection.fieldName];
+							if(!list){
+								list = selections[selection.fieldName] = [];
+							}
+							selections[selection.fieldName] = list.concat(selection.selectedValues.map(v => '[' + v + ']'));
+						});
+
+						// build selections string
+						const fieldNames = Object.keys(selections);
+						if(fieldNames.length){
+							selectionStr = fieldNames.reduce((str, fieldName) =>{
+								return str + `select/${encodeURIComponent(fieldName)}/${encodeURIComponent(selections[fieldName].join(';'))}/`;
+							}, '');
+						}
+
+						url += 'options/clearselections/' + selectionStr;
+
+						switch(target){
+							case 'clipboard':
+								ActionService.copyTextToClipboard(url)
+									? Toastr.success(
+										`<a target="_blank" href="${url}">${getTranslation('CLICK_HERE_TO_NAVIGATE')}</a>`,
+										getTranslation('LINK_WAS_COPIED_TO_CLIPBOARD'),
+										{escapeHtml: false}
+									)
+									: Toastr.error(url, 'LINK_WASNT_COPIED_TO_CLIPBOARD');
+								break;
+							case 'email':
+								// if no placeholder found append the url to the end, otherwise replace placeholder with generated url
+								!emailBody || emailBody.indexOf('{0}') === -1
+									? emailBody = emailBody + '\n\n' + url
+									: emailBody = emailBody.replace(/\{0\}/g, url);
+
+								ActionService.writeMail(email, '' /*cc*/, emailSubject, emailBody);
+								break;
+							default:
+								Logger.warn('Execute "shareApp" action without valid target definition');
+						}
 					}
 				},
 
@@ -155,8 +321,8 @@ define([
 				'setVariable': {
 					type: 'Sense',
 					name: 'setVariable',
-					label: translation.getTranslation('SET_VARIABLE'),
-					description: translation.getTranslation('SET_A_VARIABLE_TO_A_SPECIFIC_VALUE'),
+					label: getTranslation('SET_VARIABLE'),
+					description: getTranslation('SET_A_VARIABLE_TO_A_SPECIFIC_VALUE'),
 					parameters: ['senseVariable', 'variableContent', 'keep'],
 					execute: function(params){
 						var varName = params[0],
@@ -166,26 +332,28 @@ define([
 							if(!varName || keep && value){
 								return;
 							}
-							return qlik.currApp().variable.setStringValue(varName, varContent);
+							return qlikService.app.variable.setStringValue(varName, varContent);
 						});
 					}
 				},
 				'selectValues': {
 					type: 'Sense',
 					name: 'selectValues',
-					label: translation.getTranslation('SELECT_VALUE(S)'),
-					description: translation.getTranslation('SELECTS_SPECIFIC_VALUES_IN_A_FIELD'),
+					label: getTranslation('SELECT_VALUE(S)'),
+					description: getTranslation('SELECTS_SPECIFIC_VALUES_IN_A_FIELD'),
 					parameters: ['fieldName', 'fieldValues', 'toggle', 'softLock', 'initial', 'additional'],
 					execute: function(params){
 						var field, engineApp, deferred,
 							fParams = getFieldParameters(params[0]),
 							toggle = !!params[2],
 							softLock = !!params[3],
-							selectedValues = getExistingSelectionValues(fParams.fieldName),
+							selectedValues = ActionService.getExistingSelectionValues(fParams.fieldName),
 							values = params[1].split(';').map(function(val){ return val.trim(); });
 
 						if(selectedValues.length > 0){
-							if(params[4]){
+							if(!toggle && values.every(value => selectedValues.indexOf(value) !== -1)){
+								return; // no toggle defined and values are already selected, nothing more to select
+							}else if(params[4]){
 								return;
 							}else if(params[5]){
 								// Filter additional values
@@ -197,8 +365,8 @@ define([
 								}
 							}
 						}
-						field = qlik.currApp().field(fParams.fieldName);
-						engineApp = qlik.currApp().model.engineApp;
+						field = qlikService.app.field(fParams.fieldName);
+						engineApp = qlikService.app.model.engineApp;
 						deferred = qlik.Promise.defer();
 
 						// Get all field data for numeric values
@@ -235,28 +403,28 @@ define([
 				'selectMatch': {
 					type: 'Sense',
 					name: 'selectMatch',
-					label: translation.getTranslation('SELECT_MATCH'),
-					description: translation.getTranslation('SELECTS_MATCHING_FIELD_VALUES'),
+					label: getTranslation('SELECT_MATCH'),
+					description: getTranslation('SELECTS_MATCHING_FIELD_VALUES'),
 					parameters: ['fieldName', 'fieldValue', 'softLock', 'initial'],
 					execute: function(params){
 						var fParams = getFieldParameters(params[0]);
 
-						if(getExistingSelectionValues(fParams.fieldName).length > 0 && params[3]){
+						if(ActionService.getExistingSelectionValues(fParams.fieldName).length > 0 && params[3]){
 							return;
 						}
 
-						return qlik.currApp().field(fParams.fieldName).selectMatch(params[1], params[2]);
+						return qlikService.app.field(fParams.fieldName).selectMatch(params[1], params[2]);
 					}
 				},
 				'selectAlternative': {
 					type: 'Sense',
 					name: 'selectAlternative',
-					label: translation.getTranslation('SELECT_ALTERNATIVE'),
-					description: translation.getTranslation('SELECTS_ALTERNATIVE_VALUES_IN_A_FIELD'),
+					label: getTranslation('SELECT_ALTERNATIVE'),
+					description: getTranslation('SELECTS_ALTERNATIVE_VALUES_IN_A_FIELD'),
 					parameters: ['fieldName', 'softLock'],
 					execute: function(params){
 						try{
-							return qlik.currApp().field(getFieldParameters(params[0]).fieldName).selectAlternative(params[1]);
+							return qlikService.app.field(getFieldParameters(params[0]).fieldName).selectAlternative(params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -265,12 +433,12 @@ define([
 				'selectExcluded': {
 					type: 'Sense',
 					name: 'selectExcluded',
-					label: translation.getTranslation('SELECT_EXCLUDED'),
-					description: translation.getTranslation('SELECTS_EXCLUDED_VALUES_IN_A_FIELD'),
+					label: getTranslation('SELECT_EXCLUDED'),
+					description: getTranslation('SELECTS_EXCLUDED_VALUES_IN_A_FIELD'),
 					parameters: ['fieldName', 'softLock'],
 					execute: function(params){
 						try{
-							return qlik.currApp().field(getFieldParameters(params[0]).fieldName).selectExcluded(params[1]);
+							return qlikService.app.field(getFieldParameters(params[0]).fieldName).selectExcluded(params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -279,12 +447,12 @@ define([
 				'selectPossible': {
 					type: 'Sense',
 					name: 'selectPossible',
-					label: translation.getTranslation('SELECT_POSSIBLE'),
-					description: translation.getTranslation('SELECTS_MATCHING_FIELD_VALUES'),
+					label: getTranslation('SELECT_POSSIBLE'),
+					description: getTranslation('SELECTS_MATCHING_FIELD_VALUES'),
 					parameters: ['fieldName', 'softLock'],
 					execute: function(params){
 						try{
-							return qlik.currApp().field(getFieldParameters(params[0]).fieldName).selectPossible(params[1]);
+							return qlikService.app.field(getFieldParameters(params[0]).fieldName).selectPossible(params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -293,12 +461,12 @@ define([
 				'selectAll': {
 					type: 'Sense',
 					name: 'selectAll',
-					label: translation.getTranslation('SELECT_ALL'),
-					description: translation.getTranslation('SELECTS_ALL_VALUES_IN_A_FIELD'),
+					label: getTranslation('SELECT_ALL'),
+					description: getTranslation('SELECTS_ALL_VALUES_IN_A_FIELD'),
 					parameters: ['fieldName', 'softLock'],
 					execute: function(params){
 						try{
-							return qlik.currApp().field(getFieldParameters(params[0]).fieldName).selectAll(params[1]);
+							return qlikService.app.field(getFieldParameters(params[0]).fieldName).selectAll(params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -307,12 +475,12 @@ define([
 				'clearField': {
 					type: 'Sense',
 					name: 'clearField',
-					label: translation.getTranslation('CLEAR_FIELD'),
-					description: translation.getTranslation('CLEARS_A_FIELD_SELECTION'),
+					label: getTranslation('CLEAR_FIELD'),
+					description: getTranslation('CLEARS_A_FIELD_SELECTION'),
 					parameters: ['fieldName'],
 					execute: function(params){
 						try{
-							return qlik.currApp().field(getFieldParameters(params[0]).fieldName).clear();
+							return qlikService.app.field(getFieldParameters(params[0]).fieldName).clear();
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -321,12 +489,12 @@ define([
 				'clearOther': {
 					type: 'Sense',
 					name: 'clearOther',
-					label: translation.getTranslation('CLEAR_OTHER'),
-					description: translation.getTranslation('CLEARS_ALL_FIELDS_EXCEPT_THE_SELECTED_ONE'),
+					label: getTranslation('CLEAR_OTHER'),
+					description: getTranslation('CLEARS_ALL_FIELDS_EXCEPT_THE_SELECTED_ONE'),
 					parameters: ['fieldName', 'softLock'],
 					execute: function(params){
 						try{
-							return qlik.currApp().field(getFieldParameters(params[0]).fieldName).clearOther(params[1]);
+							return qlikService.app.field(getFieldParameters(params[0]).fieldName).clearOther(params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -335,12 +503,12 @@ define([
 				'clearAll': {
 					type: 'Sense',
 					name: 'clearAll',
-					label: translation.getTranslation('CLEAR_ALL'),
-					description: translation.getTranslation('CLEARS_ALL_SELECTIONS_IN_ALL_FIELDS_OF_THE_CURRENT_QLIK_SENSE_APP'),
+					label: getTranslation('CLEAR_ALL'),
+					description: getTranslation('CLEARS_ALL_SELECTIONS_IN_ALL_FIELDS_OF_THE_CURRENT_QLIK_SENSE_APP'),
 					parameters: ['lockedAlso'/*, 'alternateState'*/], // don't know how to deal with "alternateState", so don't use it...
 					execute: function(params){
 						try{
-							return qlik.currApp().clearAll(params[0], params[1]);
+							return qlikService.app.clearAll(params[0], params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -349,12 +517,12 @@ define([
 				'lockField': {
 					type: 'Sense',
 					name: 'lockField',
-					label: translation.getTranslation('LOCK_FIELD'),
-					description: translation.getTranslation('LOCKS_A_FIELD_SELECTION'),
+					label: getTranslation('LOCK_FIELD'),
+					description: getTranslation('LOCKS_A_FIELD_SELECTION'),
 					parameters: ['fieldName'],
 					execute: function(params){
 						try{
-							return qlik.currApp().field(getFieldParameters(params[0]).fieldName).lock();
+							return qlikService.app.field(getFieldParameters(params[0]).fieldName).lock();
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -363,12 +531,12 @@ define([
 				'lockAll': {
 					type: 'Sense',
 					name: 'lockAll',
-					label: translation.getTranslation('LOCK_ALL'),
-					description: translation.getTranslation('LOCKS_ALL_SELECTIONS'),
+					label: getTranslation('LOCK_ALL'),
+					description: getTranslation('LOCKS_ALL_SELECTIONS'),
 					parameters: ['lockedAlso'/*, 'alternateState'*/],
 					execute: function(params){
 						try{
-							return qlik.currApp().lockAll(params[0]);
+							return qlikService.app.lockAll(params[0]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -377,12 +545,12 @@ define([
 				'unlockAll': {
 					type: 'Sense',
 					name: 'unlockAll',
-					label: translation.getTranslation('UNLOCK_ALL'),
-					description: translation.getTranslation('UNLOCKS_ALL_SELECTIONS_THAT_HAS_PREVIOUSLY_BEEN_LOCKED'),
+					label: getTranslation('UNLOCK_ALL'),
+					description: getTranslation('UNLOCKS_ALL_SELECTIONS_THAT_HAS_PREVIOUSLY_BEEN_LOCKED'),
 					parameters: [/*'alternateState'*/ 'none'],
 					execute: function(params){
 						try{
-							return qlik.currApp().unlockAll(params[0]);
+							return qlikService.app.unlockAll(params[0]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -391,12 +559,12 @@ define([
 				'applyBookmark': {
 					type: 'Sense',
 					name: 'applyBookmark',
-					label: translation.getTranslation('APPLY_BOOKMARK_SELECTION'),
-					description: translation.getTranslation('APPLIES_A_BOOKMARK_SELECTION'),
+					label: getTranslation('APPLY_BOOKMARK_SELECTION'),
+					description: getTranslation('APPLIES_A_BOOKMARK_SELECTION'),
 					parameters: ['bookmarkId'],
 					execute: function(params){
 						try{
-							return qlik.currApp().bookmark.apply(params[0]);
+							return qlikService.app.bookmark.apply(params[0]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -405,18 +573,18 @@ define([
 				'reloadData': {
 					type: 'Sense',
 					name: 'reloadData',
-					label: translation.getTranslation('RELOAD_DATA'),
-					description: translation.getTranslation('RELOADS_THE_DATA_IN_A_QLIK_SENSE_APP'),
+					label: getTranslation('RELOAD_DATA'),
+					description: getTranslation('RELOADS_THE_DATA_IN_A_QLIK_SENSE_APP'),
 					parameters: ['qMode', 'qPartial'],
 					execute: function(params){
 						try{
 							let $scope = qvangular.$rootScope.$new();
 							Modal.show({
 								scope: $scope,
-								title: translation.getTranslation('RELOAD_IN_PROGRESS'),
-								body: translation.getTranslation('RELOAD_IS_RUNNING')
+								title: getTranslation('RELOAD_IN_PROGRESS'),
+								body: getTranslation('RELOAD_IS_RUNNING')
 							});
-							return qlik.currApp().doReload(parseInt(params[0]), params[1]).then(function(){
+							return qlikService.app.doReload(parseInt(params[0]), params[1]).then(function(){
 								setTimeout(function(){ $scope.close(); }, 1000); // Show the dialog for minimum 1s
 							}).catch(function(err){
 								console.warn('Error occurred during "reloadData" action', err);
@@ -429,25 +597,25 @@ define([
 				},
 
 				/* trueChart actions */
-				'Toggle_Show_Edit_Mode': {type: 'trueChart', isHidden: true, name: 'Toggle_Show_Edit_Mode', parameters: ['none'], execute: executeTCAction},
-				'Save_Changed': {type: 'trueChart', isHidden: true, name: 'Save_Changed', parameters: ['trueChartExtension'], execute: executeTCAction},
-				'Save_All': {type: 'trueChart', isHidden: true, name: 'SaveAll', parameters: ['trueChartExtension'], execute: executeTCAction},
-				'Refresh': {type: 'trueChart', isHidden: true, name: 'Refresh', parameters: ['none'], execute: executeTCAction},
-				'Export_As_PDF': {type: 'trueChart', isHidden: true, name: 'Export_As_PDF', parameters: ['trueChartExtension'], execute: executeTCAction},
-				'Export_As_PNG': {type: 'trueChart', isHidden: true, name: 'Export_As_PNG', parameters: ['trueChartExtension'], execute: executeTCAction},
-				'Export_As_EMF': {type: 'trueChart', isHidden: true, name: 'Export_As_EMF', parameters: ['trueChartExtension'], execute: executeTCAction},
-				'Export_As_XLS': {type: 'trueChart', isHidden: true, name: 'Export_As_XLS', parameters: ['trueChartExtension'], execute: executeTCAction},
-				'Reload_Common_Tables': {type: 'trueChart', isHidden: true, name: 'Reload_Common_Tables', parameters: ['trueChartExtension'], execute: executeTCAction},
+				'Toggle_Show_Edit_Mode': {type: 'trueChart', isHidden: true, name: 'Toggle_Show_Edit_Mode', parameters: ['none'], execute: ActionService.executeTCAction},
+				'Save_Changed': {type: 'trueChart', isHidden: true, name: 'Save_Changed', parameters: ['trueChartExtension'], execute: ActionService.executeTCAction},
+				'Save_All': {type: 'trueChart', isHidden: true, name: 'SaveAll', parameters: ['trueChartExtension'], execute: ActionService.executeTCAction},
+				'Refresh': {type: 'trueChart', isHidden: true, name: 'Refresh', parameters: ['none'], execute: ActionService.executeTCAction},
+				'Export_As_PDF': {type: 'trueChart', isHidden: true, name: 'Export_As_PDF', parameters: ['trueChartExtension'], execute: ActionService.executeTCAction},
+				'Export_As_PNG': {type: 'trueChart', isHidden: true, name: 'Export_As_PNG', parameters: ['trueChartExtension'], execute: ActionService.executeTCAction},
+				'Export_As_EMF': {type: 'trueChart', isHidden: true, name: 'Export_As_EMF', parameters: ['trueChartExtension'], execute: ActionService.executeTCAction},
+				'Export_As_XLS': {type: 'trueChart', isHidden: true, name: 'Export_As_XLS', parameters: ['trueChartExtension'], execute: ActionService.executeTCAction},
+				'Reload_Common_Tables': {type: 'trueChart', isHidden: true, name: 'Reload_Common_Tables', parameters: ['trueChartExtension'], execute: ActionService.executeTCAction},
 
 				'toggleFullScreen': {
 					type: 'Other',
 					name: 'toggleFullScreen',
-					label: translation.getTranslation('TOGGLE_FULL_SCREEN'),
-					description: translation.getTranslation('TOGGLE_FULL_SCREEN_DESCRIPTION'),
+					label: getTranslation('TOGGLE_FULL_SCREEN'),
+					description: getTranslation('TOGGLE_FULL_SCREEN_DESCRIPTION'),
 					supportedTriggers: ['click'],
 					parameters: ['fullScreenExpression'],
 					execute: function(params){
-						var fullscreen = isTrue(typeof params[0] !== 'undefined' ? params[0] : !inFullScreen());
+						var fullscreen = ActionService.isTrue(typeof params[0] !== 'undefined' ? params[0] : !inFullScreen());
 
 						toggleFullScreen(fullscreen);
 
@@ -483,117 +651,348 @@ define([
 		 */
 		function getParametersDefinition(){
 			return {
-				'none': {name: 'none', label: translation.getTranslation('PARAMETERS'),
-					tooltip: translation.getTranslation('NO_PARAMETERS_REQUIRED_TO_PERFORM_THE_ACTION'), type: 'none'},
+				'none': {name: 'none', label: getTranslation('PARAMETERS'),
+					tooltip: getTranslation('NO_PARAMETERS_REQUIRED_TO_PERFORM_THE_ACTION'), type: 'none'},
 				'additional': {
 					name: 'additional',
-					label: translation.getTranslation('ADD'),
-					tooltip: translation.getTranslation('IF_TRUE_VALUES_WILL_BE_ADDED_TO_AN_EXISTING_SELECTION_OF_SELECTED_FIELD'),
+					label: getTranslation('ADD'),
+					tooltip: getTranslation('IF_TRUE_VALUES_WILL_BE_ADDED_TO_AN_EXISTING_SELECTION_OF_SELECTED_FIELD'),
 					type: 'checkbox'
+				},
+				'appId': {
+					name: 'appId',
+					label: getTranslation('APP_ID'),
+					tooltip: getTranslation('APP_ID_AS_NAVIGATION_TARGET'),
+					type: 'dropdown',
+					expression: 'optional',
+					items: [],
+					loadItems: function(){
+						if(this.items.length){
+							// it is also a WORKAROUND (introduced with HICO-2564) for a buggy Sense string component
+							// which throws null pointer exceptions, when this.items gets "reassigned" more then once
+							// on the other hand, items were already loaded, so no need to do it again
+							return Promise.resolve();
+						}
+
+						this.loading = true;
+						this.items = [{value: '', label: getTranslation('DATA_IS_LOADING')}];
+						return getSpecialList('AppList', 'appIds').then(appIds =>{
+							this.items = appIds.qItems.map(item => ({
+								value: `= /* ${item.qTitle} */ '${item.qDocId}'`,
+								label: item.qTitle
+							}));
+							this.loading = false;
+						}).catch(error =>{
+							this.items = [];
+							this.loading = false;
+							Logger.error('Error occured during update of appBookmarkId items', error);
+						});
+					},
+					onChange: function(appIdExpr){
+						qlikService.evalExpression(appIdExpr).then(appId =>{
+							if(appId){
+								for(let key in _parameters){
+									const paramDef = _parameters[key];
+									if(_parameters.hasOwnProperty(key) && paramDef.dependsOn && paramDef.dependsOn.appId){
+										typeof paramDef.onDependencyChange === 'function' && paramDef.onDependencyChange({appId});
+									}
+								}
+							}
+						}).catch(error => Logger.error('Error occurred during onChange handler of appIds', error));
+					},
+					loading: false
+				},
+				'appBookmarkId': {
+					label: getTranslation('BOOKMARK_ID'),
+					tooltip: getTranslation('BOOKMARK_ID_OF_THE_BOOKMARK_TO_BE_APPLIED'),
+					type: 'dropdown',
+					expression: 'optional',
+					items: [{value: '', label: getTranslation('SELECT_AN_APP_FIRST')}],
+					dependsOn: {appId: true},
+					onDependencyChange(deps){
+						let getItems, appId = deps.appId, appLists = _listLayout.apps[appId];
+
+						if(appLists && appLists.bookmarks){
+							getItems = Promise.resolve(appLists.bookmarks.qItems);
+						}else{
+							this.items = [{value: '', label: getTranslation('DATA_IS_LOADING')}];
+							this.loading = true;
+							getItems = qlikService.openApp(appId).then(app => app.getList('BookmarkList')).then(list =>{
+								appLists = _listLayout.apps[appId] || (_listLayout.apps[appId] = {});
+								appLists.bookmarks = list.layout.qBookmarkList;
+								return appLists.bookmarks.qItems;
+							});
+						}
+
+						getItems.then(items =>{
+							this.items = items.map(QlikService.mapCommentedItem);
+							this.loading = false;
+							qlikService.closeAppDelayed(appId);
+						}).catch(err =>{
+							this.items = [{value: '', label: getTranslation('NO_DATA_AVAILABLE')}];
+							this.loading = false;
+							qlikService.closeAppDelayed(appId);
+							Logger.error('Error occurred during update of appBookmarkId items', err);
+						});
+					},
+					loading: false
+				},
+				'appFieldName': {
+					label: getTranslation('FIELD_NAME'),
+					tooltip: getTranslation('FIELD_NAME_OF_THE_FIELD_ON_WHICH_THE_SELECTION_WILL_BE_APPLIED'),
+					type: 'dropdown',
+					expression: 'optional',
+					items: [{value: '', label: getTranslation('SELECT_AN_APP_FIRST')}],
+					dependsOn: {appId: true},
+					onDependencyChange(deps){
+						let getItems, appId = deps.appId, appLists = _listLayout.apps[appId];
+
+						if(appLists && appLists.fields && appLists.dimensions){
+							getItems = Promise.resolve([appLists.fields.qItems, appLists.dimensions.qItems]);
+						}else{
+							this.loading = true;
+							this.items = [{value: '', label: getTranslation('DATA_IS_LOADING')}];
+							getItems = Promise.all([
+								qlikService.openApp(appId).then(app => app.getList('FieldList')),
+								qlikService.openApp(appId).then(app => app.getList('DimensionList'))
+							]).then(lists =>{
+								appLists = _listLayout.apps[appId] || (_listLayout.apps[appId] = {});
+								appLists.fields = lists[0].layout.qFieldList;
+								appLists.dimensions = lists[1].layout.qDimensionList;
+								return [appLists.fields.qItems, appLists.dimensions.qItems];
+							});
+						}
+
+						getItems.then(items =>{
+							this.items = items[1]
+								.filter(item => item.qData.grouping !== 'H') // dimensions without drilldowns
+								.map(QlikService.mapDimensionItem)
+								.concat(items[0].map(QlikService.mapFieldItem));
+							this.loading = false;
+							qlikService.closeAppDelayed(appId);
+						}).catch(err => {
+							this.items = [{value: '', label: getTranslation('NO_DATA_AVAILABLE')}];
+							this.loading = false;
+							qlikService.closeAppDelayed(appId);
+							Logger.error('Error occurred during update of appFieldName items', err);
+						});
+					},
+					loading: false
+				},
+				'appSheetId': {
+					name: 'appSheetId',
+					label: getTranslation('SHEET_ID'),
+					tooltip: getTranslation('SHEET_ID_AS_NAVIGATION_TARGET'),
+					type: 'dropdown',
+					expression: 'optional',
+					items: [{value: '', label: getTranslation('SELECT_AN_APP_FIRST')}],
+					dependsOn: {appId: true},
+					onDependencyChange(deps){
+						let getItems, appId = deps.appId, appLists = _listLayout.apps[appId];
+
+						if(appLists && appLists.sheets){
+							getItems = Promise.resolve(appLists.sheets.qItems);
+						}else{
+							this.items = [{value: '', label: getTranslation('DATA_IS_LOADING')}];
+							this.loading = true;
+							getItems = qlikService.openApp(appId).then(app => app.getList('sheet')).then(list =>{
+								appLists = _listLayout.apps[appId] || (_listLayout.apps[appId] = {});
+								appLists.sheets = list.layout.qAppObjectList;
+								return appLists.sheets.qItems;
+							});
+						}
+
+						getItems.then(items =>{
+							this.items = items.map(QlikService.mapCommentedItem);
+							this.loading = false;
+							qlikService.closeAppDelayed(appId);
+						}).catch(err => {
+							this.items = [{value: '', label: getTranslation('NO_DATA_AVAILABLE')}];
+							this.loading = false;
+							qlikService.closeAppDelayed(appId);
+							Logger.error('Error occurred during update of appSheetId items', err);
+						});
+					},
+					loading: false
+				},
+				'appTarget': {
+					name: 'appTarget',
+					label: getTranslation('TARGET'),
+					tooltip: getTranslation('HELP_GOTO_APP_TARGET'),
+					className: 'col-sm-6',
+					type: 'dropdown',
+					defaultValue: '_blank',
+					items: []
 				},
 				'bookmarkId': {
 					name: 'bookmarkId',
-					label: translation.getTranslation('BOOKMARK_ID'),
-					tooltip: translation.getTranslation('BOOKMARK_ID_OF_THE_BOOKMARK_TO_BE_APPLIED'),
+					label: getTranslation('BOOKMARK_ID'),
+					tooltip: getTranslation('BOOKMARK_ID_OF_THE_BOOKMARK_TO_BE_APPLIED'),
 					type: 'dropdown',
 					expression: 'optional',
 					items: []
 				},
+				'clearSelections': {
+					name: 'clearSelections',
+					label: getTranslation('CLEAR'),
+					tooltip: getTranslation('HELP_CLEAR_ALL_SELECTIONS'),
+					type: 'checkbox',
+				},
+				'currentSelections': {
+					name: 'currentSelections',
+					label: getTranslation('CURRENT'),
+					tooltip: getTranslation('HELP_CURRENT_SELECTIONS'),
+					type: 'checkbox',
+				},
 				'custom': {
-					name: 'custom', label: translation.getTranslation('CUSTOM'), tooltip: translation.getTranslation('CUSTOM_JAVASCRIPT_WICH_WILL_BE_EVALUATE'),
+					name: 'custom', label: getTranslation('CUSTOM'), tooltip: getTranslation('CUSTOM_JAVASCRIPT_WICH_WILL_BE_EVALUATE'),
 					type: 'custom',	placeholder: 'if(contextType.isMashUp){\n  // do something in mashup\n}else{\n  // do something in sens\n}'
 				},
+				'customWindowName': {
+					name: 'customWindowName',
+					label: getTranslation('NAMED_WINDOW'),
+					tooltip: getTranslation('HELP_NAMED_WINDOW'),
+					type: 'expressionInput',
+					className: 'col-sm-12',
+					show: (action) => showWhenParameter(action, 'customWindowName')
+				},
 				'dimensionName': {
-					name: 'dimensionName', label: translation.getTranslation('DIMENSION_NAME'), tooltip: translation.getTranslation('DIMENSION_NAME'),
+					name: 'dimensionName', label: getTranslation('DIMENSION_NAME'), tooltip: getTranslation('DIMENSION_NAME'),
 					type: 'dropdown', expression: 'optional', items: []},
+				'email': {
+					name: 'email',
+					label: getTranslation('EMAIL_RECIPIENT'),
+					tooltip: getTranslation('EMAIL_RECIPIENT'),
+					type: 'expressionInput',
+					expression: 'optional',
+					show: (action) => showWhenParameter(action, 'email'),
+					className: 'col-sm-6'
+				},
+				'emailSubject': {
+					name: 'emailSubject',
+					label: getTranslation('EMAIL_SUBJECT'),
+					tooltip: getTranslation('EMAIL_SUBJECT'),
+					type: 'expressionInput',
+					expression: 'optional',
+					show: (action) => showWhenParameter(action, 'email'),
+					className: 'col-sm-6'
+				},
+				'emailBody': {
+					name: 'emailBody',
+					label: getTranslation('EMAIL_BODY'),
+					tooltip: getTranslation('HELP_EMAIL_BODY_PARAMETER'),
+					type: 'expressionInput',
+					expression: 'optional',
+					show: (action) => showWhenParameter(action, 'email'),
+					className: 'col-sm-12'
+				},
 				'fieldName': {
 					name: 'fieldName',
-					label: translation.getTranslation('FIELD_NAME'),
-					tooltip: translation.getTranslation('FIELD_NAME_OF_THE_FIELD_ON_WHICH_THE_SELECTION_WILL_BE_APPLIED'),
+					label: getTranslation('FIELD_NAME'),
+					tooltip: getTranslation('FIELD_NAME_OF_THE_FIELD_ON_WHICH_THE_SELECTION_WILL_BE_APPLIED'),
 					type: 'dropdown',
 					expression: 'optional',
 					items: []
 				},
 				'fieldValue': {
-					name: 'fieldValue', label: translation.getTranslation('VALUE'), tooltip: translation.getTranslation('VALUE_AS_A_STRING_WICH_SHOULD_BE_SELECTED'),
+					name: 'fieldValue', label: getTranslation('VALUE'), tooltip: getTranslation('VALUE_AS_A_STRING_WICH_SHOULD_BE_SELECTED'),
 					type: 'expressionInput'},
 				'fieldValues': {
 					name: 'fieldValues',
-					label: translation.getTranslation('VALUES_SEPERATED_WITH_SEMICOLON'),
-					tooltip: translation.getTranslation('MULTIPLE_VALUES_MUST_BE_SEPARATED_BY_SEMICOLON'),
+					label: getTranslation('VALUES_SEPERATED_WITH_SEMICOLON'),
+					tooltip: getTranslation('MULTIPLE_VALUES_MUST_BE_SEPARATED_BY_SEMICOLON'),
 					type: 'expressionInput'
 				},
 				'initial': {
 					name: 'initial',
-					label: translation.getTranslation('INITIAL'),
-					tooltip: translation.getTranslation('IF_TRUE_EXISTING_SELECTIONS_OF_SELECTED_FIELD_REMAIN_UNCHANGED'),
+					label: getTranslation('INITIAL'),
+					tooltip: getTranslation('IF_TRUE_EXISTING_SELECTIONS_OF_SELECTED_FIELD_REMAIN_UNCHANGED'),
 					type: 'checkbox'
 				},
 				'keep': {
 					name: 'keep',
-					label: translation.getTranslation('KEEP'),
-					tooltip: translation.getTranslation('IF_TRUE_KEEPS_THE_VALUE_UNCHANGED_WHEN_IT_IS_ALREADY_SET'),
+					label: getTranslation('KEEP'),
+					tooltip: getTranslation('IF_TRUE_KEEPS_THE_VALUE_UNCHANGED_WHEN_IT_IS_ALREADY_SET'),
 					type: 'checkbox'
 				},
 				'lockedAlso': {
-					name: 'lockedAlso', label: translation.getTranslation('LOCKED_ALSO'),
-					tooltip: translation.getTranslation('IF_TRUE_CLEAR_ALSO_LOCKED_SELECTIONS'), type: 'checkbox'},
+					name: 'lockedAlso', label: getTranslation('LOCKED_ALSO'),
+					tooltip: getTranslation('IF_TRUE_CLEAR_ALSO_LOCKED_SELECTIONS'), type: 'checkbox'},
 				'measureName': {
-					name: 'measureName', label: translation.getTranslation('MEASURE_NAME'), tooltip: translation.getTranslation('MEASURE_NAME'), type: 'dropdown',
+					name: 'measureName', label: getTranslation('MEASURE_NAME'), tooltip: getTranslation('MEASURE_NAME'), type: 'dropdown',
 					expresson: 'optional', items: []},
 				'mashupOnly': {
-					name: 'mashupOnly', label: translation.getTranslation('MASHUP_ONLY'),
-					tooltip: translation.getTranslation('IF_TRUE_THIS_ACTION_WILL_BE_PERFORMED_ONLY_IN_MASHUP'), type: 'checkbox'},
-				'qMode': {name: 'qMode', label: translation.getTranslation('MODE'), tooltip: translation.getTranslation('ERROR_HANDLING_MODE'),
+					name: 'mashupOnly', label: getTranslation('MASHUP_ONLY'),
+					tooltip: getTranslation('IF_TRUE_THIS_ACTION_WILL_BE_PERFORMED_ONLY_IN_MASHUP'), type: 'checkbox'},
+				'qMode': {name: 'qMode', label: getTranslation('MODE'), tooltip: getTranslation('ERROR_HANDLING_MODE'),
 					type: 'dropdown', items: []},
-				'qPartial': {name: 'qPartial', label: translation.getTranslation('PARTIAL'),
-					tooltip: translation.getTranslation('SET_TO_TRUE_FOR_PARTIAL_RELOAD'), type: 'checkbox'},
+				'qPartial': {name: 'qPartial', label: getTranslation('PARTIAL'),
+					tooltip: getTranslation('SET_TO_TRUE_FOR_PARTIAL_RELOAD'), type: 'checkbox'},
 				'senseVariable': {
 					name: 'senseVariable',
-					label: translation.getTranslation('SENSE_VARIABLE'),
-					tooltip: translation.getTranslation('NAME_OF_THE_VARIABLE'),
+					label: getTranslation('SENSE_VARIABLE'),
+					tooltip: getTranslation('NAME_OF_THE_VARIABLE'),
 					type: 'dropdown',
 					expression: 'optional',
 					items: []
 				},
+				'shareAppTarget':{
+					name: 'appTarget',
+					label: getTranslation('TARGET'),
+					tooltip: getTranslation('HELP_SHARE_APP_TARGET'),
+					type: 'dropdown',
+					className: 'col-sm-12',
+					defaultValue: 'email',
+					items: []
+				},
 				'sheetId': {
-					name: 'sheetId', label: translation.getTranslation('SHEET_ID'), tooltip: translation.getTranslation('SHEET_ID_AS_NAVIGATION_TARGET'),
+					name: 'sheetId', label: getTranslation('SHEET_ID'), tooltip: getTranslation('SHEET_ID_AS_NAVIGATION_TARGET'),
 					type: 'dropdown', expression: 'optional', items: []},
 				'softLock': {
-					name: 'softLock', label: translation.getTranslation('SOFT_LOCK'),
-					tooltip: translation.getTranslation('IF_TRUE_LOCKED_SELECTIONS_CAN_BE_OVERRIDDEN'), type: 'checkbox'
+					name: 'softLock', label: getTranslation('SOFT_LOCK'),
+					tooltip: getTranslation('IF_TRUE_LOCKED_SELECTIONS_CAN_BE_OVERRIDDEN'), type: 'checkbox'
 				},
 				'storyId': {
-					name: 'storyId', label: translation.getTranslation('STORY_ID'), tooltip: translation.getTranslation('STORY_ID_AS_NAVIGATION_TARGET'),
+					name: 'storyId', label: getTranslation('STORY_ID'), tooltip: getTranslation('STORY_ID_AS_NAVIGATION_TARGET'),
 					type: 'dropdown', expression: 'optional', items: []},
 				'toggle': {
-					name: 'toggle', label: translation.getTranslation('TOGGLE'), tooltip: translation.getTranslation('IF_TRUE_TOGGLE_SELECTED_STATE'),
+					name: 'toggle', label: getTranslation('TOGGLE'), tooltip: getTranslation('IF_TRUE_TOGGLE_SELECTED_STATE'),
 					type: 'checkbox'
 				},
 				'trueChartExtension': {
 					name: 'trueChartExtension',
-					label: translation.getTranslation('TRUECHART_EXTENSION'),
-					tooltip: translation.getTranslation('TRUECHART_EXTENSION_WHICH_SHOULD_PERFORM_THE_ACTION'),
+					label: getTranslation('TRUECHART_EXTENSION'),
+					tooltip: getTranslation('TRUECHART_EXTENSION_WHICH_SHOULD_PERFORM_THE_ACTION'),
 					type: 'dropdown',
 					items: []
 				},
-				'url': {name: 'url', label: translation.getTranslation('URL'), tooltip: translation.getTranslation('URL_OF_THE_WEBSITE'), type: 'expressionInput'},
+				'url': {name: 'url', label: getTranslation('URL'), tooltip: getTranslation('URL_OF_THE_WEBSITE'), type: 'expressionInput'},
 				'urlTarget': {
 					name: 'urlTarget',
-					label: translation.getTranslation('TARGET'),
-					tooltip: translation.getTranslation('TARGET_WINDOW_CAN_BE_ANY_STRING'),
+					label: getTranslation('TARGET'),
+					tooltip: getTranslation('TARGET_WINDOW_CAN_BE_ANY_STRING'),
 					type: 'dropdown',
 					expression: 'optional',
+					defaultValue: '_blank',
 					items: []
 				},
 				'variableContent': {
-					name: 'variableContent', label: translation.getTranslation('VARIABLE_CONTENT'),
-					tooltip: translation.getTranslation('VALUE_TO_BE_ASSIGNED_TO_THE_VARIABLE'), type: 'expressionInput'},
+					name: 'variableContent', label: getTranslation('VARIABLE_CONTENT'),
+					tooltip: getTranslation('VALUE_TO_BE_ASSIGNED_TO_THE_VARIABLE'), type: 'expressionInput'},
 				'fullScreenExpression': {
-					name: 'fullScreenExpression', label: translation.getTranslation('FULL_SCREEN_TOGGLE_CONDITION'),
-					tooltip: translation.getTranslation('FULL_SCREEN_TOGGLE_CONDITION_DESCRIPTION'), type: 'expressionInput'
+					name: 'fullScreenExpression', label: getTranslation('FULL_SCREEN_TOGGLE_CONDITION'),
+					tooltip: getTranslation('FULL_SCREEN_TOGGLE_CONDITION_DESCRIPTION'), type: 'expressionInput'
 				}
 			};
+		}
+
+		function showWhenParameter(action, targetParam){
+			for(let p in action.paramsExpr){
+				if(action.paramsExpr[p] === targetParam){
+					return true;
+				}
+			}
+			return false;
 		}
 
 
@@ -610,7 +1009,7 @@ define([
 				{
 					type: 'custom',
 					label: 'CUSTOM',
-					tooltip: translation.getTranslation('CUSTOM_TRIGGER_TOOLTIP')
+					tooltip: getTranslation('CUSTOM_TRIGGER_TOOLTIP')
 				}
 			];
 		}
@@ -622,22 +1021,22 @@ define([
 		 */
 		function init(service){
 			Promise.all([
-				initLists().then(function(){ updateParameters(_listLayout, _parameters); }),
-				configService.getActionBlacklist().then(function(blacklist){ updateActions(blacklist, _actions); })
-			]).then(function(){ _ready.resolve(service); });
+				initLists().then(() => ActionService.updateParameters(_listLayout, _parameters)),
+				_configService.getActionBlacklist().then((blacklist) => ActionService.updateActions(blacklist, _actions))
+			]).then(() => _ready.resolve(service));
 
 			// update definitions on language changes
-			translation.onChange(function(){
+			onChange(function(){
 				_actions = getActionsDefinition();
 				_parameters = getParametersDefinition();
 				_triggers = getTriggersDefiition();
 
-				updateParameters(_listLayout, _parameters);
+				ActionService.updateParameters(_listLayout, _parameters);
 			});
 
 			// define a global method for triggering cutom triggers
 			window.HiCo = window.HiCo || {};
-			window.HiCo.performCustomTrigger = window.HiCo.performCustomTrigger || performCustomTrigger;
+			window.HiCo.performCustomTrigger = window.HiCo.performCustomTrigger || ActionService.performCustomTrigger;
 		}
 
 		/**
@@ -664,14 +1063,14 @@ define([
 						label: multiButtonActionsTL[i],
 						description: multiButtonActionsTL[i],
 						parameters: ['Toggle_Show_Edit_Mode', 'Refresh'].indexOf(actionName) > -1 ? ['none'] : ['trueChartExtension'],
-						execute: executeTCAction
+						execute: ActionService.executeTCAction
 					};
 				}).filter(function(action){
 					return action.name !== 'Reload';
 				});
 			}catch(e){
 				if(window.HiCoMVCInit){
-					console.log('An error has occured by trying to get a list of trueChart actions.', e);
+					console.log('An error has occurred by trying to get a list of trueChart actions.', e);
 				}
 				return [];
 			}
@@ -728,32 +1127,42 @@ define([
 		 * @return {*}
 		 */
 		function getParameters(){
-			return updateAllLists().then(function(){
-				updateParameters(_listLayout, _parameters);
-				updateTrueChartExtensionList(_parameters['trueChartExtension']);
+			return updateMainLists().then(() =>{
+				ActionService.updateParameters(_listLayout, _parameters);
+				ActionService.updateTrueChartExtensionList(_parameters['trueChartExtension']);
 				return _parameters;
 			});
 		}
 
 		function initLists(){
 			return Promise.all([
-				qlikService.listProvider.getListData('VariableList').then(function(variables){ _listLayout.variables = variables; }),
-				qlikService.listProvider.getListData('FieldList').then(function(fields){ _listLayout.fields = fields; }),
-				qlikService.listProvider.getListData('DimensionList').then(function(dimensions){ _listLayout.dimensions = dimensions; })
+				getSpecialList('VariableList', 'variables'),
+				getSpecialList('FieldList', 'fields'),
+				getSpecialList('DimensionList', 'dimensions')
 			]);
 		}
 
-		function updateAllLists(){
+		function updateMainLists(){
 			return Promise.all([
-				qlikService.listProvider.getListData('VariableList').then(function(variables){ _listLayout.variables = variables; }),
-				qlikService.listProvider.getListData('FieldList').then(function(fields){ _listLayout.fields = fields; }),
-				qlikService.listProvider.getListData('BookmarkList').then(function(bookmarks){ _listLayout.bookmarks = bookmarks; }),
-				qlikService.listProvider.getListData('story').then(function(stories){ _listLayout.stories = stories; }),
-				qlikService.listProvider.getListData('sheet').then(function(sheets){ _listLayout.sheets = sheets; }),
-				qlikService.listProvider.getListData('DimensionList').then(function(dimensions){ _listLayout.dimensions = dimensions; }),
-				qlikService.listProvider.getListData('MeasureList').then(function(measures){ _listLayout.measures = measures; }),
-				qlikService.listProvider.getListData('MediaList').then(function(media){ _listLayout.media = media; })
+				getSpecialList('VariableList', 'variables'),
+				getSpecialList('FieldList', 'fields'),
+				getSpecialList('BookmarkList', 'bookmarks'),
+				getSpecialList('story', 'stories'),
+				getSpecialList('sheet', 'sheets'),
+				getSpecialList('DimensionList', 'dimensions'),
+				getSpecialList('MeasureList', 'measures'),
+				getSpecialList('MediaList', 'media')
 			]);
+		}
+
+		/**
+		 * Retrieves a list by given listName from the app and store the result by given key
+		 *
+		 * @param {string} listName - List name to be retrieved
+		 * @param {string} key - Key value where the list should be stored
+		 */
+		function getSpecialList(listName, key){
+			return qlikService.listProvider.getListData(listName).then((list) => _listLayout[key] = list);
 		}
 
 		/**
@@ -789,46 +1198,52 @@ define([
 	}
 
 	/**
+	 * Returns the instance of the ActionService
+	 * @return {*}
+	 */
+	static getInstance(){
+		return this._instance || new ActionService();
+	}
+
+	/**
 	 * Updates parameter items
 	 * @param listLayout qlik Lists layout
 	 * @param parameters Parameter collection
 	 */
-	function updateParameters(listLayout, parameters){
+	static updateParameters(listLayout, parameters){
 
 		parameters.qMode.items = [
-			{value: '0', label: translation.getTranslation('DEFAULT_MODE')},
-			{value: '1', label: translation.getTranslation('ATTEMPT_RECOVERY_ON_ALL_ERRORS')},
-			{value: '2', label: translation.getTranslation('FAIL_ON_ALL_ERRORS')}
+			{value: '0', label: getTranslation('DEFAULT_MODE')},
+			{value: '1', label: getTranslation('ATTEMPT_RECOVERY_ON_ALL_ERRORS')},
+			{value: '2', label: getTranslation('FAIL_ON_ALL_ERRORS')}
 		];
 
 		parameters.urlTarget.items = [
-			{value: 'customWindowName', label: translation.getTranslation('NAMED_WINDOW')},
-			{value: '_blank', label: translation.getTranslation('NEW_WINDOW')},
-			{value: '_self', label: translation.getTranslation('SAME_WINDOW')}
+			{value: 'customWindowName', label: getTranslation('NAMED_WINDOW')},
+			{value: '_blank', label: getTranslation('NEW_WINDOW')},
+			{value: '_self', label: getTranslation('SAME_WINDOW')}
+		];
+
+		parameters.shareAppTarget.items = [
+			{value: 'clipboard', label: getTranslation('CLIPBOARD')},
+			{value: 'email', label: getTranslation('EMAIL')}
+		];
+
+		parameters.appTarget.items = [
+			...parameters.urlTarget.items, ...parameters.shareAppTarget.items
 		];
 
 		listLayout.variables && (parameters.senseVariable.items = listLayout.variables.qItems.map(function(item){
 			return { value: item.qName, label: item.qName};
 		}));
 
-		listLayout.bookmarks && (parameters.bookmarkId.items = listLayout.bookmarks.qItems.map(buildCommentedItem));
+		listLayout.bookmarks && (parameters.bookmarkId.items = listLayout.bookmarks.qItems.map(QlikService.mapCommentedItem));
 
-		listLayout.stories && (parameters.storyId.items = listLayout.stories.qItems.map(buildCommentedItem));
+		listLayout.stories && (parameters.storyId.items = listLayout.stories.qItems.map(QlikService.mapCommentedItem));
 
-		listLayout.sheets && (parameters.sheetId.items = listLayout.sheets.qItems.map(buildCommentedItem));
+		listLayout.sheets && (parameters.sheetId.items = listLayout.sheets.qItems.map(QlikService.mapCommentedItem));
 
-		listLayout.dimensions && (parameters.dimensionName.items = listLayout.dimensions.qItems.map(function(item){
-			return {
-				qItem: item,
-				value: item.qData.title,
-				label: item.qData.title,
-				type: 'dimension',
-				fieldName: item.qData.info[0].qName.indexOf('=') === -1 ? item.qData.info[0].qName : item.qData.title,
-				isNumeric: item.qData.info[0].qTags.indexOf('$numeric') > -1,
-				isDate: item.qData.info[0].qTags.indexOf('$date') > -1,
-				isTimestamp: item.qData.info[0].qTags.indexOf('$timestamp') > -1
-			};
-		}));
+		listLayout.dimensions && (parameters.dimensionName.items = listLayout.dimensions.qItems.map(QlikService.mapDimensionItem));
 
 		listLayout.measures && (parameters.measureName.items = listLayout.measures.qItems.map(function(item){
 			return {
@@ -839,40 +1254,21 @@ define([
 			};
 		}));
 
-		listLayout.fields && (parameters.fieldName.items = listLayout.fields.qItems.map(function(item){
-			return {
-				qItem: item,
-				value: item.qName,
-				label: item.qName,
-				type: 'field',
-				fieldName: item.qName,
-				isNumeric: item.qTags.indexOf('$numeric') > -1,
-				isDate: item.qTags.indexOf('$date') > -1,
-				isTimestamp: item.qTags.indexOf('$timestamp') > -1,
-				isHidden: !!item.qIsHidden
-			};
-		}));
+		listLayout.fields && (parameters.fieldName.items = listLayout.fields.qItems.map(QlikService.mapFieldItem));
 
 		// Add dimensions to the field list
 		parameters.dimensionName && (parameters.fieldName.items = parameters.dimensionName.items.filter(function(item){
 			return item.qItem.qData.grouping !== 'H'; // Ignore drilldowns
 		}).concat(parameters.fieldName.items));
-
-
-		function buildCommentedItem(item){
-			return {
-				value: '= /* ' + item.qMeta.title + ' */ \'' + item.qInfo.qId + '\'',
-				label: item.qMeta.title
-			};
-		}
 	}
+
 
 	/**
 	 * Update actionlist and disable blacklisted actions
 	 * @param blacklist {Array} A list of action names which are blacklisted
 	 * @param actions {Object} Action list which has to be updated
 	 */
-	function updateActions(blacklist, actions){
+	static updateActions(blacklist, actions){
 		if(!blacklist && blacklist.constructor !== Array){ // no blacklisted actions
 			return;
 		}
@@ -892,7 +1288,7 @@ define([
 	/**
 	 * Updatees trueChart extension list items
 	 */
-	function updateTrueChartExtensionList(parameter){
+	static updateTrueChartExtensionList(parameter){
 		try{
 			// Get trueChart extensions ids
 			parameter.items = HiCo.DataObjects.DocumentDO.getAllExtensions().map(function(ext){
@@ -910,7 +1306,7 @@ define([
 	 * @param name {string} Name of the event
 	 * @param data {*} Data of the event
 	 */
-	function dispatchCustomEvent(name, data){
+	static dispatchCustomEvent(name, data){
 		var event = document.createEvent('Event');
 		event.initEvent(name, true, true);
 		event.data = data;
@@ -918,8 +1314,8 @@ define([
 		return event;
 	}
 
-	function getExistingSelectionValues(fieldName){
-		var existingSelections = qlik.currApp().selectionState().selections.filter(function(selection){
+	static getExistingSelectionValues(fieldName){
+		var existingSelections = qlikService.app.selectionState().selections.filter(function(selection){
 			return selection.fieldName === fieldName;
 		});
 
@@ -936,7 +1332,7 @@ define([
 	 * Executes trueChart actions (works only when trueChart is available)
 	 * @param params
 	 */
-	function executeTCAction(params){
+	static executeTCAction(params){
 		var extension;
 		try{
 			if(this.parameters[0] === 'trueChartExtension'){
@@ -965,16 +1361,100 @@ define([
 	 * @param name {string} Name of the custom trigger
 	 * @param data {*} Data object which will be available in the custom action as evt.data
 	 */
-	function performCustomTrigger(name, data){
+	static performCustomTrigger(name, data){
 		qvangular.$rootScope.$broadcast('performCustomTrigger', {name: name, data: data});
 	}
 
-
-	function isTrue(condition){
+	static isTrue(condition){
 		condition  = condition.toString().toLowerCase();
 		return condition === ''
 			|| condition === 'true'
 			|| condition === '1'
 			|| condition === '-1';
 	}
-});
+
+	/**
+	 * Copies given text to clipboard
+	 *
+	 * @param {string} text - Text to be copied
+	 *
+	 * @retrn {boolean} - returns true, if copy was successful, false otherwise
+	 */
+	static copyTextToClipboard(text){
+		const textArea = document.createElement('textarea');
+
+		textArea.style.position = 'fixed';
+		textArea.style.top = '9000px';
+
+		textArea.value = text;
+		document.body.appendChild(textArea);
+		textArea.select();
+
+		let success;
+		try {
+			success = document.execCommand('copy');
+		} catch (err) {
+			success = false;
+			console.warn('Oops, unable to copy text to clipboard');
+		}
+		document.body.removeChild(textArea);
+		return success;
+	}
+
+	/**
+	 * Opens the default mail client with given parameters
+	 *
+	 * @param {string} mailto
+	 * @param {string} cc
+	 * @param {string} subject
+	 * @param {string} body
+	 */
+	static writeMail(mailto, cc, subject, body) {
+		window.location.href = `mailto:${mailto}?`
+			+ (cc ? `cc=${cc}&` : '')
+			+ (subject ? `subject=${subject}&` : '')
+			+ (body ? `body=${encodeURIComponent(body)}` : '');
+	}
+
+	/**
+	 * Loads data of actions parameter items
+	 *
+	 * @param {string} actionName
+	 *
+	 * @return {Promise<*>}
+	 */
+	loadActionParameterItems(actionName){
+		const actionDef = this.getAction(actionName);
+		if(actionDef && actionDef.parameters){
+			return Promise.all(actionDef.parameters.map(param => this.loadParameterItems(param)));
+		}
+		return Promise.resolve();
+	}
+
+	/**
+	 * Loads parameter specific data
+	 *
+	 * @param {string} paramName
+	 *
+	 * @return {Promise<void>} - Returns a promise which will be resolved, when parameters are loaded (if any)
+	 */
+	loadParameterItems(paramName){
+		const paramDef = this.getParameter(paramName);
+
+		if(paramDef && typeof paramDef.loadItems === 'function'){
+			let needConfirmation = false;
+
+			// only show toastr when data loading takes a while
+			const loadTimer = setTimeout(() => {
+				needConfirmation = true;
+				Toastr.info(getTranslation('DATA_IS_LOADING'));
+			}, 500);
+
+			return paramDef.loadItems().then(() => {
+				clearTimeout(loadTimer);
+				needConfirmation && Toastr.success(getTranslation('DATA_SUCCESSFULLY_LOADED'));
+			});
+		}
+		return Promise.resolve();
+	}
+}

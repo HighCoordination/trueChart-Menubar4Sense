@@ -1,19 +1,19 @@
 import {prefix} from '../prefix';
+import {QlikService, qlik} from '../services/qlik-service';
+import {MediaService} from '../services/media-service';
+import {getTranslation} from '../translations/translation';
 
 define([
-	'qlik',
 	'require',
 	'qvangular',
 	'ng!$compile',
 	'ng!$timeout',
 	'./media-library.html',
 	'./modal-dialog',
-	'../translations/translation',
-	'../services/qlik-service',
-	'../services/media-service',
 	'leonardo-ui'
-], function(qlik, require, qvangular, $compile, $timeout, template, Modal, translation, QlikService, MediaService, leonardoui){
+], function(require, qvangular, $compile, $timeout, template, Modal, leonardoui){
 
+	const _qlikService = QlikService.getInstance();
 	const _mediaService = !QlikService.isPrinting() ? MediaService.getInstance(qlik.currApp().id) : {};
 	const _mediaProvider = _mediaService.mediaProvider;
 	const STATES = {
@@ -83,7 +83,7 @@ define([
 	function Controller($scope, $element){
 		let _this = this;
 
-		$scope.trans = translation.getTranslation;
+		$scope.trans = getTranslation;
 		$scope.STATES = STATES;
 		$scope.state = STATES.DEFAULT; // current state of the media library
 		$scope.prevState = STATES.DEFAULT; // previous state of the media library
@@ -97,6 +97,7 @@ define([
 		$scope.importUrl = ''; // URL string for URL-imports
 
 		$scope.isDownloadable = _mediaProvider.isDownloadSupported();
+		$scope.isUpdatable = !_qlikService.isPublished(); // in published apps we do not have permission to update/create persisted objects
 
 		this.apply = apply;
 		this.cancel = cancel;

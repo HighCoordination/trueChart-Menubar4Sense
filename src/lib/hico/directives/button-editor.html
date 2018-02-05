@@ -331,22 +331,22 @@
 										<div class="lui-buttongroup lui-input-group flex-container">
 											<button class="lui-button lui-buttongroup__button flex no-padding" style="min-width: 28px"
 													qva-activate="$ctrl.setIconPosition('left')"
-													ng-class="{'lui-active': $ctrl.getIconPosition() === 'left'}">
+													ng-class="{'lui-active': !$ctrl.state.layout.icon.position || $ctrl.state.layout.icon.position === 'left'}">
 												<i class="lui-button__icon fa fa-long-arrow-left fa-lg"></i>
 											</button>
 											<button class="lui-button lui-buttongroup__button flex no-padding" style="min-width: 28px"
 													qva-activate="$ctrl.setIconPosition('top')"
-													ng-class="{'lui-active': $ctrl.getIconPosition() === 'top'}">
+													ng-class="{'lui-active': $ctrl.state.layout.icon.position === 'top'}">
 												<i class="lui-button__icon fa fa-long-arrow-up fa-lg"></i>
 											</button>
 											<button class="lui-button lui-buttongroup__button flex no-padding" style="min-width: 28px"
 													qva-activate="$ctrl.setIconPosition('bottom')"
-													ng-class="{'lui-active': $ctrl.getIconPosition() === 'bottom'}">
+													ng-class="{'lui-active': $ctrl.state.layout.icon.position === 'bottom'}">
 												<i class="lui-button__icon fa fa-long-arrow-down fa-lg"></i>
 											</button>
 											<button class="lui-button lui-buttongroup__button flex no-padding" style="min-width: 28px"
 													qva-activate="$ctrl.setIconPosition('right')"
-													ng-class="{'lui-active': $ctrl.getIconPosition() === 'right'}">
+													ng-class="{'lui-active': $ctrl.state.layout.icon.position === 'right'}">
 												<i class="lui-button__icon fa fa-long-arrow-right fa-lg"></i>
 											</button>
 										</div>
@@ -777,24 +777,25 @@
 
                                                                 <div class="p-b-xs" style="width: 100%">
                                                                     <div class="col-sm-4">
-                                                                        <div class="lui-label" title="{{$ctrl.actions[action.name].description}}">
+																		<label class="lui-label" title="{{$ctrl.actions[action.name].description}}">
                                                                             {{$ctrl.trans('NAME')}}
-                                                                        </div>
-                                                                        <select class="lui-select" ng-model="action.name"
-                                                                                ng-change="action.paramsExpr = {};"
+																		</label>
+																		<select class="lui-select" ng-model="action.name"
+																				ng-change="$ctrl.onActionChange(action)"
                                                                                 ng-options="a.name as a.label group by $ctrl.trans(a.type.toUpperCase()) for a in $ctrl.getUsableActions($ctrl.actions, trigger.type)"></select>
                                                                     </div>
                                                                     <div class="col-sm-8 no-padding">
                                                                         <div class="p-h-xs" style="vertical-align: middle; display: inline-block; float: none"
+																			 ng-show="!$ctrl.params[param].show || $ctrl.params[param].show(action)"
                                                                              ng-repeat="param in $ctrl.actions[action.name].parameters track by $index"
-                                                                             ng-class="{'col-sm-6': $ctrl.actions[action.name].parameters.length > 1 && $index < 2,
+																			 ng-class="$ctrl.params[param].className || {'col-sm-6': $ctrl.actions[action.name].parameters.length > 1 && $index < 2,
                                                                                 'col-sm-3': $index > 1,
                                                                                 'col-sm-12': $ctrl.actions[action.name].parameters.length == 1}">
 
-                                                                            <div class="lui-label" title="{{$ctrl.params[param].tooltip}}"
+																			<label class="lui-label" title="{{$ctrl.params[param].tooltip}}"
                                                                                  style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                                                                 {{$ctrl.params[param].label}}
-                                                                            </div>
+																			</label>
 
                                                                             <!-- custom -->
 																			<div ng-if="$ctrl.params[param].type === 'custom'">
@@ -809,7 +810,8 @@
 																			</div>
 
                                                                             <!-- dropdown -->
-                                                                            <select class="lui-select"
+																			<select class="flex-container lui-select"
+																					ng-init="action.paramsExpr[$index] = (action.paramsExpr[$index] || $ctrl.params[param].defaultValue)"
                                                                                     ng-if="$ctrl.params[param].type === 'dropdown' && $ctrl.params[param].expression !== 'optional'"
                                                                                     ng-model="action.paramsExpr[$index]"
                                                                                     ng-options="item.value as item.label group by item.type for item in $ctrl.params[param].items
@@ -821,6 +823,8 @@
                                                                                 <div class="right-extendable-group">
                                                                                     <div class="pp-component pp-button-component">
                                                                                         <select class="lui-input lui-select hico-select-dropdown-button"
+																								ng-init="action.paramsExpr[$index] = (action.paramsExpr[$index] || $ctrl.params[param].defaultValue)"
+																								ng-change="$ctrl.onParameterChange(param, action.paramsExpr, $index)"
                                                                                                 ng-model="action.paramsExpr[$index]"
                                                                                                 ng-options="item.value as item.label group by item.type for item in $ctrl.params[param].items
                                                                                             | orderBy: 'label' | filter: {isHidden: '!true'}"></select>
@@ -852,13 +856,87 @@
                                                                             </label>
 
                                                                             <!-- none -->
-                                                                            <span class="lui-list__text" ng-if="$ctrl.params[param].type === 'none'"
-                                                                                  style="line-height: 2">
-                                                                        {{::$ctrl.trans('NO_PARAMETERS_REQUIRED')}}
-                                                                        </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+																			<span class="lui-list__text" ng-if="$ctrl.params[param].type === 'none'" style="line-height: 2">
+																				{{::$ctrl.trans('NO_PARAMETERS_REQUIRED')}}
+																			</span>
+																		</div>
+																	</div>
+
+																	<!-- optional parameters -->
+																	<div class="col-xs-12" ng-if="$ctrl.actions[action.name].optionalParameters"
+																		 ng-init="actionDef = $ctrl.actions[action.name]">
+																		<legend>{{actionDef.optionalLabel}}</legend>
+																		<div class="lui-list__item lui-list__header">
+																			<span class="lui-list__action lui-list__aside"
+																				  qva-activate="$ctrl.addOptionalParameter(action)"
+																				  title="{{::$ctrl.trans('HELP_ADD_OPTIONAL_PARAMETER')}}">
+																				<i class="lui-icon lui-icon--add"></i>
+																				<span class="lui-list__text">{{::$ctrl.trans('ADD')}}</span>
+																			</span>
+																		</div>
+																		<ul class="lui-list">
+																			<li class="lui-list__item p-b-xs"
+																				ng-repeat="(optIdx, param) in action.optionalParamsExpr">
+																				<div class="col-sm-4">
+																					<label class="lui-label" title="{{$ctrl.actions[action.optionalParamsExpr[$index].type].description}}">
+																						{{$ctrl.trans('NAME')}}
+																					</label>
+																					<select class="lui-select"
+																						ng-model="action.optionalParamsExpr[optIdx].type"
+																						ng-options="value as option.label for (value, option) in actionDef.optionalParameters">
+																					</select>
+																				</div>
+																				<div class="col-sm-8 no-padding"
+																					 ng-init="additionalParamsDef = actionDef.optionalParameters[param.type]">
+																					<div class="p-h-xs"
+																						ng-init="additionalParamsDef = actionDef.optionalParameters[param.type]"
+																						ng-class="{'col-sm-12': additionalParamsDef.parameters.length === 1,
+																						'col-sm-6': additionalParamsDef.parameters.length > 1}"
+																						ng-repeat="(idx, optParam) in actionDef.optionalParameters[param.type].parameters">
+
+																						<label class="lui-label" title="{{$ctrl.params[optParam].tooltip}}"
+																							 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+																							{{$ctrl.params[optParam].label}}
+																						</label>
+
+																						<!-- dropdown with optional expression input -->
+																						<div class="flex-container"
+																							 ng-if="$ctrl.params[optParam].type === 'dropdown' && $ctrl.params[optParam].expression === 'optional'">
+																							<div class="right-extendable-group">
+																								<div class="pp-component pp-button-component">
+																									<select class="lui-input lui-select hico-select-dropdown-button"
+																											ng-change="$ctrl.onParameterChange(optParam, action.optionalParamsExpr[optIdx].parameters, idx)"
+																											ng-model="action.optionalParamsExpr[optIdx].parameters[idx]"
+																											ng-options="item.value as item.label group by item.type for item in $ctrl.params[optParam].items
+																							| orderBy: 'label' | filter: {isHidden: '!true'}"></select>
+																								</div>
+																							</div>
+																							<div class="left-extendable-group flex" include-pp-component
+																								 x-component="$ctrl.qComponents.string"
+																								 x-definition="$ctrl.definitions['param' + $index]"
+																								 x-data="action.optionalParamsExpr[optIdx].parameters" x-args="$ctrl"></div>
+																						</div>
+
+																						<!-- expressionInput -->
+																						<div include-pp-component
+																							 ng-if="$ctrl.params[optParam].type === 'expressionInput'"
+																							 x-component="$ctrl.qComponents.string"
+																							 x-definition="$ctrl.definitions['param' + $index]"
+																							 x-data="action.optionalParamsExpr[optIdx].parameters" x-args="$ctrl"></div>
+
+																					</div>
+																				</div>
+																				<div class="flex-container vertical j-c-space-around">
+																					<div class="flex lui-list__aside lui-list__action"
+																						 qva-activate="$ctrl.removeOptionalParameter(action, optIdx)">
+																						<i class="lui-icon lui-icon--bin" style="margin: auto"></i>
+																					</div>
+																				</div>
+																			</li>
+
+																		</ul>
+																	</div>
+																</div>
 
 																<div class="flex-container vertical j-c-space-around">
 																	<div class="flex lui-list__aside lui-list__action"

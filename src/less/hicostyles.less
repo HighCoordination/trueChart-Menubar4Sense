@@ -1,5 +1,7 @@
 @button-padding-x: 10px;
 @button-padding-y: 6px;
+@lui-border-disabled: #b3b3b3;
+@panel-minwidth: 200px;
 
 .hico {
   overflow: auto;
@@ -128,10 +130,6 @@
 
 .hico-overflow-hidden {
 	overflow: hidden;
-}
-
-.hico-100{
-  height: 100%;
 }
 
 .hico-block{
@@ -369,7 +367,7 @@ button.action{
   height: auto;
   max-height: 400px;
   width: inherit;
-  min-width: 150px;
+  min-width: @panel-minwidth;
 }
 
 .hico-panel-scrollcontainer{
@@ -377,7 +375,7 @@ button.action{
   height: auto;
   max-height: 400px;
   width: inherit;
-  min-width: 150px;
+  min-width: @panel-minwidth;
 }
 
 .hico-select-toolbar-listitem{
@@ -399,12 +397,13 @@ button.action{
 
 .hico-select-toolbar-input{
   margin-right: 12px;
+  min-width: 0;
 }
 
 .hico-select-toolbar-popover {
   position: absolute !important;
   left: 55px;
-  min-width: 200px;
+  min-width: @panel-minwidth;
 }
 
 .hico-select-toolbar-popover-multi {
@@ -450,6 +449,7 @@ button.action{
 
 .hico-select-panel-horizontal-container{
   position: fixed;
+  min-width: @panel-minwidth;
   box-shadow: 0 3px 15px 1px black;
 }
 
@@ -459,7 +459,7 @@ button.action{
 
 .hico-senseselect-panel-horizontal,  .hico-select-panel-horizontal{
   width: inherit;
-  min-width: 200px;
+  min-width: @panel-minwidth;
   transition: max-height 0.2s ease-out;
 }
 
@@ -764,5 +764,13 @@ button.action{
     max-width: 100%;
     text-overflow: ellipsis;
     overflow: hidden;
+  }
+}
+
+.hico-button-inactive.lui-disabled{
+  pointer-events: auto!important;
+
+  &:hover{
+    border-color: @lui-border-disabled!important;
   }
 }

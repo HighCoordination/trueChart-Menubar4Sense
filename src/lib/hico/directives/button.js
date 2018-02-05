@@ -1,4 +1,8 @@
 import {prefix} from '../prefix';
+import {QlikService} from '../services/qlik-service';
+import {ActionService} from '../services/action-service';
+import {MediaService} from '../services/media-service';
+import {Utils} from '../common/utils';
 
 define([
 	'jquery',
@@ -6,10 +10,11 @@ define([
 	'angular',
 	'qvangular',
 	'./button.html',
-	'../services/media-service',
-	'../services/action-service',
-	'../services/qlik-service'
-], function($, qlik, angular, qvangular, template, MediaService){
+	'../services/action-service'
+], function($, qlik, angular, qvangular, template){
+
+	const qlikService = QlikService.getInstance(),
+		actionService = ActionService.getInstance();
 
 	/** Register an angular directive for <div data-hico-button></div> element */
 	qvangular.directive(prefix + 'Button', Button);
@@ -35,7 +40,7 @@ define([
 				scrollingInfo: '<',
 				defaultStyles: '<'
 			},
-			controller: ['$scope', '$element', prefix + 'ActionService', prefix + 'QlikService', ButtonController],
+			controller: ['$scope', '$element', ButtonController],
 			controllerAs: '$ctrl',
 			template: template
 		};
@@ -43,13 +48,14 @@ define([
 
 	/**
 	 * HiCo-Button Controller
-	 * @param $scope	angular $scope of the element
-	 * @param $element	angular $element
+	 *
+	 * @param $scope - angular $scope of the element
+	 * @param $element - angular $element
 	 * @constructor
 	 */
-	function ButtonController($scope, $element, actionService, qlikService){
+	function ButtonController($scope, $element){
 		var extScope = qlikService.getExtensionScope($scope),
-			app = extScope && extScope.ext.model.app || qlik.currApp(); // use current app by default
+			app = extScope && extScope.ext.model.app || qlikService.app;
 
 		var ctrl = this;
 		this.states = $scope.states;
@@ -195,11 +201,11 @@ define([
 						return Promise.resolve();
 					}
 					return Promise.all(actions.map(action =>{
-						let args = [action.params],
+						let args = [action.params, action.optionalParams],
 							currAction = actionService.getAction(action.name);
 
 						if(action.name === 'custom'){
-							args = [$, qlik, $ctrl.getScope(), $ctrl.getElement(), contextType, evt, action.params];
+							args = [$, qlik, $ctrl.getScope(), $ctrl.getElement(), contextType, evt, action.params, action.optionalParams];
 						}
 
 						return Promise.resolve(currAction.execute.apply(currAction, args))
@@ -220,13 +226,13 @@ define([
 						return Promise.resolve();
 					}
 					let action = actions[index],
-						args = [action.params],
+						args = [action.params, action.optionalParams],
 						currAction = actionService.getAction(action.name);
 
 					index++;
 
 					if(action.name === 'custom'){
-						args = [$, qlik, $ctrl.getScope(), $ctrl.getElement(), contextType, evt, action.params];
+						args = [$, qlik, $ctrl.getScope(), $ctrl.getElement(), contextType, evt, action.params, action.optionalParams];
 					}
 
 					return Promise.resolve(currAction.execute.apply(currAction, args))
@@ -277,20 +283,26 @@ define([
 
 					hover = hovering && state.hasActions && (!state.buttonState || state.buttonState === 'normal');
 
-				// set default styles for simple button
-				if(!state.buttonType || state.buttonType === 'simple'){
-					styles = angular.extend({}, defaults);
-					if(prefix === 'hico' && hover){
-						styles['background-color'] = 'rgba(159,159,159,0.4)'; // apply hover background-color for tc-buttons with actions only
-					}
+				// set default styles for all buttons
+				styles = angular.extend({}, defaults);
+				containerStyles = angular.extend({}, defaults);
+
+				if((!state.buttonType || state.buttonType === 'simple') && prefix === 'hico' && hover){
+					styles['background-color'] = 'rgba(159,159,159,0.4)'; // apply hover background-color for tc-buttons with actions only
 				}
 
-				if (fontStyle){
+				if(fontStyle){
+					let fontsize = !fontStyle.size || isNaN(fontStyle.size) && fontStyle.size.indexOf('px') === -1 ? fontStyle.size : Utils.getDynamicFontSize(fontStyle.size);
 					styles['color'] = (hover ? fontStyle.hoverColor : fontStyle.color) || styles['color'];
 					fontStyle.family && (styles['font-family'] = fontStyle.family);
-					fontStyle.size && !isNaN(styles['font-size'] = fontStyle.size) && (styles['font-size'] += 'px');
+					fontsize && !isNaN(styles['font-size'] = fontsize) && (styles['font-size'] += 'px');
 					fontStyle.weight && (styles['font-weight'] = fontStyle.weight);
 					fontStyle.style && (styles['font-style'] = fontStyle.style);
+				}
+
+				// use default color for lui-buttons (default) if no color was specified
+				if((state.buttonType === 'lui-button' || state.buttonType === 'lui-fade-button') && (!fontStyle || !fontStyle.color)){
+					styles['color'] = 'inherit';
 				}
 
 				let width = layout.width + (!isNaN(layout.width) ? 'px' : '');
@@ -449,7 +461,7 @@ define([
 			this.registerOnSelectionHandler = registerOnSelectionHandler;
 
 			// Register the onSelection handler, for onSelection trigger handling
-			!this.qlikService.isPrinting() && qlik.currApp().selectionState().OnData.bind(registerOnSelectionHandler);
+			!this.qlikService.isPrinting() && this.qlikService.app.selectionState().OnData.bind(registerOnSelectionHandler);
 
 			// update image path, when app was duplicated|copied|exported etc
 			//this.states.forEach(function(state){
@@ -615,24 +627,40 @@ define([
 
 		state.triggers && _state.triggers.forEach(function(trigger){
 			trigger.actions.forEach(function(action){
-				var paramsExpr = action.paramsExpr;
+				const {paramsExpr, optionalParamsExpr} = action;
 				action.params = action.params || {};
+				action.optionalParams = optionalParamsExpr ? action.optionalParams || [] : undefined;
 
-				for(var key in paramsExpr){
-					if(paramsExpr.hasOwnProperty(key)){
-						promises.push((function(key){
-							return ctrl.qlikService.evalExpression(paramsExpr[key]).then(function(reply){
-								action.params[key] = reply;
-							});
-						})(key));
-					}
-				}
+				promises = [...promises, evalParams(paramsExpr, action.params)];
+
+				// optional parameters, could be undefined
+				optionalParamsExpr && optionalParamsExpr.forEach((paramExpr, i) =>{
+					const param = action.optionalParams[i] = {type: paramExpr.type, params: {}};
+					promises = [...promises, evalParams(paramExpr.parameters, param.params)];
+				});
 			});
 		});
 
 		Promise.all(promises).then(function(){deferred.resolve(_state);});
 
 		return deferred.promise;
+	}
+
+	/**
+	 * Evaluates parameters and returns an array of promises
+	 *
+	 * @param {{[key: string]: string}} paramsExpr - Parameters to be evaluated (expressions)
+	 * @param {{[key: string]: string}} params - Evaluated parameters
+	 * @return {Array}
+	 */
+	function evalParams(paramsExpr, params){
+		const promises = [];
+		for(var key in paramsExpr){
+			if(paramsExpr.hasOwnProperty(key)){
+				promises.push(((key) => qlikService.evalExpression(paramsExpr[key]).then((reply) => params[key] = reply))(key));
+			}
+		}
+		return promises;
 	}
 
 	/**

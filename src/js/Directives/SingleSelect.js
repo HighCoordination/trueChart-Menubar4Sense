@@ -1,12 +1,12 @@
 import {Logger} from '../../lib/hico/logger';
+import {QlikService} from '../../lib/hico/services/qlik-service';
+import {ListItem} from '../../classes/ListItem';
 
 define([
-	'qlik',
 	'qvangular',
 	'../../templates/singleSelect.html',
-	'../../lib/hico/services/qlik-service',
 	'../Services/UtilService'
-	], function(qlik, qvangular, template, QlikService){
+	], function(qvangular, template){
 
 	const qlikService = QlikService.getInstance();
 
@@ -16,20 +16,37 @@ define([
 				restrict: 'E',
 				scope: {
 					item: '=',
-					layout: '<',
 					type: '<',
 					listitems: '=',
 					multiid: '<',
-					colors: '<',
 					parentscope: '<',
+					groupitem: '<',
 				},
 				replace: true,
 				template: template,
 				controller: ['$scope', '$element', '$timeout', '$window', function($scope, $element, $timeout, $window){
+					$scope.layout = $scope.parentscope.layout;
+					$scope.colors = $scope.parentscope.colors;
 					$scope.itemId = $scope.layout.qInfo.qId + '-' + $scope.item.cId;
 					$scope.utilService = utilService;
 					$scope.activeItem = null;
 					$scope.showDimPopover = false;
+					$scope.panelDropdownOffset = 0;
+
+					$scope.$watch('item.cId', function() {
+						$scope.itemId = $scope.layout.qInfo.qId + '-' + $scope.item.cId;
+					});
+
+					this.$onInit = function(){
+						let parentScope = $scope.parentscope,
+							listObject = parentScope._listObjects[$scope.item.dimId];
+
+						if(!listObject){
+							return;
+						}
+						const defaultSelection = ListItem.getDefaultSelection($scope.layout.listItems, $scope.item.dimId);
+						defaultSelection !== null && parentScope.addSelection(listObject, defaultSelection, false, false);
+					};
 
 					$scope.openSelect = function(item){
 						if(!qlikService.inEditMode()){
@@ -40,9 +57,9 @@ define([
 								item.isOpen = !item.isOpen;
 								item.alignement = utilService.checkNumeric(item);
 
-								if($scope.layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767){
-									$element.find("#panel_" + $scope.itemId).width($element[0].clientWidth);
-									$element.find("#toolbar_" + $scope.itemId).width($element[0].clientWidth);
+								if($scope.layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767 && !$scope.groupitem){
+									$scope.panelDropdownOffset = utilService.getDropdownOffset($element);
+									$element.find('#panel_' + $scope.itemId).width($element[0].clientWidth);
 
 									if(item.show){
 										$element.parents("article").css("z-index", 2);
@@ -96,14 +113,12 @@ define([
 					};
 
 					$scope.closeDropdown = function(item){
-						if($scope.type !== 'Multi Select'){
-							item.show = false;
-							item.isOpen = false;
+						item.show = false;
+						item.isOpen = false;
 
-							$scope.selectValues = null;
-							$window.removeEventListener('click', clickevent);
-							$scope.showDimPopover = false;
-						}
+						$scope.selectValues = null;
+						$window.removeEventListener('click', clickevent);
+						$scope.showDimPopover = false;
 					};
 
 					$scope.handleSelect = function(item){

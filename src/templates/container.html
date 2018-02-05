@@ -1,5 +1,5 @@
 <div class="hico-fullHeight hico-relative">
-	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.screenWidth < 768" class="hico-item-vertical-default"
+	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.screenWidth < 768 || groupitem" class="hico-item-vertical-default"
 		 ng-style="
 					!item.props.isCustomSize && {'height': '56px'}
 					||item.props.isCustomSize && {'height': item.props.height + px}">
@@ -16,7 +16,7 @@
 		</div>
 	</div>
 
-	<div class="hico-fullHeight" ng-if="layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767">
+	<div class="hico-fullHeight" ng-if="layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767 && !groupitem">
 		<div class="action hico-text-center hico-btn-container hico-btn-container-padding" title="{{subItem.props.tooltip}}"
 				ng-repeat="subItem in item.subItems track by $index"
 				ng-style="!$last && {'border-bottom': 'solid ' + colors.borderSeparatorColor + ' 1px','background-color': 'rgba(1,1,1,0)', 'height': (100 / item.subItems.length)+'%', 'color': colors.textColor} ||

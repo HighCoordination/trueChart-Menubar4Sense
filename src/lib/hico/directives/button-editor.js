@@ -1,3 +1,20 @@
+import 'jquery-slimscroll';
+import './codemirror';
+import '../services/action-service';
+
+import * as angular from 'angular';
+import * as qvangular from 'qvangular';
+import * as $timeout from 'ng!$timeout';
+import * as template from './button-editor.html';
+import * as Button from './button';
+import * as MediaLibrary from './media-library';
+import * as leonardoui from 'leonardo-ui';
+
+import faIcons from '../common/icons-fa';
+import luiIcons from '../common/icons-lui';
+import {getTranslation} from '../translations/translation';
+import {QlikService} from '../services/qlik-service';
+import {ActionService} from '../services/action-service';
 import {Toastr} from '../common/toastr';
 import {prefix} from '../prefix';
 
@@ -11,25 +28,10 @@ requirejs.config({
 	}
 });
 
-define([
-	'require',
-	'angular',
-	'qvangular',
-	'jquery',
-	'ng!$timeout',
-	'./button-editor.html',
-	'./button',
-	'./media-library',
-	'../translations/translation',
-	'../services/qlik-service',
-	'leonardo-ui',
-	'./codemirror',
-	'jquery-slimscroll',
-	'../common/icons-fa',
-	'../common/icons-lui'
-], function(require, angular, qvangular, $, $timeout, template, Button, MediaLibrary, translation, QlikService, leonardoui){
+define([], function(){
 
 	const qlikService = QlikService.getInstance(),
+		actionService = ActionService.getInstance(),
 		exampleImage = prefix === 'tcmenu' ? 'tcmenu/img/tcmenu_logo.jpg' : 'trueChart/img/logo.png';
 
 	/** Register an angular directive for <div data-hico-button-editor></div> element */
@@ -47,9 +49,10 @@ define([
 				state: '<',
 				condition: '<',
 				buttonName: '<',
-				defaultStyles: '<'
+				defaultStyles: '<',
+				onClose: '<'
 			},
-			controller: ['$scope', '$element', prefix + 'ActionService', ButtonEditorController],
+			controller: ['$scope', '$element', ButtonEditorController],
 			controllerAs: '$ctrl',
 			template: template
 		};
@@ -59,7 +62,7 @@ define([
 	 * ButtonEditor Controller
 	 * @constructor
 	 */
-	function ButtonEditorController($scope, $element, actionService){
+	function ButtonEditorController($scope, $element){
 		var ctrl = this,
 			watchers = [];
 
@@ -69,7 +72,7 @@ define([
 		ctrl.getReady = Promise.resolve(); // ready by default
 		ctrl.state = JSON.parse(JSON.stringify($scope.state)); // keep the original untouched (to make cancel possible)
 		ctrl.actionService = actionService;
-		ctrl.trans = translation.getTranslation;
+		ctrl.trans = getTranslation;
 		ctrl.openMediaLibrary = openMediaLibrary;
 
 		if (!$scope.buttonName){
@@ -94,7 +97,10 @@ define([
 		this.apply = function(){
 			// Check if all required inputs are valid
 			if(this.check()){
-				$($element).trigger({type: 'apply', state: this.state});
+				const $scope = this.getScope();
+				if(typeof $scope.onClose === 'function'){
+					$scope.onClose({type: 'apply', state: this.state});
+				}
 				this.close();
 			}else{
 				Toastr.info(ctrl.trans('FILL_ALL_REQUESTED_FIELDS'));
@@ -102,7 +108,10 @@ define([
 		};
 
 		this.cancel = function(){
-			$($element).trigger({type: 'cancel'});
+			const $scope = this.getScope();
+			if(typeof $scope.onClose === 'function'){
+				$scope.onClose({type: 'cancel'});
+			}
 			this.close();
 		};
 
@@ -243,7 +252,7 @@ define([
 
 		/**
 		 * Checks if given trigger can be used or not
-		 * @param {type: string} trigger Trigger to be checked
+		 * @param {{type: string}} trigger Trigger to be checked
 		 * @param {array.<{name: string>} [triggerActions] Trigger actions which also needs be supported
 		 * @return {boolean} true if trigger is usable, fals otherwise
 		 */
@@ -260,6 +269,66 @@ define([
 		 */
 		onTriggerChange: function(){
 			this.updateUsedTriggers();
+		},
+
+		/**
+		 * Handler for parameter change events
+		 *
+		 * @param {string} key - parameter (name)
+		 * @param {{[index]: string|{qStringExpression: {qExpr: string}}}} paramsExpr - not evaluated parameter list (can contain expressions)
+		 * @param {string} index - current parameter index
+		 */
+		onParameterChange: function(key, paramsExpr, index){
+			const paramDef = this.params[key],
+				paramValue = paramsExpr[index];
+
+			// null is not allowed in case of expressions (in combination with Qlik Sense "string" component, we must reset the parameter to a valid value!!
+			if(paramValue === null && paramDef.expression === 'optional'){
+				paramsExpr[index] = '';
+			}
+
+			if(paramDef && typeof paramDef.onChange === 'function'){
+				paramDef.onChange(paramValue);
+			}
+		},
+
+		/**
+		 * Handler for action change events
+		 *
+		 * @param {object} action - current (selected) action object
+		 */
+		onActionChange: function(action){
+			action.paramsExpr = {}; // reset expression property
+			delete action.optionalParamsExpr; // remove optional parameters property
+
+			this.actionService.loadActionParameterItems(action.name); // some action parameters are "lazy" initialized, we must do it here (at least)
+		},
+
+		/**
+		 * Adds an optional parameter to the given action
+		 *
+		 * @param {object} action - Action object to add parameter to
+		 */
+		addOptionalParameter: function(action){
+			if(!action.optionalParamsExpr){
+				action.optionalParamsExpr = [];
+			}
+			const optionalParamsExpr = action.optionalParamsExpr,
+				type = optionalParamsExpr.length ? optionalParamsExpr[0].type : Object.keys(this.actions[action.name].optionalParameters)[0];
+			optionalParamsExpr.push({type});
+		},
+
+		/**
+		 * Removes an optional parameter from the given action
+		 *
+		 * @param {object} action - Action object to remove parameter from
+		 * @param {number} index - parameter index of the parameter to be removed
+		 */
+		removeOptionalParameter: function(action, index){
+			if(!action || !action.optionalParamsExpr){
+				return;
+			}
+			action.optionalParamsExpr.splice(index, 1);
 		},
 
 		/**
@@ -311,6 +380,32 @@ define([
 			return visibleActions;
 		},
 
+		/**
+		 * Loads parameters used in current button state
+		 */
+		loadUsedParameters: function(){
+			if(!this.actions || !this.state || !this.state.triggers.length || this.usedParametersLoaded){
+				return; // nothing used or already loaded -> nothing to load
+			}
+
+			this.usedParametersLoaded = true; // don't load used parameters multiple times
+
+			const triggers = this.state.triggers;
+			for(let key in triggers){
+				const trigger = triggers[key];
+				if(triggers.hasOwnProperty(key) && trigger.actions){
+					trigger.actions.forEach((action) =>{
+						this.actionService.loadActionParameterItems(action.name).then(() =>{
+							const actionDef = this.actions[action.name];
+							if(actionDef && actionDef.parameters){
+								// simulate a parameter change event to load all other dependent parameters
+								actionDef.parameters.forEach((parameter, index) => this.onParameterChange(parameter, action.paramsExpr, index));
+							}
+						});
+					});
+				}
+			}
+		},
 
 		toggleCollapsible: function(evt){
 			angular.element(evt.currentTarget).find('.lui-icon').toggleClass('lui-icon--arrow-up lui-icon--arrow-down');
@@ -335,10 +430,6 @@ define([
 			this.state.style.custom = this.parameters.styles.custom.value;
 		},
 
-		resetBackgroundImage: function(){
-			this.state.style.background.image = this.parameters.styles.image.value;
-		},
-
 		setBackgroundImageUrl: function(url){
 			this.state.style.background.image = url;
 		},
@@ -349,14 +440,6 @@ define([
 
 		setIconPosition: function(value){
 			angular.extend(this.state.layout, {icon: {position: value}});
-		},
-
-		getIconPosition: function(){
-			try {
-				return this.state.layout.icon.position || 'left';
-			}catch(e){
-				return 'left';
-			}
 		},
 
 		toggleExecutionOrder: function(action){
@@ -399,15 +482,12 @@ define([
 
 		$onInit: function(){
 			setDefaults(this.state);
-			var ctrl = this,
-				faIcons = require('../common/icons-fa').default,
-				luiIcons = require('../common/icons-lui').default;
 
 			this.actions = this.getUsableActions(this.actionService.getActions());
 			this.triggers = this.actionService.getTriggers();
-			this.actionService.getParameters().then(function(params){
-				ctrl.params = params;
-			});
+			this.waitForParams = this.actionService.getParameters().then(params => new Promise(resolve =>{
+				$timeout(() => resolve(this.params = params));
+			}));
 
 			this.parameters = getParameters();
 
@@ -471,6 +551,9 @@ define([
 				case 'actions':
 					// refresh codeMirror otherwise it would remain blank, until it becomes focused by clicking on it
 					this.getScope().$broadcast('CodeMirror', codeMirror => $timeout(() => codeMirror.refresh()));
+
+					// load used parameters when switching to the action tab
+					tabId === 'actions' && this.waitForParams.then(() => this.loadUsedParameters());
 					break;
 			}
 		},

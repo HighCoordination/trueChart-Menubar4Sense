@@ -3,12 +3,12 @@ import {ListItem} from '../classes/ListItem';
 import {loadEditor} from '../lib/hico/hico-button';
 import {Logger} from '../lib/hico/logger';
 import UpdateService from './Services/UpdateService';
+import {QlikService, qlik} from '../lib/hico/services/qlik-service';
+import {Utils} from '../lib/hico/common/utils';
 
-const qlik = require('qlik'),
-	qvangular = require('qvangular'),
+const qvangular = require('qvangular'),
 	$ = require('jquery'),
-	updateService = UpdateService.getInstance(),
-	QlikService = require('../lib/hico/services/qlik-service');
+	updateService = UpdateService.getInstance();
 
 export function Extension(){
 
@@ -34,11 +34,12 @@ export function Extension(){
 	 * @param apiService
 	 */
 	function controller($scope, $element, utilService, apiService){
+
 		// $scope does not always work (not in any QS version)
 		let _app = qlik.currApp(/*$scope*/), // reference must have backandApi as property ($scope -> backendApi -> model)
 			_waitForUpdates, // Promise, which will be resolved, when updates are finished
 			_model = $scope.backendApi.model,
-			_originalModel = $scope.backendApi.model,
+			_originalModel = $scope.backendApi.model, // keep the original model for future usage (if needed)
 			_waitForVariable = qlik.Promise.resolve(),
 			_selectionsInProgress = false,
 			_ready = qlik.Promise.defer(),
@@ -87,6 +88,9 @@ export function Extension(){
 
 		$scope._listObjects = {}; // collection of listObject promises with dimId as key and listObject in a promise as value
 		$scope._selectItems = {}; // collection of select items (only) with dimId as key
+		$scope._selections = []; // selection callbacks
+		$scope._selectionTimeout = 0;
+		$scope._selectionDelay = 100; // wait max 100 ms for all list items to register (addSelecton) their default selections
 		$scope.listItemsDub = [];
 		$scope.initReady = false;
 		$scope.wasEditMode = false;
@@ -104,7 +108,9 @@ export function Extension(){
 		$scope.setReady = setReady;
 		$scope.initListObjects = initListObjects;
 		$scope.destroyListObjects = destroyListObjects;
+		$scope.updateSelectItems = updateSelectItems;
 		$scope.calculateGaps = calculateGaps;
+		$scope.addSelection = addSelection.bind($scope);
 		$scope.applySelection = applySelection;
 		$scope.applyStyles = applyStyles;
 		$scope.applyColors = applyColors;
@@ -112,9 +118,8 @@ export function Extension(){
 		$scope.updateSelectionLabels = updateSelectionLabels;
 		$scope.handleButtonStates = handleButtonStates;
 		$scope.updateListItemsProps = updateListItemsProps;
-		$scope.removePropsForPrinting = removePropsForPrinting;
 		$scope.checkAndUpdateListObjects = checkAndUpdateListObjects;
-		$scope.checkExpressionCondition = checkExpressionCondition;
+		$scope.checkExpressionCondition = utilService.checkExpressionCondition;
 
 		if($element.parents(".qv-gridcell").length > 0){
 			let cellStyle = $element.parents(".qv-gridcell")[0].style;
@@ -163,7 +168,9 @@ export function Extension(){
 			setSelectItems($scope, $scope.layout.listItems);
 
 			// after this step all listObjects should be used from $scope._listObjects
-			return Promise.all(objectIds.map(id => qlikService.getObjectLayout(id))).then(listObjects => initListObjects(listObjects));
+			return Promise.all(objectIds.map(id => qlikService.getObjectLayout(id))).then(listObjects => initListObjects(listObjects)).then(() => {
+				$scope.updateSelectionLabels();
+			});
 		}).then(setReady).then(() => $scope.initReady = true);
 		//################### End Initialization ###################
 
@@ -176,7 +183,7 @@ export function Extension(){
 				stopHere = !qHyperCubeDef || !$scope.evaluateStates || $scope.isMasterItem || !$scope.isUpdatable;
 
 			if(stopHere){
-				return Promise.all(Object.keys($scope._listObjects).map(key => $scope._listObjects[key])); // nothing to do here
+				return Promise.reject(undefined);
 			}
 
 			// use backendApi to get properties, because they are cached on the client side (no extra engine calls should be required)
@@ -343,7 +350,7 @@ export function Extension(){
 					getReady().then($scope =>{
 						const defaultSelection = ListItem.getDefaultSelection($scope.layout.listItems, dimId);
 
-						if(defaultSelection !== null){
+						if(defaultSelection !== null && activeSelects.some(item => utilService.checkExpressionCondition(item.showCondition))){
 							return applySelection(listObj, defaultSelection, false, true).catch(err => Logger.warn('could not apply default selection', err));
 						}
 					}).catch(err => Logger.warn('Error occured while trying to apply default selection', err, err && err.stack));
@@ -351,9 +358,10 @@ export function Extension(){
 
 				_eventListener[listObject.id] = listener;
 
-				const defaultSelection = ListItem.getDefaultSelection($scope.layout.listItems, dimId);
+				const defaultSelection = ListItem.getDefaultSelection($scope.layout.listItems, dimId),
+					selectionAllowed =  activeSelects.some(item => utilService.checkExpressionCondition(item.showCondition));
 
-				if(_selectionsInProgress === false && defaultSelection !== null){
+				if(_selectionsInProgress === false && defaultSelection !== null && selectionAllowed){
 					_selectionsInProgress = true;
 					if(!listObject.layout.qListObject.qDimensionInfo.qStateCounts.qSelected){
 						// default selection will be performed, so set calcCondVariable to '0' here
@@ -362,7 +370,7 @@ export function Extension(){
 				}
 
 				// return a selection callback instead of applying selection instantly
-				if(defaultSelection !== null){
+				if(defaultSelection !== null && selectionAllowed){
 					return function(){ return applySelection(listObject, defaultSelection, false, true); };
 				}
 
@@ -391,7 +399,7 @@ export function Extension(){
 				removeListener(_eventListener, _model.id); // remove previous listener before adding new ones
 				_eventListener[_model.id] = [
 					qlikService.bindListener(_model, 'Validated', setReady),
-					qlikService.bindListener(_model, 'Invalidated', () => setReady(false))
+				 	qlikService.bindListener(_model, 'Invalidated', () => setReady(false))
 				];
 
 				if(_selectionsInProgress){
@@ -422,6 +430,23 @@ export function Extension(){
 					delete $scope._listObjects[dimId];
 				}
 			}
+		}
+
+		function updateSelectItems(activeSelects){
+			activeSelects.forEach(selectItem =>{
+				const listObject = $scope._listObjects[selectItem.props.dimId];
+				selectItem.selectValues = listObject.layout.qListObject; // temporary
+				selectItem.listInfo = listObject.layout.qInfo;
+				selectItem.dimId = listObject.layout.dimId;
+
+				if(selectItem.selectValues.qDimensionInfo.qError){
+					Logger.warn("invalid dimension selected: ", selectItem.props.dimTitle);
+
+					if(selectItem.selectValues.qDataPages.length === 0){
+						selectItem.selectValues.qDataPages = [{qMatrix: []}]
+					}
+				}
+			});
 		}
 
 		function calculateGaps(layout){
@@ -489,17 +514,17 @@ export function Extension(){
 		 * @param appearance {*}
 		 */
 		function applyStyles(appearance){
-			var listItems = this.listItemsDub,
+			let listItems = this.listItemsDub,
 				labelStyle = {
 					'font-family': appearance.textFamily || '"QlikView Sans", sans-serif',
-					'font-size': appearance.textSize || 13,
+					'font-size': Utils.getDynamicFontSize(appearance.textSize) || 13,
 					'font-weight': appearance.textWeight || 'bold',
 					'font-style': appearance.textStyle || 'normal'
 				},
 
 				selectionStyle = {
 					'font-family': appearance.textSelectionFamily || '"QlikView Sans", sans-serif',
-					'font-size': appearance.textSelectionSize || 11,
+					'font-size': Utils.getDynamicFontSize(appearance.textSelectionSize) || 11,
 					'font-weight': appearance.textSelectionWeight || 'normal',
 					'font-style': appearance.textSelectionStyle || 'normal'
 				};
@@ -509,7 +534,7 @@ export function Extension(){
 				listItem.labelStyle = labelStyle;
 				listItem.selectionStyle = selectionStyle;
 
-				['variableItems', 'dropdownItems', 'selectItems', 'subItems'].forEach(function(type){
+				['variableItems', 'subItems', 'groupItems'].forEach(function(type){
 					(listItem[type] || []).forEach(function(item){
 						item.labelStyle = labelStyle;
 						item.selectionStyle = selectionStyle;
@@ -547,7 +572,7 @@ export function Extension(){
 			if(menuBar){
 				var qvPanelStage = document.getElementsByClassName("qv-panel-stage")[0];
 				if(qvPanelStage){
-					if((showMenuBar === '0' || !checkExpressionCondition(showMenuBarExpr)) && !inEditMode){
+					if((showMenuBar === '0' || !utilService.checkExpressionCondition(showMenuBarExpr)) && !inEditMode){
 						qvPanelStage.style.height = '100%';
 					}else{
 						qvPanelStage.style.height = '';
@@ -579,7 +604,7 @@ export function Extension(){
 				changed = element.style.display !== 'none';
 				element.style.display = 'none';
 			}else if(elementCondition && elementCondition === '2'){
-				display = checkExpressionCondition(elementExpression) ? 'block' : 'none';
+				display = utilService.checkExpressionCondition(elementExpression) ? 'block' : 'none';
 				changed = element.style.display !== display;
 				element.style.display = display;
 			}else{
@@ -591,8 +616,8 @@ export function Extension(){
 		}
 
 		function setColor(colorName, defaultColor){
-			var appearance = $scope.layout.appearance;
-			var colors = $scope.colors;
+			let appearance = $scope.layout.appearance,
+				colors = $scope.colors;
 
 			if(!appearance[colorName]){
 				colors[colorName] = defaultColor;
@@ -615,114 +640,71 @@ export function Extension(){
 			}
 		}
 
-		function escapeRegExp(str){
-			return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-		}
+		function updateSelectionLabels(listItems){
+			let retValue = '';
 
-		function updateSelectionLabels(){
-			let varList = [];
-			let promises = [];
+			(listItems || $scope.listItemsDub).forEach(function(item){
+				if(item.type === 'Group'){
+					let value = updateSelectionLabels(item.groupItems);
+					item.props.selectedValue = value.substring(0, value.length - 2);
+				}else if(item.type === 'Single Select' || item.type === 'Sense Select'){
+					let selectedValue = '',
+						counter = 0;
 
-			qlikService.getVariableValueList().then(list =>{
-				$scope.listItemsDub.forEach(function(item){
-					if(item.type === 'Single Select' || item.type === 'Sense Select'){
-						item.props.selectedValue = '';
-						$scope.selState.selections.forEach(function(selection){
-							$scope.layout.qHyperCube.qDimensionInfo.some(dimInfo =>{
-								if(dimInfo.cId === item.props.dimId){
-									if(dimInfo.qGroupFieldDefs.length === 1 && dimInfo.qGroupFieldDefs[0].charAt(0) === '='){
-										let field = dimInfo.qGroupFieldDefs[0];
-										let vars = field.match(/\$\([^)]*\)/g);
-
-										vars && vars.forEach(variable =>{
-											let variableText = variable.substring(2, variable.length - 1);
-											let val = list['v' + variableText];
-
-											if(!val){
-												varList.indexOf(variable) === -1 && varList.push(variable);
-												return;
-											}
-
-											let re = new RegExp(escapeRegExp(variable), "g");
-											field = field.replace(re, val.str);
-										});
-
-										let selFieldName = selection.fieldName.toLowerCase();
-										if(field && field.toLowerCase() === selFieldName || field && field.substring(1).toLowerCase() === selFieldName){
-											let selectionString = getSelectionString(selection);
-											item.props.selectedValue += selectionString + ', ';
-										}
-
-									}else{
-										if(dimInfo.qGroupFieldDefs.indexOf(selection.fieldName) > -1){
-											let selectionString = getSelectionString(selection);
-											item.props.selectedValue += selectionString + ', ';
-										}
-									}
-									return true;
-								}
-							});
-						});
-						item.props.selectedValue = item.props.selectedValue.substring(0, item.props.selectedValue.length - 2);
-					}else if(item.type === 'Multi Select' && item.selectItems){
-						item.props.selectedValue = '';
-						item.selectItems.forEach(function(selectItem){
-							selectItem.props.selectedValue = '';
-							$scope.selState.selections.forEach(function(selection){
-								$scope.layout.qHyperCube.qDimensionInfo.some(dimInfo =>{
-									if(dimInfo.cId === selectItem.props.dimId){
-
-										if(dimInfo.qGroupFieldDefs.length === 1 && dimInfo.qGroupFieldDefs[0].charAt(0) === '='){
-											let field = dimInfo.qGroupFieldDefs[0];
-											let vars = field.match(/\$\([^)]*\)/g);
-
-											vars && vars.forEach(variable =>{
-												let variableText = variable.substring(2, variable.length - 1);
-												let val = list['v' + variableText];
-
-												if(!val){
-													varList.indexOf(variable) === -1 && varList.push(variable);
-													return;
-												}
-
-												let re = new RegExp(escapeRegExp(variable), "g");
-												field = field.replace(re, val.str);
-
-											});
-
-											let selFieldName = selection.fieldName.toLowerCase();
-											if(field && field.toLowerCase() === selFieldName || field && field.substring(1).toLowerCase() === selFieldName){
-												let selectionString = getSelectionString(selection);
-												selectItem.props.selectedValue += selectionString + ', ';
-												item.props.selectedValue += selectionString + ', ';
-											}
-										}else{
-											if(dimInfo.qGroupFieldDefs.indexOf(selection.fieldName) > -1){
-												let selectionString = getSelectionString(selection);
-												selectItem.props.selectedValue += selectionString + ', ';
-												item.props.selectedValue += selectionString + ', ';
-											}
-										}
-										return true;
-									}
-								});
-							});
-							selectItem.props.selectedValue = selectItem.props.selectedValue.substring(0, selectItem.props.selectedValue.length - 2);
-						});
-						item.props.selectedValue = item.props.selectedValue.substring(0, item.props.selectedValue.length - 2);
+					if(!item.selectValues){
+						return;
 					}
-				});
 
-				if(varList.length > 0){
-					varList.forEach(variable =>{
-						promises.push(qlikService.getVariableValue(variable.substring(2, variable.length - 1)));
-					});
+					if(item.selectValues.qDimensionInfo.qGroupFieldDefs.length > 1){
+						selectedValue = getDrilldownSelectionLabel(item) || '';
+						retValue += selectedValue;
+						selectedValue = selectedValue.substring(0, selectedValue.length - 2);
+					}else{
+						item.selectValues.qDataPages[0].qMatrix.forEach((sItem) =>{
+							let qItem = sItem[0];
+							if(qItem && qItem.qState === "S"){
+								counter++;
+								selectedValue += qItem.qText + ', ';
+							}
+						});
 
-					Promise.all(promises).then(() =>{
-						updateSelectionLabels();
-					})
+						if(counter === item.selectValues.qDataPages[0].qMatrix.length){
+							selectedValue = translation.text.all;
+						}else if(counter > 2){
+							selectedValue = counter + ' ' + translation.text.of + ' ' + item.selectValues.qDataPages[0].qMatrix.length;
+						}else{
+							selectedValue = selectedValue.substring(0, selectedValue.length - 2);
+						}
+
+						if(counter !== 0){
+							retValue += selectedValue + ', ';
+						}
+					}
+
+					item.props.selectedValue = selectedValue;
 				}
 			});
+
+			return retValue;
+		}
+
+		function getDrilldownSelectionLabel(item){
+			let retValue = '';
+			$scope.selState.selections.forEach(function(selection){
+				$scope.layout.qHyperCube.qDimensionInfo.some(dimInfo =>{
+					if(dimInfo.cId === item.props.dimId){
+						if(dimInfo.qGroupFieldDefs.indexOf(selection.fieldName) > -1){
+							let selectionString = getSelectionString(selection);
+							if(selectionString !== ''){
+								retValue += selectionString + ', ';
+							}
+						}
+						return true;
+					}
+				});
+			});
+
+			return retValue;
 		}
 
 		function getSelectionString(selection){
@@ -754,7 +736,7 @@ export function Extension(){
 						}else{
 							// in case of other values ('1') it is important that the variable is set despite errors
 							return _app.variable.setStringValue(name, value)
-							.catch(qlikService.engineErrorHandler(_app.variable, 'setStringValue', [name, value]));
+								.catch(qlikService.engineErrorHandler(_app.variable, 'setStringValue', [name, value]));
 						}
 					}
 				});
@@ -812,17 +794,6 @@ export function Extension(){
 				listItem.isOpen = false;
 				listItem.show = false;
 
-				// destroy only sense selects (not our own child objects)
-				switch(listItem.type){
-					case 'Sense Select':
-						if(listItem.listBox){
-							promises.push(qlikService.destroySessionObject(listItem.listBox.id));
-							delete listItem.listBox;
-							$('#QV05_' + $scope.layout.qInfo.qId + '-' + listItem.cId).empty();
-						}
-						break;
-				}
-
 			});
 
 			return qlik.Promise.all(promises);
@@ -839,17 +810,20 @@ export function Extension(){
 
 			// update layout data (requred for snapshots)
 			($scope.listItemsDub || []).some(function(item, index){
-				if(item === currItem){
+				if(item === currItem && $scope.layout.listItems[index]){
 					$scope.layout.listItems[index].activeStates = item.activeStates;
 					return true;
 				}
 			});
 		}
 
-		function updateListItemsProps(listItemsDub, layout){
-			let listItems = layout.listItems;
+		function updateListItemsProps(listItemsDub, listItems, qDimensionInfo){
 			listItemsDub.forEach(function(listItem, index){
-				let dimTitle = getDimTitle(listItem.props.dimId, layout.qHyperCube.qDimensionInfo);
+				let dimTitle = getDimTitle(listItem.props.dimId, qDimensionInfo);
+
+				if(listItem.type === 'Group'){
+					updateListItemsProps(listItem.groupItems, listItems[index].groupItems, qDimensionInfo)
+				}
 
 				listItem.props.itemLabel = listItems[index].props.itemLabel === '' ? dimTitle : listItems[index].props.itemLabel;
 				listItem.props.selectionLabel = listItems[index].props.selectionLabel;
@@ -864,39 +838,11 @@ export function Extension(){
 					});
 				});
 
-				(listItem.dropdownItems || []).forEach(function(dropdownItem, vIndex){
-					dropdownItem.props.itemLabel = listItems[index].dropdownItems[vIndex].props.itemLabel;
-					dropdownItem.props.selectionLabel = listItems[index].dropdownItems[vIndex].props.selectionLabel;
-					dropdownItem.stateItems = listItems[index].dropdownItems[vIndex].stateItems;
-				});
-
-				(listItem.selectItems || []).forEach(function(selectItem, vIndex){
-					let dimTitle = getDimTitle(selectItem.props.dimId, layout.qHyperCube.qDimensionInfo);
-
-					selectItem.props.itemLabel = listItems[index].selectItems[vIndex].props.itemLabel === ''
-						? dimTitle
-						: listItems[index].selectItems[vIndex].props.itemLabel;
-					selectItem.props.selectionLabel = listItems[index].selectItems[vIndex].props.selectionLabel;
-					selectItem.props.selectValue = listItems[index].selectItems[vIndex].props.selectValue;
-				});
-
 				listItem.stateItems = listItems[index].stateItems;
 
 				(listItem.subItems || []).forEach(function(subItem, vIndex){
 					subItem.stateItems = listItems[index].subItems[vIndex].stateItems;
 				});
-			});
-		}
-
-		function removePropsForPrinting(listItemsDub){
-			listItemsDub && listItemsDub.forEach(function(listItem){
-
-				if(listItem.type === 'Group'){
-					removePropsForPrinting(listItem.groupItems)
-				}
-
-				delete listItem.listBox;
-
 			});
 		}
 	}
@@ -960,6 +906,8 @@ export function Extension(){
 		if($scope.wasEditMode && !$scope.inEditMode()){
 			$scope.wasEditMode = false;
 
+			$scope.$broadcast('leaveEditMode');
+
 			setSelectItems($scope, $scope.layout.listItems);
 
 		}else if($scope.inEditMode()){
@@ -969,9 +917,15 @@ export function Extension(){
 				$scope.utilService.closeMenus($scope.listItemsDub);
 			}
 
-			$scope.checkAndUpdateListObjects().then(proms => Promise.all(proms)).then(listObjects => $scope.initListObjects(listObjects));
-			setSelectItems($scope, layout.listItems);
+			setSelectItems($scope, $scope.layout.listItems);
+			$scope.checkAndUpdateListObjects().then(proms => Promise.all(proms)).then(listObjects => $scope.initListObjects(listObjects))
+				.catch(err => err && Logger.error(err))
+				.then(() => $scope.updateSelectionLabels());
+
 		}
+
+		$scope.applyColors(layout);
+		$scope.applyStyles(layout.appearance);
 
 		// load (dynamically) components which are required in edit mode only
 		if($scope.editComponentsRequired && $scope.inEditMode()){
@@ -979,16 +933,12 @@ export function Extension(){
 			loadEditor().catch(err => Logger.error('Error ocurred while button-editor was loaded', err));
 		}
 
-		$scope.applyColors(layout);
-		$scope.applyStyles(layout.appearance);
-		$scope.updateListItemsProps($scope.listItemsDub, layout);
+		$scope.updateListItemsProps($scope.listItemsDub, $scope.layout.listItems, layout.qHyperCube.qDimensionInfo);
 		$scope.updateSelectionLabels();
 
 		if(!$scope.isPrinting){
-			layout.exportListItemsDub = $scope.listItemsDub;
+			layout.exportListItemsDub = $scope.listItemsDub.slice();
 			layout.exportListObjects = {};
-
-			$scope.removePropsForPrinting(layout.exportListItemsDub);
 
 			$scope._listObjects && Object.keys($scope._listObjects).forEach(function(key) {
 				if($scope._listObjects[key]){
@@ -1004,14 +954,6 @@ export function Extension(){
 		return $scope.apiService.getPromise().then(function(){
 			console.log('finished painting tcMenubar', layout.title);
 		});
-	}
-
-	function checkExpressionCondition(expression){
-		expression = expression.toString().toLowerCase();
-		return expression === ''
-			|| expression === 'true'
-			|| expression === '1'
-			|| expression === '-1';
 	}
 
 	/**
@@ -1034,6 +976,20 @@ export function Extension(){
 				: list[elem.props.dimId].push(elem);
 			return list;
 		}, {});
+	}
+
+	function addSelection(...args){
+		this._selections.push(function(){
+			return applySelection(...args);
+		});
+
+		clearTimeout(this._selectionTimeout);
+
+		this._selectionTimeout = setTimeout(() => {
+			// execute selections "parallel"
+			this._selections.forEach(selection => selection && selection());
+			this._selections = [];
+		}, this._selectionDelay);
 	}
 
 	/**

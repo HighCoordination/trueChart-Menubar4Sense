@@ -1,39 +1,42 @@
+import * as qlik from 'qlik';
+import * as qvangular from 'qvangular';
 import {prefix} from '../prefix';
+import {Toastr} from '../common/toastr';
+import {Logger} from '../logger';
+import {getTranslation} from '../translations/translation';
 
-define([
-	'qvangular',
-	'qlik',
-	'jquery'
-], function(qvangular, qlik, $){
+const _instances = {}, // holds QlikService instances with appId as key
+	_appsTimeouts = {}, // app dependent timers which are used to close the delayed
+	_appClosingDelay = 5000, // wait a specific amount of time, before closing the app
+	_apps = {}; // app collection with appId as key
 
-//	const _instances = {}; // holds QlikService instances with appId as key
+export class QlikService {
 
-	// Static methodes
-	QlikService.getInstance = function(/*appId*/){
+	// Static methodes/properties
+	static getInstance(/*appId*/){
 //		if(typeof appId.id !== 'string' || !appId){
 //			throw new Error('You must provide a valid appId as parameter');
 //		}
-//		var id = appId.toLowerCase();
-//		if(!_instances[id]){
-//			_instances[id] = new QlikService(appId);
-//		}
-//		return _instances[id];
+//		const id = appId.toLowerCase();
+		const id = 'currApp'; // use currApp as id (for now) but it should be "improved" for multi app support
+		if(!_instances[id]){
+			_instances[id] = new QlikService(id);
+		}
+		return _instances[id];
+	}
 
-		return qvangular.getService(prefix + 'QlikService');
-	};
-
-	QlikService.isPrinting = function(){
+	static isPrinting(){
 		const app = qlik.currApp(),
 			isOnline = app && app.global && app.global.session && app.global.session.options !== undefined; // assume that we are "inApp"
 		return !isOnline && typeof window.qlikPrintingService !== 'undefined';
-	};
+	}
 
 	/**
 	 * Get base url of used BI (Qlik Sense)
 	 *
 	 * @returns {string}
 	 */
-	QlikService.getBIUrl = function(){
+	static getBIUrl(){
 		let options = qlik.getGlobal().session.options,
 			prefix = options.prefix || '';
 
@@ -41,24 +44,120 @@ define([
 		if(prefix[prefix.length - 1] !== '/'){
 			prefix += '/';
 		}
-		return (options.isSecure ? 'https://' : 'http://') + options.host + (options.port ? (':' + options.port) : '') + prefix;
-	};
+		return QlikService._biURL = (options.isSecure ? 'https://' : 'http://') + options.host + (options.port ? (':' + options.port) : '') + prefix;
+	}
 
-	// Register the angular service
-	qvangular.service(prefix + 'QlikService', [QlikService]);
+	/**
+	 * Getter for the base url of BI used by "origin" app
+	 *
+	 * @return {string}
+	 */
+	static get biURL(){
+		return QlikService._biURL || this.getBIUrl();
+	}
 
-	return QlikService;
+	/**
+	 * Returns the id of the current app
+	 *
+	 * @return {string} - Returns the appId, or an empty string when unavailable
+	 */
+	static getCurrentAppId(){
+		const app = qlik.currApp();
+		if(app && typeof app.id === 'string'){
+			return app.id;
+		}
+		return '';
+	}
+
+	/**
+	 * Returns the id of the current sheet
+	 *
+	 * @return {string} - Returns the sheetId, or an empty string when unavailable
+	 */
+	static getCurrentSheetId(){
+		const reply = qlik.navigation.getCurrentSheetId();
+		if(reply && reply.success){
+			return reply.sheetId;
+		}
+		return '';
+	}
+
+	/**
+	 * Returns the authenticated user in a Promise as a string
+	 *
+	 * @return {Promise<string>}
+	 */
+	static getAuthenticatedUser(){
+		return qlik.getGlobal().getAuthenticatedUser();
+	}
+
+	/**
+	 * Returns an item object with value and label properties, where value is a Qlik Sense expression with title inside a comment
+	 *
+	 * @param {qItem} item - Item to be mapped
+	 *
+	 * @return {{value: string, label: string}}
+	 */
+	static mapCommentedItem(item){
+		return {
+			value: '= /* ' + item.qMeta.title + ' */ \'' + item.qInfo.qId + '\'',
+			label: item.qMeta.title
+		};
+	}
+
+	/**
+	 * Returns an item object containing specific dimension properties
+	 *
+	 * @param {qItem} item - Dimension item to be mapped
+	 *
+	 * @return {{qItem: *, value: string|string, label: string|string, type: string, fieldName: string|string, isNumeric: boolean, isDate: boolean, isTimestamp: boolean}}
+	 */
+	static mapDimensionItem(item){
+		return {
+			qItem: item,
+			value: item.qData.title,
+			label: item.qData.title,
+			type: 'dimension',
+			fieldName: item.qData.info[0].qName.indexOf('=') === -1 ? item.qData.info[0].qName : item.qData.title,
+			isNumeric: item.qData.info[0].qTags.indexOf('$numeric') > -1,
+			isDate: item.qData.info[0].qTags.indexOf('$date') > -1,
+			isTimestamp: item.qData.info[0].qTags.indexOf('$timestamp') > -1
+		};
+	}
+
+	/**
+	 * Returns an item object containing specific field properties
+	 *
+	 * @param {qItem} item - Field item to be mapped
+	 *
+	 * @return {{qItem: *, value: *, label: *, type: string, fieldName: *, isNumeric: boolean, isDate: boolean, isTimestamp: boolean, isHidden: boolean}}
+	 */
+	static mapFieldItem(item){
+		return {
+			qItem: item,
+			value: item.qName,
+			label: item.qName,
+			type: 'field',
+			fieldName: item.qName,
+			isNumeric: item.qTags.indexOf('$numeric') > -1,
+			isDate: item.qTags.indexOf('$date') > -1,
+			isTimestamp: item.qTags.indexOf('$timestamp') > -1,
+			isHidden: !!item.qIsHidden
+		};
+	}
 
 	/**
 	 * Qlik Sense angular service
 	 * @constructor
 	 */
-	function QlikService(){
+	constructor(/*appId*/){
 
-		var _service = this,
-			_app = qlik.currApp(),
+		const _service = this,
+			_app = qlik.currApp(), // here we should get the real app instead of using currApp()
 			_isPublished = QlikService.isPrinting() || _app.model.layout.published === true,
 			_enigma = !QlikService.isPrinting() ? _app.model.enigmaModel : {};
+
+		this._app = _app;
 
 		/* Public/privileged functions definition */
 		this.bindListener = bindListener;
@@ -92,7 +191,7 @@ define([
 		this.inEditMode = inEditMode;
 		this.inClient = inClient;
 		this.isPersonalMode = isPersonalMode;
-		this.isPrinting = isPrinting;
+		this.isPrinting = QlikService.isPrinting;
 		this.isPublished = isPublished;
 		this.isUpdatable = isUpdatable;
 		this.isMasterObject = isMasterObject;
@@ -138,7 +237,7 @@ define([
 		 * @return {Function} Unbind callback
 		 */
 		function bindListener(model, evt, callback){
-			if(isPrinting()){
+			if(QlikService.isPrinting()){
 				return function(){};
 			}
 			try{
@@ -150,7 +249,6 @@ define([
 				console.warn('could not bind the eventListener to the model', model, evt, callback);
 			}
 		}
-
 
 		/**
 		 * Returns an object definition of a generic object
@@ -167,7 +265,6 @@ define([
 				}
 			};
 		}
-
 
 		/**
 		 * Returns the object without layout/properties in a promise
@@ -186,7 +283,6 @@ define([
 		function getObjectLayout(qId){
 			return sendEngineRequest(_app, 'getObject', [qId], 'id');
 		}
-
 
 		/**
 		 * Returns the object with its properties in a promise
@@ -366,7 +462,6 @@ define([
 			});
 		}
 
-
 		/**
 		 * Creates a child object for a given model with a given definition
 		 * @param {Object} model
@@ -460,9 +555,17 @@ define([
 			var maxTries = 5, tries = (tries || 0) + 1;
 
 			return function(reply){
-				var rejectReason,
-					err = reply.error || reply; // format changed in QS 2017.06
-				method ? console.info('HICO: Error occurred during: ' + method, (err.code !== 15 ? err : args)) : console.error('HICO: Error occurred', reply);
+				let rejectReason,
+					err = reply.error || reply, // format changed in QS 2017.06
+
+					// for (older) published apps, where tcMediaStore object is not available, omit error reports (known error won't fix)
+					reportError = err.code !== 2 || args[0] !== 'tcMediaStore' || !isPublished();
+
+				if(reportError){
+					method
+						? Logger.info('HICO: Error occurred during: ' + method, (err.code !== 15 ? err : args))
+						: Logger.error('HICO: Error occurred', reply);
+				}
 
 				switch(err.code){
 					case 2: // no object found
@@ -495,16 +598,12 @@ define([
 						getUsernameOnly();
 					}else{
 						// if the user is on server environment then we can get the preferred username by engine API
-						$.ajax({
-							url: QlikService.getBIUrl() + 'qps/user',
-							success: function(data){
-								resolve({displayName: data.userName, username: data.userDirectory + "\\" + data.userId});
-							},
-							error: function(error){
-								getUsernameOnly();
+						qlik.callRepository('/qps/user')
+							.success(data => resolve({displayName: data.userName, username: data.userDirectory + "\\" + data.userId}))
+							.error((error) =>{
+								getUsernameOnly(); // fallback
 								console.warn('ajax get usercall failed, please check this', error);
-							}
-						});
+							});
 					}
 				});
 
@@ -512,7 +611,7 @@ define([
 				 * this function gets only the username and resolves the promise when it is done
 				 */
 				function getUsernameOnly(){
-					qlik.getGlobal().getAuthenticatedUser().then(data =>{
+					QlikService.getAuthenticatedUser().then(data =>{
 						let name = '';
 
 						//data.qReturn = "UserDirectory=HICO; UserId=jll";
@@ -554,7 +653,7 @@ define([
 		 * @return {boolean} true if in "play" mode, otherwise false
 		 */
 		function inPlayMode(){
-			return !isPrinting() && qlik.navigation.getMode() === 'play';
+			return !QlikService.isPrinting() && qlik.navigation.getMode() === 'play';
 		}
 
 		/**
@@ -670,7 +769,6 @@ define([
 			}
 		}
 
-
 		/**
 		 * Checks if the current sourceObject is a master item (derived object)
 		 *
@@ -729,10 +827,89 @@ define([
 	}
 
 	/**
+	 * Returns the app used by this QlickService instance
+	 * @return {AppAPI.IApp | *}
+	 */
+	get app(){
+		return this._app;
+	}
+
+	/**
+	 * Returns all available apps in a Promise
+	 *
+	 * @param {Function} callback - Callback method
+	 * @param {Object} [config] - Optional. Parameters:
+	 * @param {string} [config.host] - Qlik Sense host
+	 * @param {string} config.port  - Port number
+	 * @param {string} [config.prefix] - Qlik Sense virtual proxy. / if no virtual proxy
+	 * @param {boolean} [config.isSecure] - Use SSL
+	 * @param {string} [config.identity] - Unique identity for the session. If omitted, the session will be shared.
+	 *
+	 * @return {Promise<any>}
+	 */
+	getAppList(callback, config){
+		qlik.getGlobal(config).getAppList(callback, config);
+	}
+
+	/**
+	 * Opens an App by id and returns it
+	 *
+	 * @param {string} appId
+	 * @param {Object} [config] - Optional. Parameters:
+	 * @param {string} [config.host] - Qlik Sense host
+	 * @param {string} config.port  - Port number
+	 * @param {string} [config.prefix] - Qlik Sense virtual proxy. / if no virtual proxy
+	 * @param {boolean} [config.isSecure] - Use SSL
+	 * @param {string} [config.identity] - Unique identity for the session. If omitted, the session will be shared.
+	 *
+	 * return {Promise<AppAPI.IApp>}
+	 */
+	openApp(appId, config){
+		// prevent error notification during this step (like modal dialogs with only "goto hub" | "refresh" options.
+		if(!_apps[appId]){
+			qlik.setOnError((error) =>{
+				switch(error.code){
+					case 1003:
+						Toastr.error(getTranslation('ERROR_APP_NOT_FOUND', appId), getTranslation('ERROR_OCCURRED'));
+						break;
+				}
+			});
+			_apps[appId] = qlik.openApp(appId, config);
+		}
+		return Promise.resolve(_apps[appId]);
+	}
+
+	/**
+	 * Closes the app, if it was already opened
+	 *
+	 * @param {string} appId - Id of the app to be closed
+	 */
+	closeApp(appId){
+		const appToClose = _apps[appId];
+		if(appToClose && appToClose.id !== this.app.id){
+			// close any other app, but not the current (own) one
+			appToClose.close();
+			delete _apps[appId];
+		}
+	}
+
+	/**
+	 * Closes the app by given appId after a given delay
+	 *
+	 * @param {string} appId
+	 */
+	closeAppDelayed(appId){
+		window.clearTimeout(_appsTimeouts[appId]);
+		window.setTimeout(() => this.closeApp(appId), _appClosingDelay);
+	}
+}
+
+/**
 	 * Qlick list provider class
 	 * @return {Function}
 	 */
-	function ListProvider(qlikService, app){
+class ListProvider{
+	constructor(qlikService, app){
 		// Cache for the responses (no need to request lists multiple time)
 		var cache = {};
 
@@ -742,6 +919,7 @@ define([
 		 * 			SnapshotList: string, MediaList: string, MasterObject: string, VariableList: string, SheetList: string, StoryList: string}}
 		 */
 		var supportedQlikLists = {
+			AppList: 'hicoAppList',
 			FieldList: 'qFieldList',
 			MeasureList: 'qMeasureList',
 			DimensionList: 'qDimensionList',
@@ -769,10 +947,16 @@ define([
 			return isSupported(name).then(function(){
 				if(cache[name] === undefined){
 					var listDef = getListDef(name);
-					if(listDef.qInfo.qId){
-						cache[name] = qlikService.createSessionObject(listDef).then(function(obj){
-							return obj;
-						});
+					if(listDef === null){
+						switch(name){
+							case 'AppList':
+								cache[name] = new Promise(resolve => qlikService.getAppList(list => resolve({
+									layout: {hicoAppList: {qItems: list}}
+								})));
+								break;
+						}
+					}else if(listDef.qInfo.qId){
+						cache[name] = qlikService.createSessionObject(listDef);
 					}else{
 						cache[name] = app.getList(listDef).catch(qlikService.engineErrorHandler(app, 'getList', [listDef]));
 					}
@@ -804,6 +988,8 @@ define([
 
 		function getListDef(name){
 			switch(name){
+				case 'AppList':
+					return null;
 				case 'BookmarkList':
 					return {
 						'qInfo': {'qId': prefix + 'BookmarkList', 'qType': 'BookmarkList'},
@@ -904,8 +1090,10 @@ define([
 			}
 		}
 	}
+}
 
-	function ExpressionProvider(qlikService){
+class ExpressionProvider {
+	constructor(qlikService){
 		var _this = this,
 			_expressionValueList = null,
 			_timeout,
@@ -921,7 +1109,7 @@ define([
 		_this.getValueObject = getValueObject;
 
 		// Initialize
-		if(!isPrinting()){
+		if(!QlikService.isPrinting()){
 			init();
 		}
 
@@ -930,7 +1118,7 @@ define([
 		 * @returns {*} expressions collection sessionObject in a Promise
 		 */
 		function init(){
-			if(isPrinting()){
+			if(QlikService.isPrinting()){
 				return setReady();
 			}
 			qlikService.createSessionObject({qInfo: {qId: 'hicoExpressionValueList', qType: 'GenericObject'}, exprList: {}}).then(function(reply){
@@ -945,7 +1133,7 @@ define([
 		function getExpressionDef(expr){
 			if(typeof expr === 'string' && expr.indexOf('=') === 0){
 				return hash(expr);
-			}else if(typeof expr === 'object' && expr.hasOwnProperty('qStringExpression')){
+			}else if(expr && typeof expr === 'object' && expr.hasOwnProperty('qStringExpression')){
 				return hash(typeof expr.qStringExpression === 'string' ? expr.qStringExpression : expr.qStringExpression.qExpr);
 			}else{
 				return null;
@@ -987,17 +1175,18 @@ define([
 				var exprObj = _expressionValueList,
 					expr = getExpressionDef(expression);
 
+				if(expr === null){
+					// No valid expression definition found -> not an expression? -> return the origial text
+					return expression;
+				}
+
 				if(exprObj.properties.exprList && exprObj.properties.exprList.hasOwnProperty(expr.key)
 					&& exprObj.properties.exprList[expr.key].qStringExpression !== expr.def){
 					console.error('Collision found..., it seems like we need a better hash algorythm: ' + expr.key);
 					console.warn(expr.expr,  exprObj.properties.exprList[expr.key]);
 				}
 
-				if(expr === null){
-					// No valid expression definition found -> not an expression? -> return the origial text
-					return expression;
-
-				}else if(exprObj.layout.exprList.hasOwnProperty(expr.key)){
+				if(exprObj.layout.exprList.hasOwnProperty(expr.key)){
 					return exprObj.layout.exprList[expr.key];
 
 				}else if(_expressions.hasOwnProperty(expr.key)){
@@ -1073,7 +1262,10 @@ define([
 
 	}
 
-	function VariableProvider(qlikService, app){
+}
+
+class VariableProvider {
+	constructor (qlikService, app){
 		var _this = this,
 			_variableValueList,
 			_usedVariables = [],
@@ -1091,7 +1283,7 @@ define([
 
 		this.profile = profile;
 
-		if(!isPrinting()){
+		if(!QlikService.isPrinting()){
 			init();
 		}
 
@@ -1223,9 +1415,6 @@ define([
 		 */
 		function getValue(name){
 			var promise;
-			if(typeof name !== 'string'){
-				return Promise.reject('Wrong parameter type: "name" must be from type "string" but is from type "' + typeof name + '"');
-			}
 			if(isNew(name)){
 				addVariable(name);
 				promise = delayedUpdate().then(getReady);
@@ -1306,7 +1495,7 @@ define([
 		function profile(evaluate){
 			getReady().then(getValueList).then(function(valueList){
 				var keys = Object.keys(valueList),
-					appModel = qlik.currApp().model,
+					appModel = app.model,
 					i = 0,
 					key = keys[i],
 					len = keys.length,
@@ -1354,18 +1543,20 @@ define([
 			});
 		}
 	}
+}
 
-	function SelectionProvider(qlikService, app){
-
-		var _requests = {},
+class SelectionProvider {
+	constructor(qlikService, app){
+		let _requests = {},
 			_selections = [],
 			_fieldCache = {},
 			_selectedFields = [];
 
 		this.select = select;
+		this._getSelections = () => _selections;
 
 		// Ready for initialization
-		if(!isPrinting()){
+		if(!QlikService.isPrinting()){
 			init();
 		}
 
@@ -1442,18 +1633,33 @@ define([
 		}
 	}
 
-	function arraysDiffers(arrA, arrB){
-		return arrA.length === arrB.length && contains(arrA, arrB) && contains(arrB, arrA) && false;
+	/**
+	 * Returns current selections as an array of {fieldName: selectedValues} object
+	 *
+	 * @return {{fieldName: string, selectedValues: string[]}}
+	 */
+	getCurrentSelections(){
+		return this._getSelections().map(sel =>({
+			fieldName: sel.fieldName,
+			selectedValues: sel.selectedValues.map(val => val.qName)
+		}));
+	}
+}
 
-		function contains(a, b){
-			for(var i = 0, len = b.length; i < len; i++){
-				if(a.indexOf(b[i]) === -1) return true;
-			}
-			return false;
+function arraysDiffers(arrA, arrB){
+	return arrA.length === arrB.length && contains(arrA, arrB) && contains(arrB, arrA) && false;
+
+	function contains(a, b){
+		for(var i = 0, len = b.length; i < len; i++){
+			if(a.indexOf(b[i]) === -1) return true;
 		}
+		return false;
 	}
+}
 
-	function isPrinting(){
-		return QlikService.isPrinting();
-	}
-});
+export {
+	qlik
+};
+
+// DEPRECATED: QlikService as the angular service is available for support reason only (some users are using it in buttons custom actions)
+qvangular.service(prefix + 'QlikService', QlikService);

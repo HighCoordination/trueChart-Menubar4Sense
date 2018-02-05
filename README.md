@@ -1,7 +1,11 @@
 # trueChart-Menubar 
 
 The **trueChart-Menubar** allows for vertical and horizontal buttons and selections 
-(fields, master dimensions and variables) as well as unlimited trigger based Actions. 
+(fields, drill-down dimensions, master dimensions and variables) as well as unlimited trigger based Actions.
+
+In addition, you can share apps with the current selection with a single click, as well as conveniently chain 
+documents including current or changed selections to navigate between apps.
+ 
 This visualization extension supports [Qlik Sense®](http://www.qlik.com/us/products/qlik-sense) 
 from version 3.0.0 up to currently latest version November 2017 Patch 2 including exporting and story mode capability. 
 
@@ -13,30 +17,28 @@ from version 3.0.0 up to currently latest version November 2017 Patch 2 includin
 
 * **Responsive** vertical and horizontal design
 * Create **buttons** and assign _Triggers_ and _Actions_ to
-  - navigate through Qlik Sense and within self-created mashups,
-  - make selections (upon button click, after page loading, after selection, 
+  - **navigation** through Qlik Sense and within self-created mashups,
+  - one click **app sharing** and **document chaining**,
+  - **make selections** (upon button click, after page loading, after selection, 
   bevor navigation or based on your own JS-based custom trigger event),
   - created individual actions based on your own JS code,
 * Comprehensive **Button Editor** for button styling,
 * Create _Select_ widgets to make **selections** from (drill-down) dimensions.
 * Create _Variable_ widgets to set **variable values** just by a click.
 * **Maximum space gain** by optionally hiding the Qlik Sense® menus 
-(menu, selection and title bar) 
+(menu, selection and title bar) and _Toggle fullscreen_ action
 
 ## Update
 
-### trueChart-Menubar v1.1.x
+### trueChart-Menubar v1.2.x
 
 > **Features and Improvements**
-* **Support of Sense PDF export function** [HICO-2178]
-* **Support of drill-down dimensions** in selections (Single, Sense and Multi) [HICO-2560]
-* **Conditional display and hiding of menu elements** [HICO-2890]
-* Improvement when using master item dimensions and expression-based dimensions [HICO-2524]
-* Specify expressions for dimension definition directly [HICO-2601]
-* Option to enter title, subtitle or footnote [HICO-2889]
-* Mark button+ actions for parallel (faster) or sequential (in order)execution [HICO-40445]
-* New position of edit button state in properties panel [HICO-40461]
-* Performance: Reduced initial loading time [HICO-40463]
+* **New action "Go to app" (document chaining)** [HICO-2564]
+* **New action "Share app" (email | clipboard)** [HICO-40703]
+* **Responsive font sizes** (menubar and buttons) [HICO-2901]
+* **Grouping of elements**: Single & Sense Select, Variable Dropdown, Button & Button Container [HICO-40496]
+* **Option to duplicate and copy/paste existing elements and sub elements** [HICO-2233]
+* Trigger default selection when showing single select again [HICO-40576]
 
 ## Showcase
 
@@ -103,7 +105,7 @@ Then perform locally the following step to build an extension that can be used i
 The trueChart-Menubar also includes a complete user documentation and from 
 installation, configuration to use everything is explained.
 The documentation can be accessed through properties panel **Display** → **Info** 
-via link **Manual[PDF]** or directly here [User Manual](./doc/tcmenu.pdf).
+via link **Online Manual** or directly here [User Manual](https://www.highcoordination.com/guides/truechart-menubar/current/).
 
 ## Contacts
 * Web: [HighCoordination GmbH](https://www.highcoordination.com/en)

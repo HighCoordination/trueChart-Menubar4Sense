@@ -7,6 +7,7 @@ const _options: ToastOptions = {
 	opacity: 0.9,
 	closeButton: true,
 	timeOut: 5000,
+	escapeHtml: true,
 	extendedTimeOut: 2000
 };
 
@@ -22,6 +23,7 @@ const _containerStyle: React.CSSProperties = {
 	_toastStyle: React.CSSProperties = {
 		width: '100%',
 		maxWidth: '300px',
+		wordBreak: 'break-word',
 		padding: '0.25em 0.25em 0.25em 0.5em',
 		margin: 'auto 0 1em auto',
 		boxShadow: '0 0 10px 0px darkgrey'
@@ -43,6 +45,7 @@ const _containerStyle: React.CSSProperties = {
 	_titleStyle: React.CSSProperties = {
 		marginBottom: '5px',
 		fontWeight: 'bold',
+		paddingRight: '1em',
 		fontSize: '1.1em'
 	},
 
@@ -58,7 +61,7 @@ const _containerStyle: React.CSSProperties = {
 export class Toast extends React.Component<ToastProps, { opacity: number }> {
 	private _containerClass: string;
 	private _iconClass: string;
-	private _timer: number;
+	private _timer: number = -1;
 
 	constructor(props: ToastProps){
 		super(props);
@@ -106,14 +109,17 @@ export class Toast extends React.Component<ToastProps, { opacity: number }> {
 
 	render(){
 		const toast = this.props.toast,
-			tStyle = Object.assign({}, _toastStyle, {opacity: this.state.opacity});
+			tStyle = {..._toastStyle, opacity: this.state.opacity},
+			message = toast.options.escapeHtml
+				? <div className='toast-message'>{toast.message}</div>
+				: <div dangerouslySetInnerHTML={{__html: toast.message}}/>;
 
 		return (
 			<div className={this._containerClass} style={tStyle} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave}>
 				<i className={this._iconClass} style={_iconStyle}/>
 				<div className={'lui-toast__text'} style={_textStyle}>
-					{toast.title && <div className={'toast-title'} style={_titleStyle}>{toast.title}</div>}
-					<div className={'toast-message'}>{toast.message}</div>
+					{toast.title && <div className='toast-title' style={_titleStyle}>{toast.title}</div>}
+					{message}
 				</div>
 				{toast.options.closeButton && <i className={'fa fa-close'} style={_closeIconStyle} onClick={this.close}/>}
 			</div>
@@ -143,7 +149,7 @@ export class Toastr extends React.Component<{}, { toasts: ToastDefinition[] }> {
 	 * @param {ToastOptions} options
 	 */
 	private static _makeToast(type: string, message: string, title: string = EXTENSION_NAME, options?: ToastOptions){
-		const toast: ToastDefinition = {id: this._idCounter++, type, message, title, options: Object.assign({}, _options, options)},
+		const toast: ToastDefinition = {id: this._idCounter++, type, message, title, options: {..._options, ...options}},
 			toasts = this.Instance.state.toasts.slice();
 
 		toasts.push(toast);
@@ -263,6 +269,7 @@ interface ToastDefinition {
 
 interface ToastOptions {
 	closeButton?: boolean;
+	escapeHtml?: boolean;
 	extendedTimeOut?: number;
 	opacity?: number;
 	timeOut?: number;

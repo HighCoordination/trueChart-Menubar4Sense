@@ -1,18 +1,13 @@
 import {Deferred} from '../../lib/hico/common/global';
-
-const _qlikService = require('../../lib/hico/services/qlik-service').getInstance();
-import * as qvangular from 'qvangular';
-import {prefix} from '../../lib/hico/prefix';
+import {QlikService} from '../../lib/hico/services/qlik-service';
 import * as config from '../../../resource/config';
+import {RepairDialog} from '../Directives/RepairDialog';
 
-export const serviceName = prefix + 'MigrationService';
+const _qlikService = QlikService.getInstance();
 
 export default class MigrationService {
 	constructor(){
-		const _updateScope = qvangular.$rootScope.$new();
-
-		_updateScope.dialogdatas = [];
-		_updateScope.dimensions = [];
+		MigrationService._instance = this;
 
 		this._sheets = null;
 		this._fields = null;
@@ -21,13 +16,14 @@ export default class MigrationService {
 		this._pendingMigrations = {};
 		this._updates = {
 			'1.1.0': {
+				dimensions: {},
 				expressionMap: config.expressionMigration
 			}
 		};
 	}
 
 	static getInstance(){
-		return qvangular.getService(serviceName);
+		return this._instance || new MigrationService();
 	}
 
 	getSheets(){
@@ -64,37 +60,64 @@ export default class MigrationService {
 		}
 	}
 
-	migrate(toVersion){
-		let pendingMigration = this._pendingMigrations[toVersion];
-
-		switch (toVersion){
+	/**
+	 * Runs the migration required for the specific version
+	 *
+	 * @param {string} toVersion - target version
+	 * @param {boolean} [interactive] - if true, migration dialog will be shown, otherwise not
+	 *
+	 * @return {Promise<*>}
+	 */
+	migrate(toVersion, interactive){
+		switch(toVersion){
 			case '1.1.0':
-				if(!pendingMigration){
-					console.info('run migration for trueChart-Menubar version', toVersion);
-					pendingMigration = this.migrate110();
-				}
-				break;
+				return this.migrate110(interactive);
 			default:
-				pendingMigration = Promise.resolve(); // nothing to migrate
+				return Promise.resolve(); // nothing to migrate
 		}
-		return pendingMigration;
 	}
 
-	migrate110(){
+	/**
+	 * Runs migration required for version 1.1.0
+	 *
+	 * @param {boolean} interactive - if true, migration dialog will be shown, otherwise not
+	 *
+	 * @return {Promise<*>}
+	 */
+	migrate110(interactive){
 		const version = '1.1.0';
+		let deferred,
+			pendingMigration = this._pendingMigrations[version];
 
-		return this._pendingMigrations[version] = Promise.all([
+		if(!pendingMigration){ // initial run
+			this._pendingMigrations[version] = deferred = pendingMigration = new Deferred();
+			pendingMigration.isInteractive = interactive;
+
+		}else if(!interactive || pendingMigration.isInteractive){
+			return pendingMigration.promise; // second+ run (normal case)
+
+		}else{
+			// first interactive run, if it wasn't the case on initial run (i.e. on sheet duplication of a published app)
+			deferred = new Deferred();
+			deferred.promise.then(pendingMigration.resolve); // resolve the previous/original promise after interactive migration
+			pendingMigration.isInteractive = interactive;
+			pendingMigration.willBeResolved = true; // make sure we do not resolve our migration promise twice
+		}
+
+		return Promise.all([
 			this.getFields(),
 			this.getDimensions(),
 			this.getExtensions()
 		]).then(data =>{
-			let deferred = new Deferred(),
-				fields = data[0].map(item => item.qName), // create an array of available fields names
-				dimensions = data[1].map(item => item.qMeta.title), // create an array of available dimensions names
+			let fields = data[0].map(item => ({expr: item.qName})), // create an array of available fields names
+				dimensions = data[1].map(item => item.qData.grouping === 'H' || item.qData.grouping === 'N' // drilldown/master dimensions
+					? {expr: item.qData.info.map(i => i.qName).join('~'), qLibraryId: item.qInfo.qId}
+					: {expr: item.qData.title, qLibraryId: item.qInfo.qId}
+				), // create an array of available dimensions
 				extensions = data[2],
 
-				// create one single list containing fields and dimensions names
-				availableDims = this._updates[version].dimensions = fields.concat(dimensions),
+				// create one single list containing fields and dimensions, put master dimensions on top to use them if possible
+				availableDims = this._updates[version].dimensions = fields.concat(dimensions).sort((a, b) => a.qLibraryId && !b.qLibraryId ? -1 : 1),
 
 				// get a list of used dimensions (expressions)
 				uniqueDims = extensions.map(obj => (obj.properties.dimensions || []).map(dimension => dimension.dim && dimension.dim.qStringExpression
@@ -104,18 +127,13 @@ export default class MigrationService {
 
 				// get dimensions, which are not in the available dimensions list and must be checked therefore
 				expressionMap = this._updates[version].expressionMap,
-				suspiciousDims = uniqueDims.filter(dim => availableDims.indexOf(dim) === -1 && !expressionMap[dim]);
+				suspiciousDims = uniqueDims.filter(dim => !availableDims.some(aDim => aDim.expr === dim) && !expressionMap[dim]);
 
 			// continue with "manual" migration steps
-			if(suspiciousDims.length > 0 && !_qlikService.isPublished() && _qlikService.inClient()){
+			if(suspiciousDims.length > 0 && (interactive || pendingMigration.isInteractive)){
 				// show update dialog and giv the user a chance to fix suspicious dimensions
-				const $scope = qvangular.$rootScope.$new(),
-					compile = qvangular.getService('$compile'),
-					template = '<repairdialogdirective dialogdatas="dialogdatas" on-save="save()" dimensions="dimensions"></repairdialogdirective>';
-
-
-
-				$scope.dialogdatas = suspiciousDims.map(dim =>{
+				const options = {};
+				options.dialogdatas = suspiciousDims.map(dim =>{
 					return {
 						text: dim,
 						oldValue: dim,
@@ -124,18 +142,17 @@ export default class MigrationService {
 						textTemplate: 'dialog_update_1_1_0'
 					};
 				});
-				$scope.dimensions = availableDims;
-				$scope.save = () =>{
-					$scope.dialogdatas.forEach(data =>{
+				options.dimensions = availableDims.map(dim => dim.expr);
+				options.onSave = (dialogdatas) =>{
+					dialogdatas.forEach(data =>{
 						this._updates[version].expressionMap[data.oldValue] = data.text;
 					});
-					deferred.resolve();
+					!deferred.willBeResolved && deferred.resolve();
 				};
 
-				const $dialog = compile(template)($scope);
-				document.body.appendChild($dialog[0]);
+				RepairDialog.show(options);
 			}else{
-				deferred.resolve();
+				!deferred.willBeResolved && deferred.resolve();
 			}
 
 			return deferred.promise;
@@ -153,5 +170,3 @@ export default class MigrationService {
 
 
 }
-
-qvangular.service(serviceName, [MigrationService]);

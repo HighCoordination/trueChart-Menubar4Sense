@@ -1,6 +1,6 @@
-define([
-	'./qlik-service',
-], function(QlikService){
+import {QlikService} from './qlik-service';
+
+export const MediaService = (function (){
 
 	const _instances = {}; // holds MediaService instances with appId as key
 	const TCML = 'tcml:'; // trueChart media library url prefix
@@ -17,7 +17,7 @@ define([
 	 */
 	MediaService.getInstance = function(appId){
 		// No mediaService possible during printing
-		if(QlikService.getInstance().isPrinting()){
+		if(QlikService.isPrinting()){
 			return null;
 		}
 
@@ -119,7 +119,12 @@ define([
 				}
 			}, function(err){
 				if(err && err.code === 2){ // object not found
-					return qlikService.createObject(tcMediaStoreDef);
+					if(qlikService.isPublished()){
+						setReady(true);
+						return Promise.reject(undefined);
+					}else{
+						return qlikService.createObject(tcMediaStoreDef);
+					}
 				}else{
 					return Promise.reject(err);
 				}
@@ -143,7 +148,7 @@ define([
 				setMediaItems(qlikService.getChildItems(layout));
 				setReady(true);
 			}).catch(function(err){
-				console.error(err);
+				err && console.error(err);
 			});
 		}
 
@@ -633,4 +638,4 @@ define([
 		err.code = code;
 		return err;
 	}
-});
+})();

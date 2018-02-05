@@ -1,5 +1,6 @@
 import MigrationService from './MigrationService';
-import * as QlikService from '../../lib/hico/services/qlik-service';
+import {QlikService} from '../../lib/hico/services/qlik-service';
+import {UtilService} from './UtilService';
 import {Logger} from '../../lib/hico/logger';
 
 /**
@@ -7,7 +8,7 @@ import {Logger} from '../../lib/hico/logger';
  * @property {Object[]} [listObjects]
  * @property {Object} properties
  * @property {Object} model - original model, or a session object model in case of not updatable properties
- * @property {boolean} [updatable] - true when it can be updated
+ * @property {boolean} [isUpdatable] - true when it can be updated
  * @property {Function[]} updates - update functions that need to be done
  */
 
@@ -16,7 +17,8 @@ const _currentVersion = '##VERSION##', // will be replaced with current version 
 	_qlikService = QlikService.getInstance(),
 	_migrationService = MigrationService.getInstance(),
 	_updatedObjectIds = [], // Collection of object ids, which were already updated so tey shouldn't be updated again
-	_updateObjects = {}; // Collection of updateObjects (Promises) with object.id as key
+	_updateObjects = {}, // Collection of updateObjects (Promises) with object.id as key
+	_utilSerivce = UtilService.getInstance();
 
 export default class UpdateService {
 	/*
@@ -34,12 +36,13 @@ export default class UpdateService {
 		/**
 		 * Updates the extension model, if required
 		 *
-		 * @param model {Object} Extension model with layout available (normally initially there)
+		 * @param {Object} model - Extension model with layout available (normally initially there)
+		 * @param {boolean} force - Force the last update
 		 *
 		 * @return {Promise<UpdateService_updateObject | {}>} - updateObject if update were performed, empty object otherwise
 		 */
-		this.checkUpdates = function(model){
-			const updates = getUpdates((model.layout && model.layout.qInfo ? model.layout : model.properties).version);
+		this.checkUpdates = function(model, force){
+			const updates = getUpdates((model.layout && model.layout.qInfo ? model.layout : model.properties).version, force);
 
 			// Run updates only if required
 			if(updates.length > 0){
@@ -110,10 +113,11 @@ export default class UpdateService {
 		 * Returns updates in array, depending on current version
 		 *
 		 * @param {string | *} version
+		 * @param {boolean} force last update flag
 		 *
 		 * @return {Array}
 		 */
-		function getUpdates(version){
+		function getUpdates(version, force){
 			let verMajor = 1, verMinor = 0, verPatch = 0,
 				updates = [];
 
@@ -128,6 +132,13 @@ export default class UpdateService {
 			needsUpdate(1, 0, 2) && updates.push(update102);
 			needsUpdate(1, 0, 4) && updates.push(update104);
 			needsUpdate(1, 1, 0) && updates.push(migrate110) && updates.push(update110);
+			needsUpdate(1, 2, 0) && updates.push(update120);
+
+			//!!!Important allways push the latest update when adding a new one
+			//Make sure that the update can be applied multiple times!!!
+			if(force && !updates.length){
+				updates.push(update120);
+			}
 
 			return updates;
 
@@ -215,7 +226,7 @@ export default class UpdateService {
 		 * @return {Promise<UpdateService_updateObject>} - Updated extension properties in a Promise
 		 */
 		function migrate110(updateObject){
-			return _migrationService.migrate('1.1.0').then(() => updateObject);
+			return _migrationService.migrate('1.1.0', updateObject.isUpdatable).then(() => updateObject);
 		}
 
 
@@ -299,14 +310,20 @@ export default class UpdateService {
 					let dim = dimension.dim,
 						dimTitle = typeof dim === 'undefined' && dimension.dimTitle, // fallback if no dim defined
 						dimExpr = dim && dim.qStringExpression ? dim.qStringExpression.qExpr : dim || dimTitle,
-						validDim = availableDimensions.some(name => name === dimExpr);
+						qLibraryId = undefined,
+						validDim = availableDimensions.some(dimData => {
+							if(dimData.expr === dimExpr){
+								qLibraryId = dimData.qLibraryId;
+								return true;
+							}
+						});
 
 					// use corrected dimension expression if required/possible
 					if(!validDim && expressionMap[dimExpr]){
 						dimExpr = expressionMap[dimExpr];
 					}
 
-					qDimensions.push(convertDimensionToDefinition(dimExpr, dimension));
+					qDimensions.push(convertDimensionToDefinition(dimExpr, dimension, qLibraryId));
 				});
 			}
 
@@ -336,6 +353,71 @@ export default class UpdateService {
 					return updateObject;
 				});
 			}
+		}
+
+		/**
+		 * Updates for all extensions created before release 1.2.0
+		 *
+		 * @param {UpdateService_updateObject} updateObject - Update object containing all update related data
+		 *
+		 * @return {Promise<UpdateService_updateObject>} - Updated extension properties in a Promise
+		 */
+		function update120(updateObject){
+			const subItems = {
+				'Multi Select': {type: 'Single Select', key: 'selectItems'},
+				'Button Dropdown': {type: 'Button', key: 'dropdownItems'}
+			};
+
+			updateObject.properties.listItems.forEach(item => {
+				if(item.type in subItems){
+					const sub = subItems[item.type];
+
+					item.groupItems = item[sub.key];
+					item.type = 'Group';
+
+					item.groupItems.forEach(groupItem => {
+						groupItem.type = sub.type;
+						groupItem.showCondition = item.showCondition;
+					});
+
+					// delete item[sub.key]; // TODO: this property should be deleted, but was kept for "backward compatibility".
+					// it should be possible for user to clean up its tcmenu "manually" if required
+				}
+			});
+
+			//add propper type name to every element
+			updateTypesAndIds(updateObject.properties.listItems);
+
+			function updateTypesAndIds(listItems){
+				listItems.forEach(listItem => {
+					listItem.cId = _utilSerivce.generateGuid();
+
+					if(listItem.type === 'Group'){
+						updateTypesAndIds(listItem.groupItems);
+					}
+
+					listItem.subItems && listItem.subItems.forEach(subItem => {
+						subItem.cId = _utilSerivce.generateGuid();
+						subItem.type = 'subButton';
+
+						subItem.stateItems && subItem.stateItems.forEach(stateItem => {
+							stateItem.cId = _utilSerivce.generateGuid();
+							stateItem.type = 'buttonState';
+						});
+					});
+
+					listItem.variableItems && listItem.variableItems.forEach(variableItem => {
+						variableItem.cId = _utilSerivce.generateGuid();
+					});
+
+					listItem.stateItems && listItem.stateItems.forEach(stateItem => {
+						stateItem.cId = _utilSerivce.generateGuid();
+						stateItem.type = 'buttonState';
+					});
+				});
+			}
+
+			return Promise.resolve(updateObject);
 		}
 
 		/**
@@ -379,10 +461,11 @@ export default class UpdateService {
 		 * @param {string} expr - Dimension expression
 		 * @param {object} dimension - Dimension to be converted (old format)
 		 */
-		function convertDimensionToDefinition(expr, dimension){
+		function convertDimensionToDefinition(expr, dimension, qLibraryId){
 			const sortExpression = dimension.sortExpression,
 				qv = typeof sortExpression === 'object' ? sortExpression.qStringExpression.qExpr : sortExpression;
 			return {
+				qLibraryId: qLibraryId,
 				qDef: {
 					autoSort: dimension.customSortOrder,
 					cId: dimension.cId,
@@ -450,5 +533,14 @@ export default class UpdateService {
 				}
 			}), Promise.resolve());
 		})
-	};
+	}
+
+	/**
+	 * Run updates with atleast the latest update
+	 *
+	 * @param {Object} model - Extension model with layout available (normally initially there)
+	 */
+	forceLastUpdate(model){
+		this.checkUpdates(model, true).catch(err => Logger.warn('Update failed', err));
+	}
 }

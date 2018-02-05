@@ -42,11 +42,12 @@
                     <div class="preview-toolbar">
                         <div class="flex-container flex j-c-space-between">
                             <button class="lui-fade-button" ng-hide="state === STATES.EDIT_MEDIA_LIST" qva-activate="$ctrl.startEditingMediaList()"
-                                    title="{{::trans('START_EDITING')}}"
+                                    title="{{::trans('START_EDITING')}}" ng-class="{'lui-disabled' : !isUpdatable}"
                                     ng-class="{'lui-disabled': !mediaItems.length}">
                                 <i class="lui-fade-button__icon lui-icon lui-icon--edit"></i>
                             </button>
                             <button class="lui-fade-button" ng-hide="state === STATES.EDIT_MEDIA_LIST" qva-activate="$ctrl.addMedia($event)"
+                                    ng-class="{'lui-disabled' : !isUpdatable}"
                                     title="{{::trans('UPLOAD_MEDIA')}}">
                                 <i class="lui-fade-button__icon lui-icon lui-icon--upload"></i>
                             </button>
@@ -82,6 +83,7 @@
                         <div class="flex-container flex j-c-space-between a-i-center"
                              ng-if="!$ctrl.inStates([STATES.ADD_FROM_FILE, STATES.ADD_FROM_URL]) && currentItem.name">
                             <button class="lui-fade-button" qva-activate="$ctrl.startEditingMedia(currentItem)"
+                                    ng-class="{'lui-disabled' : !isUpdatable}"
                                     title="{{::trans('EDIT_CURRENT_MEDIA')}}"
                                     ng-show="state !== STATES.EDIT_CURRENT_MEDIA">
                                 <i class="lui-fade-button__icon lui-icon lui-icon--edit"></i>
@@ -115,7 +117,7 @@
                             </button>
                             <button class="lui-fade-button" qva-activate="$ctrl.removeMedia([currentItem])"
                                     title="{{::trans('DELETE_MEDIA')}}" ng-hide="state === STATES.EDIT_CURRENT_MEDIA"
-                                    ng-class="{'lui-disabled': state === STATES.EDIT_CURRENT_MEDIA}">
+                                    ng-class="{'lui-disabled': state === STATES.EDIT_CURRENT_MEDIA || !isUpdatable}">
                                 <i class="lui-fade-button__icon lui-icon lui-icon--bin"></i>
                             </button>
                         </div>
@@ -177,7 +179,8 @@
                                 </button>
                             </div>
                             <!-- IMPORT -->
-                            <button class="lui-button" ng-if="state === STATES.NOT_IN_LIBRARY && mediaUrl" qva-activate="$ctrl.addFromUrl(mediaUrl)">
+                            <button class="lui-button" ng-if="state === STATES.NOT_IN_LIBRARY && mediaUrl" ng-class="{'lui-disabled' : !isUpdatable}"
+                                    qva-activate="$ctrl.addFromUrl(mediaUrl)">
                                 {{::trans('IMPORT')}}
                             </button>
                         </div>

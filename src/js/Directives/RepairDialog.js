@@ -1,22 +1,40 @@
-import {translation as translations} from '../../../resource/translations/translations';
-import * as QlikService from '../../lib/hico/services/qlik-service';
+import * as qvangular from 'qvangular';
+import * as template from '../../templates/repairDialog.html';
+import {translation} from '../../../resource/translations/translations';
+import {QlikService} from '../../lib/hico/services/qlik-service';
 import * as leonardoui from 'leonardo-ui';
+
+const stringComponent = 'client.property-panel/components/string/string';
 
 requirejs.config({
 	bundles: {
 		'assets/client/client': [
-			'client.property-panel/components/string/string',
+			stringComponent
 		]
 	}
 });
 
-define([
-	'jquery',
-	'qlik',
-	'qvangular',
-	'../../templates/repairDialog.html'], function($, qlik, qvangular, template){
-	return qvangular.directive('repairdialogdirective', [function(){
-			return {
+export class RepairDialog {
+	/**
+	 * Shows the migration dialog with given options
+	 *
+	 * @param {{dialogdatas: Array, dimensions: Array, onSave: Function}} options
+	 */
+	static show(options = {}){
+		const $scope = options.scope || qvangular.$rootScope.$new(),
+			compile = qvangular.getService('$compile'),
+			template = '<repairdialogdirective dialogdatas="dialogdatas" on-save="onSave(dialogdatas)" dimensions="dimensions"></repairdialogdirective>';
+
+		$scope.dialogdatas = options.dialogdatas || [];
+		$scope.dimensions = options.dimensions || [];
+		$scope.onSave = options.onSave;
+
+		const $dialog = compile(template)($scope);
+		document.body.appendChild($dialog[0]);
+	}
+
+	constructor(){
+		return {
 				restrict: 'E',
 				scope: {
 					dialogdatas: '=',
@@ -32,15 +50,15 @@ define([
 					$scope.allFixed = false;
 					$scope.resolvedCount = 0;
 					$scope.errors = [];
-					$scope.translations = translations;
+					$scope.translations = translation;
 					$scope.showConfigDialog = false;
 					$scope.configString = '';
-					qlikService.inClient() && requirejs(['client.property-panel/components/string/string'], function(){
-						$scope.qComponents =  {string: requirejs('client.property-panel/components/string/string')};
-					});
+
+					// get Qlik Sense string component (available only in client, where the dialog should be shown only)
+					qlikService.inClient() && requirejs([stringComponent], (component) => $scope.qComponents = {string: component});
 
 					// Properties which reuse qlik components
-					$scope.definitions= {
+					$scope.definitions = {
 						text: {type: 'string', ref: 'text', expression: 'optional'},
 					};
 
@@ -48,17 +66,9 @@ define([
 					 * update erro array with new dialogdatas everytime the dialogdata array changes
 					 * only add erro when not already in error array
 					 */
-					$scope.$watch('dialogdatas.length', function(newValue, oldValue) {
+					$scope.$watch('dialogdatas.length', function(/*newValue, oldValue*/) {
 						$scope.dialogdatas.forEach(function(dialogd){
-							let found = false;
-							$scope.errors.some(function(errord){
-								if(dialogd.oldValue === errord.oldValue){
-									found = true;
-									return true;
-								}
-							});
-
-							if(!found){
+							if($scope.errors.every(error => dialogd.oldValue !== error.oldValue)){
 								$scope.errors.push(
 									{
 										text: dialogd.oldValue,
@@ -95,11 +105,10 @@ define([
 						//remove expression object we dont need this
 						if(item.text.qStringExpression){
 							if(item.text.qStringExpression.qExpr.charAt(0) === '='){
-								item.text =  item.text.qStringExpression.qExpr;
+								item.text = item.text.qStringExpression.qExpr;
 							}else{
-								item.text =  '=' + item.text.qStringExpression.qExpr;
+								item.text = '=' + item.text.qStringExpression.qExpr;
 							}
-
 						}
 
 						//go to next unresolved error
@@ -131,32 +140,19 @@ define([
 					/**
 					 * display to next error
 					 */
-					$scope.next = function(){
-						$scope.currentIndex++;
-					};
+					$scope.next = () => $scope.currentIndex++;
 
 					/**
 					 * display previous error
 					 */
-					$scope.before = function(){
-						$scope.currentIndex--;
-					};
+					$scope.before = () => $scope.currentIndex--;
 
 					/**
 					 * checks if all errors haave been marked as fixed
-					 * @returns {boolean}
+					 *
+					 * @returns {boolean} - returns true, if every error was fixed
 					 */
-					$scope.checkFixed = function(){
-						let allFixed = true;
-						$scope.errors.some(function(error){
-							if(!error.fixed){
-								allFixed = false;
-								return true;
-							}
-						});
-
-						return allFixed;
-					};
+					$scope.checkFixed = () => $scope.errors.every(error => error.fixed);
 
 					/**
 					 * when fixing an erro the new value is applied to all error with the same old value
@@ -205,12 +201,7 @@ define([
 					 * calculates the amount of resolved errors and returns the counter for display
 					 */
 					$scope.calcResolved = function(){
-						let count = 0;
-						$scope.errors.forEach(function(error){
-							error.fixed && count++;
-						});
-
-						$scope.resolvedCount = count;
+						$scope.resolvedCount = $scope.errors.filter(error => error.fixed).length;
 					};
 
 					/**
@@ -218,42 +209,37 @@ define([
 					 * error array only holds the unique values
 					 */
 					$scope.applyErrorsToData = function(){
-						$scope.errors.forEach(function(errord){
-							$scope.dialogdatas.forEach(function(dialogd){
-								if(errord.oldValue === dialogd.oldValue){
-									dialogd.text = errord.text;
-								}
-							})
-						});
+						$scope.errors.forEach(errord => $scope.dialogdatas.forEach(dialogd =>{
+							if(errord.oldValue === dialogd.oldValue){
+								dialogd.text = errord.text;
+							}
+						}));
 					};
 
 					$scope.showConfiguration = function(){
 						let configObj = {};
 
-						$scope.errors.forEach(error => {
-							configObj[error.oldValue] = error.changedValue;
-						});
+						$scope.errors.forEach(error => configObj[error.oldValue] = error.changedValue);
 
-						let dialog = leonardoui.dialog( {
+						let dialog = leonardoui.dialog({
 							content: document.getElementById("hico-config-dialog").innerHTML,
 							closeOnEscape: true
-						} );
+						});
 
-						let text = JSON.stringify(configObj, null, 2);
-
-						dialog.element.querySelectorAll('#hico-dialog-textarea')[0].value = text;
+						dialog.element.querySelectorAll('#hico-dialog-textarea')[0].value = JSON.stringify(configObj, null, 2);
 						dialog.element.querySelectorAll('#hico-dialog-textarea')[0].rows = Math.min(Object.keys(configObj).length + 3, 25);
 
-						dialog.element.querySelectorAll('#hico-close-dialog-btn')[0].addEventListener( "click", function() {
-							dialog.close();
-						} );
+						dialog.element.querySelectorAll('#hico-close-dialog-btn')[0].addEventListener("click", dialog.close);
 
-						dialog.element.querySelectorAll('#hico-copy-dialog-btn')[0].addEventListener( "click", function() {
+						dialog.element.querySelectorAll('#hico-copy-dialog-btn')[0].addEventListener("click", function(){
 							dialog.element.querySelectorAll('#hico-dialog-textarea')[0].select();
-							document.execCommand('copy',false, 'test');
-						} );
+							document.execCommand('copy', false, 'test'); // copy to clipboard
+						});
 					};
 				}]
-			}
-	}]);
-});
+		};
+	}
+}
+
+// register angular directive
+qvangular.directive('repairdialogdirective', [RepairDialog]);

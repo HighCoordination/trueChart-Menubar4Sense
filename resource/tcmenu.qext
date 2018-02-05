@@ -9,5 +9,5 @@
 	"homepage" : "https://www.highcoordination.com/en/products/truechart-menubar",
 	"keywords" : "qlik-sense, visualization, trueChart, menu bar, navigation, actions, trigger, selection",
 	"license" : "HighCoordination GmbH © 2017",
-    "dependencies" : { "qlik-sense" : ">=3.1.x" }
+    "dependencies" : { "qlik-sense" : ">=3.0.x" }
 }

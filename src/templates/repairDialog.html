@@ -1,10 +1,10 @@
 <div class="dialog-content hico-updatedialog-fix">
-    <div class="lui-dialog hico" style="width: 470px;" ng-repeat="item in errors track by $index" ng-if="$index === currentIndex">
+    <div class="lui-dialog hico" style="width: 470px;" >
         <div class="lui-dialog__header hico-container-button-panel">
             <div class="lui-dialog__title">{{::translations.text.updateToVersion}}</div>
         </div>
 
-        <div class="lui-dialog__body">
+        <div class="lui-dialog__body" ng-repeat="item in errors track by $index" ng-if="$index === currentIndex">
             <div id="dialog_body_text" ng-bind-html="translations.templates[item.textTemplate]"></div>
 
             <div class="flex-container j-c-space-between">
@@ -32,11 +32,11 @@
                 <button class="lui-button lui-icon lui-icon--triangle-left" qva-activate="before()"
                         ng-class="{'lui-disabled':$first}"></button>
                 <div>
-                    <button class="lui-button  lui-dialog__button  close-button" qva-activate="reset(item)"
+                    <button class="lui-button  lui-dialog__button" qva-activate="reset(item)"
                             ng-class="{'lui-disabled':item.oldValue === item.text}">{{translations.label.reset}}</button>
-                    <button class="lui-button  lui-dialog__button  close-button" qva-activate="goToNextError()"
+                    <button class="lui-button  lui-dialog__button" qva-activate="goToNextError()"
                             ng-class="">{{translations.label.next}}</button>
-                    <button class="lui-button  lui-dialog__button  close-button" qva-activate="confirm(item)"
+                    <button class="lui-button  lui-dialog__button" qva-activate="confirm(item)"
                             ng-class="">{{translations.label.confirm}}</button>
                 </div>
                 <button class="lui-button lui-icon lui-icon--triangle-right" qva-activate="next()"
@@ -44,10 +44,10 @@
             </div>
         </div>
         <div class="lui-dialog__footer">
-            <button class="lui-button  lui-dialog__button  close-button hico-dialog-button-left" qva-activate="showConfiguration()" ng-class="">
+            <button class="lui-button  lui-dialog__button hico-dialog-button-left" qva-activate="showConfiguration()" ng-class="">
                 {{translations.label.getConfig}}
             </button>
-            <button class="lui-button  lui-dialog__button  close-button" qva-activate="save()" ng-class="{'lui-disabled':!allFixed}">
+            <button class="lui-button  lui-dialog__button" qva-activate="save()" ng-class="{'lui-disabled':!allFixed}">
                 {{translations.label.save}}
             </button>
         </div>

@@ -1,15 +1,18 @@
 import * as angular from 'angular';
 import * as qvangular from 'qvangular';
-import * as qlik from 'qlik';
 import * as $timeout from 'ng!$timeout';
 import * as tinycolor from 'tinycolor2';
 import './lib/colorsliders/bootstrap.colorpickersliders';
 
-import * as QlikService from './lib/hico/services/qlik-service';
+import {QlikService, qlik} from './lib/hico/services/qlik-service';
+import {UtilService} from './js/Services/UtilService';
+import UpdateService from './js/Services/UpdateService';
+import {RepairService} from './js/Services/RepairService';
 import * as informationTemplate from './templates/informationComponent.html';
 import * as colorPickerInputTemplate from './templates/colorPickerInputComponent.html';
 import * as multiOptionsTemplate from './templates/multiOptionsComponent.html';
 import * as selectComponentTemplate from './templates/selectComponent.html';
+import * as buttonGroupComponentTemplate from './templates/buttonGroupComponentTemplate.html';
 import * as seperatorLabelTemplate from './templates/seperatorLabelComponent.html';
 
 import * as faIcons from './lib/general/icons-fa';
@@ -33,16 +36,19 @@ requirejs.config({
 
 function Properties(){
 	const qlikService = QlikService.getInstance(),
+		_utilService = UtilService.getInstance(),
+		_repairService = RepairService.getInstance(),
+		_updateService = UpdateService.getInstance(),
 
 		// Customize components for properties panel
 		customCmp = customizePPComponents();
 
 	function _getRefs(data, refName) {
-		var ref = data;
-		var name = refName;
-		var props = refName.split('.');
+		let ref = data,
+			name = refName,
+			props = refName.split('.');
 		if(props.length > 0) {
-			for(var i = 0; i < props.length - 1; ++i) {
+			for(let i = 0; i < props.length - 1; ++i) {
 				if(ref[props[i]])
 					ref = ref[props[i]];
 			}
@@ -52,12 +58,12 @@ function Properties(){
 	}
 
 	function setRefValue(data, refName, value) {
-		var  obj = _getRefs(data, refName);
+		let  obj = _getRefs(data, refName);
 		obj.ref[obj.name] = value;
 	}
 
 	function getRefValue(data, refName) {
-		var obj = _getRefs(data, refName);
+		let obj = _getRefs(data, refName);
 		return obj.ref[obj.name];
 	}
 
@@ -97,25 +103,15 @@ function Properties(){
 		};
 	}
 
-	var seperatorComponent = {
+	let seperatorComponent = {
 		template: "<div class='hico-property-seperator'></div>"
 	};
 
-	var seperatorLabelComponent = {
+	let seperatorLabelComponent = {
 		template: seperatorLabelTemplate
 	};
 
-	var dimensionStringMasterComponent = {
-		template: "<div class='pp-component'><div class='lui-label'>{{translation.label.dimension}}</div>"
-		+ "<input type='text' class='lui-input lui-disabled hico-property-seperator' disabled='disabled' value='{{data.dimTitle}}'/>"
-		+ "</div>",
-		controller: ['$scope', '$element', function(scope){
-			scope.translation = translation;
-			scope.$emit("saveProperties");
-		}]
-	};
-
-	var informationComponent = {
+	let informationComponent = {
 		template: informationTemplate,
 		controller: ['$scope', '$element', function(scope){
 			scope.translation = translation;
@@ -141,7 +137,7 @@ function Properties(){
 
 			scope.$on("datachanged", function () {
 				scope.isData = true;
-				var refValue = getRefValue(scope.args.layout, scope.definition.ref);
+				let refValue = getRefValue(scope.args.layout, scope.definition.ref);
 
 				refValue = convertIfSense(refValue);
 
@@ -152,7 +148,7 @@ function Properties(){
 			});
 
 			scope.setColor = function(color){
-				var tinColor = tinycolor(color);
+				let tinColor = tinycolor(color);
 				setRefValue(scope.data, scope.definition.ref, tinColor.toRgbString());
 				$element.find("#colorPalette_" + scope.$id).css("background-color", tinColor.toRgbString());
 				$element.find("#colorPaletteIcon_" + scope.$id).css("color", tinycolor.mostReadable( tinColor , ['#595959', '#fff']).toHexString());
@@ -187,8 +183,8 @@ function Properties(){
 
 			function convertIfSense(colorString){
 				if(colorString.indexOf("ARGB") > -1){
-					var opcaityLength = colorString.indexOf(',') - colorString.indexOf('(') - 1;
-					var opacity = Number(colorString.substr(colorString.indexOf('(') + 1,opcaityLength)) / 255;
+					let opcaityLength = colorString.indexOf(',') - colorString.indexOf('(') - 1;
+					let opacity = Number(colorString.substr(colorString.indexOf('(') + 1,opcaityLength)) / 255;
 
 					return'rgba(' + colorString.substr(colorString.indexOf(',') + 1, colorString.length - colorString.indexOf(',') - 2) + ',' +opacity + ')';
 				}else{
@@ -197,7 +193,7 @@ function Properties(){
 			}
 
 			function setPaletteIconColor(color){
-				var colorObj = {};
+				let colorObj = {};
 
 				if(!color.tiny){
 					colorObj.tiny = tinycolor(color);
@@ -212,6 +208,30 @@ function Properties(){
 				}
 			}
 
+		}]
+	};
+
+	const ButtonGroupComponent = {
+		template: buttonGroupComponentTemplate,
+		controller: ['$scope', function(scope){
+
+			scope.updateButtons = function(){
+				scope.definition.buttons.forEach(button =>{
+					if(typeof button.active === 'function'){
+						button.isActive = button.active(scope.data, scope.args.handler);
+					}else{
+						button.isActive = typeof button.active === 'boolean' ? button.active : true;
+					}
+
+					button.activeClass = button.isActive ? '' : 'lui-disabled hico-button-inactive';
+				});
+			};
+
+			scope.update = function(){
+				scope.$emit("saveProperties");
+			};
+
+			scope.updateButtons();
 		}]
 	};
 
@@ -284,9 +304,9 @@ function Properties(){
 		return 0;
 	}
 
-	var icons = [];
+	let icons = [];
 	icons.push({value: 'noIcon', label: translation.label.noIcon});
-	for(var key in faIcons){
+	for(let key in faIcons){
 		faIcons.hasOwnProperty(key) && icons.push({value: key, label: faIcons[key]});
 	}
 
@@ -295,26 +315,28 @@ function Properties(){
 			const scope = qvangular.$rootScope.$new();
 			scope.state = state;
 			scope.condition = state.condition.qStringExpression ? state.condition.qStringExpression.qExpr : state.condition;
+			scope.onClose = (data) =>{
+				switch(data.type){
+					case 'apply':
+						angular.extend(state, data.state);
+						resolve(data.state);
+						if(!scope.$$phase){
+							try{
+								scope.$apply();
+							}catch(err){
+								console.log(err);
+							}
+						}
+						break;
+					case 'cancel':
+						reject();
+						break;
+				}
+			};
 
 			const compile = qvangular.getService('$compile'),
-				template = '<div data-tcmenu-button-editor condition="condition" state="state" trans="trans" is-true="isTrue"></div>',
+				template = '<div data-tcmenu-button-editor on-close="onClose" condition="condition" state="state" trans="trans" is-true="isTrue"></div>',
 				$editor = compile(template)(scope);
-
-			$editor.on('apply', function(evt){
-				angular.extend(state, evt.state);
-				resolve(evt.state);
-				if(!scope.$$phase) {
-					try{
-						scope.$apply();
-					}catch(err){
-						console.log(err);
-					}
-				}
-			});
-
-			$editor.on('cancel', function(evt){
-				reject();
-			});
 
 			if(document.body.childNodes.length > 0){
 				document.body.insertBefore($editor[0], document.body.childNodes[0]);
@@ -327,6 +349,7 @@ function Properties(){
 	function State(){
 		this.version = 1;
 
+		this.type = 'buttonState'; // only for tcmenu (cpy/paste/duplicate)
 		this.text = 'My Button';
 		this.tooltip = undefined;
 		this.icon = undefined;
@@ -342,7 +365,9 @@ function Properties(){
 					{
 						name: 'none',
 						params: {},
-						paramsExpr: {}
+						paramsExpr: {},
+						optionalParams: undefined, // optional parameter of type []
+						optionalParamsExpr: undefined // optional parameter (definition/expression) of type []
 					}
 				]
 			}
@@ -401,22 +426,38 @@ function Properties(){
 	// Custom Definitions
 	// *****************************************************************************
 
-	var information = {
+	let information = {
 		type: "items",
 		component: informationComponent,
 		ref: ""
 	};
 
-	/*const repairButton = {
-		label: translation.label.repairBtn,
-		tooltip: translation.label.repairBtnTp,
-		component: "button",
-		action: function(data){
-			UpdateService.repairMenus(_app.model.layout.published === true);
-		}
-	};*/
+	const repairButton = {
+		component: ButtonGroupComponent,
+		buttons: [
+			{
+				label: translation.label.repairBtn,
+				tooltip: translation.tooltip.repairBtnTp,
+				action: function(data, handler, model, update){
+					_repairService.startRepair(handler.properties);
+					update();
+				}
+			}
+		]
+	};
 
-
+	const updateButton = {
+		component: ButtonGroupComponent,
+		buttons: [
+			{
+				label: translation.label.repeatUpdateBtn,
+				tooltip: translation.tooltip.repeatUpdateBtn,
+				action: function(data, handler, model){
+					_updateService.forceLastUpdate(model);
+				}
+			}
+		]
+	};
 
 	const seperator = {
 		type: "string",
@@ -433,28 +474,72 @@ function Properties(){
 		}
 	};
 
-	var seperatorLabelColorMain = {
+	let seperatorLabelColorMain = {
 		type: "string",
 		component: seperatorLabelComponent,
 		label: translation.label.menuMain
 	};
 
-	var seperatorLabelColorSub = {
+	let seperatorLabelColorSub = {
 		type: "string",
 		component: seperatorLabelComponent,
 		label: translation.label.menuSub
 	};
 
-	var seperatorLabelTextLabel = {
+	let seperatorLabelTextLabel = {
 		type: "string",
 		component: seperatorLabelComponent,
 		label: translation.label.label
 	};
 
-	var seperatorLabelTextSub = {
+	let seperatorLabelTextSub = {
 		type: "string",
 		component: seperatorLabelComponent,
 		label: translation.label.selectionLabel
+	};
+
+	let copyPaste = {
+		type: 'items',
+		component: ButtonGroupComponent,
+		buttons: [
+			{
+				icon: 'lui-icon lui-icon--insert',
+				tooltip: translation.tooltip.duplicate,
+				action: function(item, handler, model, update){
+					_utilService.findAndDuplicateListItem(handler.properties.listItems, item);
+					update();
+				}
+			},
+			{
+				icon: 'lui-icon lui-icon--copy',
+				tooltip: translation.tooltip.copy,
+				action: function(item){
+					_utilService.setCopyStorage(JSON.parse(JSON.stringify(item)));
+				}
+			},
+			{
+				icon: 'lui-icon lui-icon--paste',
+				tooltip: translation.tooltip.paste,
+				active: function(){
+					return !!_utilService.getCopyStorage();
+				},
+				action: function(item, handler, model, update){
+					let copyItem = _utilService.getCopyStorage();
+
+					if(copyItem){
+						if(copyItem.type === 'buttonState' && item.type === 'buttonState' || copyItem.type !== 'buttonState' && item.type !== 'buttonState' ){
+							if(item.type !== 'subButton' && copyItem.type === 'subButton'){
+								copyItem.type = 'Button'
+							}
+
+							_utilService.replaceListItemsIdsRecursiv([copyItem]);
+							Object.assign(item, copyItem);
+							update();
+						}
+					}
+				}
+			}
+		]
 	};
 
 	let customSortOrder = {
@@ -537,7 +622,7 @@ function Properties(){
 		}
 	};
 
-	var qSortByStateCheckbox = {
+	let qSortByStateCheckbox = {
 		type: "boolean",
 		label: translation.label.sortByState,
 		ref: "qDef.qSortByStateCheck",
@@ -550,7 +635,7 @@ function Properties(){
 		}
 	};
 
-	var qSortByState = {
+	let qSortByState = {
 		type: "numeric",
 		component : "dropdown",
 		ref : "qDef.qSortByState",
@@ -570,7 +655,7 @@ function Properties(){
 		}
 	};
 
-	var qSortByFrequencyCheckbox = {
+	let qSortByFrequencyCheckbox = {
 		type: "boolean",
 		label: translation.label.sortByFrequence,
 		ref: "qDef.qSortByFrequencyCheck",
@@ -583,7 +668,7 @@ function Properties(){
 		}
 	};
 
-	var qSortByFrequency = {
+	let qSortByFrequency = {
 		type: "numeric",
 		component : "dropdown",
 		ref : "qDef.qSortByFrequency",
@@ -603,7 +688,7 @@ function Properties(){
 		}
 	};
 
-	var qSortByNumericCheckbox = {
+	let qSortByNumericCheckbox = {
 		type: "boolean",
 		label: translation.label.sortByNumeric,
 		ref: "qDef.qSortByNumericCheck",
@@ -616,7 +701,7 @@ function Properties(){
 		}
 	};
 
-	var qSortByNumeric = {
+	let qSortByNumeric = {
 		type: "numeric",
 		component : "dropdown",
 		ref : "qDef.qSortByNumeric",
@@ -636,7 +721,7 @@ function Properties(){
 		}
 	};
 
-	var qSortByAsciiCheckbox = {
+	let qSortByAsciiCheckbox = {
 		type: "boolean",
 		label: translation.label.sortByAscii,
 		ref: "qDef.qSortByAsciiCheck",
@@ -649,7 +734,7 @@ function Properties(){
 		}
 	};
 
-	var qSortByAscii = {
+	let qSortByAscii = {
 		type: "numeric",
 		component : "dropdown",
 		ref : "qDef.qSortByAscii",
@@ -669,7 +754,7 @@ function Properties(){
 		}
 	};
 
-	var qSortByExpressionCheckbox = {
+	let qSortByExpressionCheckbox = {
 		type: "boolean",
 		label: translation.label.sortByExpression,
 		ref: "qDef.qSortByExpressionCheck",
@@ -687,7 +772,7 @@ function Properties(){
 		}
 	};
 
-	var sortExpression = {
+	let sortExpression = {
 		ref: "qDef.qExpression.qv",
 		label: translation.label.expression,
 		type: "string",
@@ -702,7 +787,7 @@ function Properties(){
 		},
 	};
 
-	var qSortByExpression = {
+	let qSortByExpression = {
 		type: "numeric",
 		component : "dropdown",
 		ref : "qDef.qSortByExpression",
@@ -722,28 +807,28 @@ function Properties(){
 		}
 	};
 
-	var myTextBox = {
+	let myTextBox = {
 		ref: "props.itemLabel",
 		label: "Label",
 		type: "string",
 		expression: "optional"
 	};
 
-	var buttonNameInput = {
+	let buttonNameInput = {
 		ref: "props.buttonName",
 		label: translation.label.buttonNameInput,
 		type: "string",
 		expression: ""
 	};
 
-	var conditionNameInput = {
+	let conditionNameInput = {
 		ref: "props.conditionName",
 		label: translation.label.conditionNameInput,
 		type: "string",
 		expression: "optional"
 	};
 
-	var calcCondVar = {
+	let calcCondVar = {
 		type: 'string',
 			label: translation.label.calcCondVar,
 			//tooltip: translation.tooltip.calcCondVar,
@@ -751,7 +836,7 @@ function Properties(){
 			expression: 'optional'
 	};
 
-	var tooltipInput = {
+	let tooltipInput = {
 		ref: "props.tooltip",
 		label: translation.label.tooltip,
 		type: "string",
@@ -761,7 +846,7 @@ function Properties(){
 		}
 	};
 
-	var customSelectionSwitch ={
+	let customSelectionSwitch ={
 		type: "boolean",
 		component: "switch",
 		label: translation.label.selectionLabel,
@@ -779,7 +864,7 @@ function Properties(){
 		}
 	};
 
-	var customSelectionSubSwitch ={
+	let customSelectionSubSwitch ={
 		type: "boolean",
 		component: "switch",
 		label: translation.label.selectionLabel,
@@ -794,7 +879,7 @@ function Properties(){
 		defaultValue: false
 	};
 
-	var selectionLabelInput = {
+	let selectionLabelInput = {
 		ref: "props.selectionLabel",
 		label: translation.label.selectionLabel,
 		type: "string",
@@ -805,7 +890,7 @@ function Properties(){
 		}
 	};
 
-	var selectionLabelSubInput = {
+	let selectionLabelSubInput = {
 		ref: "props.selectionLabel",
 		label: translation.label.selectionLabel,
 		type: "string",
@@ -824,7 +909,7 @@ function Properties(){
  if($(var) = 1, true, false); -> show this condition, if var is equal 1
 */`;
 
-	var conditionInput = {
+	let conditionInput = {
 		ref: "condition",
 		label: translation.label.condition,
 		type: "string",
@@ -832,7 +917,7 @@ function Properties(){
 		defaultValue: {qStringExpression: defaultConditionValue}
 	};
 
-	var showConditionInput = {
+	let showConditionInput = {
 		ref: "showCondition",
 		label: translation.label.showCondition,
 		type: "string",
@@ -840,7 +925,7 @@ function Properties(){
 		defaultValue: {qStringExpression: defaultConditionValue}
 	};
 
-	var itemLabel = {
+	let itemLabel = {
 		ref: "props.itemLabel",
 		label: translation.label.label,
 		type: "string",
@@ -850,7 +935,7 @@ function Properties(){
 		}
 	};
 
-	var variableInput = {
+	let variableInput = {
 		ref: "props.variableName",
 		label: translation.label.variableName,
 		type: "string",
@@ -860,7 +945,7 @@ function Properties(){
 		}
 	};
 
-	var variableValueInput = {
+	let variableValueInput = {
 		ref: "props.variableValue",
 		label: translation.label.variableValue,
 		type: "string",
@@ -870,14 +955,7 @@ function Properties(){
 		}
 	};
 
-	var selectItemLabel = {
-		ref: "props.itemLabel",
-		label: translation.label.label,
-		type: "string",
-		expression: "optional"
-	};
-
-	var sizeSwitch = {
+	let sizeSwitch = {
 		type: "boolean",
 		component: "switch",
 		label: translation.label.customSize,
@@ -892,7 +970,7 @@ function Properties(){
 		defaultValue: false
 	};
 
-	var sizeTypeGrp = {
+	let sizeTypeGrp = {
 		type: "string",
 		component: customCmp.buttongroup,
 		label: translation.label.widthSetting,
@@ -914,7 +992,7 @@ function Properties(){
 		}
 	};
 
-	var widthItemInput = {
+	let widthItemInput = {
 		type: "integer",
 		label: translation.label.customWidth,
 		ref: "props.width",
@@ -924,7 +1002,7 @@ function Properties(){
 		}
 	};
 
-	var heightItemInput = {
+	let heightItemInput = {
 		type: "integer",
 		label: translation.label.customHeight,
 		ref: "props.height",
@@ -934,7 +1012,13 @@ function Properties(){
 		}
 	};
 
-	var widthInput = {
+	let groupHeightItemInput = Object.assign({}, {
+		show: function(data){
+			return data.props.isCustomSize;
+		}
+	});
+
+	let widthInput = {
 		type: "integer",
 		label: translation.label.panelWidth,
 		ref: "appearance.width",
@@ -944,7 +1028,7 @@ function Properties(){
 		}
 	};
 
-	var heightInput = {
+	let heightInput = {
 		type: "integer",
 		label: translation.label.panelHeight,
 		ref: "appearance.height",
@@ -954,7 +1038,7 @@ function Properties(){
 		}
 	};
 
-	var openeEditModal = {
+	let openeEditModal = {
 		label: translation.label.stateSettings,
 		component: "button",
 		action: function(state, data, extension){
@@ -966,7 +1050,7 @@ function Properties(){
 		}
 	};
 
-	var colorPickerBackground = {
+	let colorPickerBackground = {
 		type: "items",
 		component: colorPickerComponent,
 		label: translation.label.backgroundColor,
@@ -975,7 +1059,7 @@ function Properties(){
 		defaultValue: "rgb(245,245,245)"
 	};
 
-	var colorPickerSubItemBackground = {
+	let colorPickerSubItemBackground = {
 		type: "items",
 		component: colorPickerComponent,
 		label: translation.label.backgroundColor,
@@ -984,7 +1068,7 @@ function Properties(){
 		defaultValue: "rgb(217,217,217)"
 	};
 
-	var colorPickerHoverActive = {
+	let colorPickerHoverActive = {
 		type: "items",
 		component: colorPickerComponent,
 		label: translation.label.hoverActiveColor,
@@ -993,7 +1077,7 @@ function Properties(){
 		defaultValue: "rgb(159,159,159)"
 	};
 
-	var colorPickerHoverSubItem = {
+	let colorPickerHoverSubItem = {
 		type: "items",
 		component: colorPickerComponent,
 		label: translation.label.hoverActiveColor,
@@ -1002,7 +1086,7 @@ function Properties(){
 		defaultValue: "rgb(165,165,165)"
 	};
 
-	var colorPickerBorderSeparator = {
+	let colorPickerBorderSeparator = {
 		type: "items",
 		component: colorPickerComponent,
 		label: translation.label.borderSeperatorColor,
@@ -1011,7 +1095,7 @@ function Properties(){
 		defaultValue: "rgb(179,179,179)"
 	};
 
-	var colorPickerSubBorderSeparator = {
+	let colorPickerSubBorderSeparator = {
 		type: "items",
 		component: colorPickerComponent,
 		label: translation.label.borderSeperatorColor,
@@ -1020,7 +1104,7 @@ function Properties(){
 		defaultValue: "rgb(150,150,150)"
 	};
 
-	var colorPickerText = {
+	let colorPickerText = {
 		type: "items",
 		component: colorPickerComponent,
 		label: translation.label.textColor,
@@ -1029,7 +1113,7 @@ function Properties(){
 		defaultValue: "rgb(89,89,89)"
 	};
 
-	var colorPickerHoverText = {
+	let colorPickerHoverText = {
 		type: "items",
 		component: colorPickerComponent,
 		label: translation.label.textHoverColor,
@@ -1038,7 +1122,7 @@ function Properties(){
 		defaultValue: "rgb(89,89,89)"
 	};
 
-	var colorPickerSubText = {
+	let colorPickerSubText = {
 		type: "items",
 		component: colorPickerComponent,
 		label: translation.label.textColor,
@@ -1047,7 +1131,7 @@ function Properties(){
 		defaultValue: "rgb(89,89,89)"
 	};
 
-	var colorPickerHoverSubText = {
+	let colorPickerHoverSubText = {
 		type: "items",
 		component: colorPickerComponent,
 		label: translation.label.textHoverColor,
@@ -1056,7 +1140,7 @@ function Properties(){
 		defaultValue: "rgb(89,89,89)"
 	};
 
-	var selectValueCheckbox = {
+	let selectValueCheckbox = {
 		type: "boolean",
 		label: translation.label.selectDimension,
 		ref: "props.alwaysSelectValue",
@@ -1066,14 +1150,7 @@ function Properties(){
 		}
 	};
 
-	var selectSubValueCheckbox = {
-		type: "boolean",
-		label: translation.label.selectDimension,
-		ref: "props.alwaysSelectValue",
-		defaultValue: false
-	};
-
-	var selectValueInput = {
+	let selectValueInput = {
 		ref: "props.selectValue",
 		type: "string",
 		expression: "optional",
@@ -1082,7 +1159,7 @@ function Properties(){
 		}
 	};
 
-	var textFamily = {
+	let textFamily = {
 		type: "items",
 		component: MultiOptionsComponent,
 		label: translation.label.textFamily,
@@ -1099,7 +1176,7 @@ function Properties(){
 		defaultValue: "QlikView Sans"
 	};
 
-	var textWeight = {
+	let textWeight = {
 		type: "items",
 		component: MultiOptionsComponent,
 		label: translation.label.textWeight,
@@ -1115,7 +1192,7 @@ function Properties(){
 		defaultValue: "bold"
 	};
 
-	var textStyle = {
+	let textStyle = {
 		type: "items",
 		component: MultiOptionsComponent,
 		label: translation.label.textFont,
@@ -1129,7 +1206,7 @@ function Properties(){
 		defaultValue: "normal"
 	};
 
-	var textSize = {
+	let textSize = {
 		type: "integer",
 		label: translation.label.textSize,
 		ref: "appearance.textSize",
@@ -1137,7 +1214,7 @@ function Properties(){
 		defaultValue: 13
 	};
 
-	var textSelectionFamily = {
+	let textSelectionFamily = {
 		type: "items",
 		component: MultiOptionsComponent,
 		label: translation.label.textFamily,
@@ -1154,7 +1231,7 @@ function Properties(){
 		defaultValue: "QlikView Sans"
 	};
 
-	var textSelectionWeight = {
+	let textSelectionWeight = {
 		type: "items",
 		component: MultiOptionsComponent,
 		label: translation.label.textWeight,
@@ -1170,7 +1247,7 @@ function Properties(){
 		defaultValue: "normal"
 	};
 
-	var textSelectionStyle = {
+	let textSelectionStyle = {
 		type: "items",
 		component: MultiOptionsComponent,
 		label: translation.label.textFont,
@@ -1184,7 +1261,7 @@ function Properties(){
 		defaultValue: "normal"
 	};
 
-	var textSelectionSize = {
+	let textSelectionSize = {
 		type: "integer",
 		label: translation.label.textSize,
 		ref: "appearance.textSelectionSize",
@@ -1192,7 +1269,7 @@ function Properties(){
 		defaultValue: 11
 	};
 
-	var gapTop = {
+	let gapTop = {
 		type: "boolean",
 		component: "switch",
 		label: translation.label.gapTop,
@@ -1207,7 +1284,7 @@ function Properties(){
 		defaultValue: false
 	};
 
-	var gapTopSize = {
+	let gapTopSize = {
 		type: "integer",
 		label: translation.label.gapTopSize,
 		ref: "appearance.gapTopSize",
@@ -1220,7 +1297,7 @@ function Properties(){
 		defaultValue: 0
 	};
 
-	var gapBottom = {
+	let gapBottom = {
 		type: "boolean",
 		component: "switch",
 		label: translation.label.gapBottom,
@@ -1235,7 +1312,7 @@ function Properties(){
 		defaultValue: false
 	};
 
-	var gapBottomSize = {
+	let gapBottomSize = {
 		type: "integer",
 		label: translation.label.gapBottomSize,
 		ref: "appearance.gapBottomSize",
@@ -1248,7 +1325,7 @@ function Properties(){
 		defaultValue: 0
 	};
 
-	var gapRight = {
+	let gapRight = {
 		type: "boolean",
 		component: "switch",
 		label: translation.label.gapRight,
@@ -1263,7 +1340,7 @@ function Properties(){
 		defaultValue: false
 	};
 
-	var gapRightSize = {
+	let gapRightSize = {
 		type: "integer",
 		label: translation.label.gapRightSize,
 		ref: "appearance.gapRightSize",
@@ -1276,7 +1353,7 @@ function Properties(){
 		defaultValue: 0
 	};
 
-	var gapLeft = {
+	let gapLeft = {
 		type: "boolean",
 		component: "switch",
 		label: translation.label.gapLeft,
@@ -1291,7 +1368,7 @@ function Properties(){
 		defaultValue: false
 	};
 
-	var gapLeftSize = {
+	let gapLeftSize = {
 		type: "integer",
 		label: translation.label.gapLeftSize,
 		ref: "appearance.gapLeftSize",
@@ -1305,10 +1382,10 @@ function Properties(){
 		defaultValue: 0
 	};
 
-	var iconsDropdown = {
+	let iconsDropdown = {
 		type: "items",
 		show: function ( data ) {
-			return  data.type !== 'Button Container' && data.type !== 'Button' && data.type !== 'Button Dropdown';
+			return  data.type !== 'Button Container' && data.type !== 'Button';
 		},
 		items: {
 			MyDropdownProp: {
@@ -1322,7 +1399,7 @@ function Properties(){
 		}
 	};
 
-	var orientationGroup = {
+	let orientationGroup = {
 		type: "string",
 		component: customCmp.buttongroup,
 		label: translation.label.orientation,
@@ -1339,7 +1416,7 @@ function Properties(){
 		defaultValue: "btn-block"
 	};
 
-	var verticalAlignmentDropdown = {
+	let verticalAlignmentDropdown = {
 		type: "items",
 		items: {
 			MyDropdownProp: {
@@ -1367,7 +1444,7 @@ function Properties(){
 		}
 	};
 
-	var widthButtonGrp = {
+	let widthButtonGrp = {
 		type: "string",
 		component: customCmp.buttongroup,
 		label: translation.label.widthSetting,
@@ -1389,7 +1466,7 @@ function Properties(){
 		}
 	};
 
-	var vertHeightButtonGrp = {
+	let vertHeightButtonGrp = {
 		type: "string",
 		component: customCmp.buttongroup,
 		label: translation.label.heightSetting,
@@ -1411,7 +1488,7 @@ function Properties(){
 		}
 	};
 
-	var heightButtonGrp = {
+	let heightButtonGrp = {
 		type: "string",
 		component: customCmp.buttongroup,
 		label: translation.label.heightSetting,
@@ -1433,7 +1510,7 @@ function Properties(){
 		}
 	};
 
-	var textOrientationGrp = {
+	let textOrientationGrp = {
 		type: "string",
 		component: customCmp.buttongroup,
 		label: translation.label.textLayout,
@@ -1453,7 +1530,7 @@ function Properties(){
 		}
 	};
 
-	var alignmentHorizontalLabel = {
+	let alignmentHorizontalLabel = {
 		type: "string",
 		component: customCmp.buttongroup,
 		label: translation.label.labelAlignementHorizontal,
@@ -1479,7 +1556,7 @@ function Properties(){
 		}
 	};
 
-	var alignmentVerticalValue = {
+	let alignmentVerticalValue = {
 		type: "string",
 		component: customCmp.buttongroup,
 		label: translation.label.labelAlignementVertical,
@@ -1505,7 +1582,7 @@ function Properties(){
 		}
 	};
 
-	var alignmentHorizontalSelectionLabel = {
+	let alignmentHorizontalSelectionLabel = {
 		type: "string",
 		component: customCmp.buttongroup,
 		label: translation.label.selectionLabelAlignementHorizontal,
@@ -1531,7 +1608,7 @@ function Properties(){
 		}
 	};
 
-	var alignmentVerticalSelectionValue = {
+	let alignmentVerticalSelectionValue = {
 		type: "string",
 		component: customCmp.buttongroup,
 		label: translation.label.selectionLabelAlignementVertical,
@@ -1557,7 +1634,7 @@ function Properties(){
 		}
 	};
 
-	var selectDimensions = {
+	let selectDimensions = {
 		type: "items",
 		show: function ( data ) {
 			return data.type === "Sense Select" || data.type === "Single Select" ;
@@ -1579,33 +1656,6 @@ function Properties(){
 		}
 	};
 
-	var selectSubDimensions = {
-		type: "items",
-		items: {
-			MyDropdownProp: {
-				type: "string",
-				component: "dropdown",
-				label: translation.label.dimension,
-				ref: "props.dimId",
-				change: function(data, app, layout){
-					app.layout.qHyperCube.qDimensionInfo.some(function(dimension){
-						if(dimension.cId === data.props.dimId){
-							data.props.dimTitle = dimension.title || dimension.qFallbackTitle;
-							data.props.itemLabel = dimension.title || dimension.qFallbackTitle;
-						}
-					});
-				},
-				options: function(data, handler, objModel){
-					return (objModel.layout.qHyperCube.qDimensionInfo || []).map(item => Object({
-						value: item.cId,
-						label: item.title || item.qFallbackTitle
-					})).sort(compare);
-				},
-				defaultValue: translation.label.noDimension
-			}
-		}
-	};
-
 	const showToolbar = {
 		type: 'boolean',
 		label: 'Toolbar',
@@ -1616,14 +1666,41 @@ function Properties(){
 		},
 	};
 
-	const showSubToolbar = {
-		type: 'boolean',
-		label: 'Toolbar',
-		ref: 'props.showToolbar',
-		defaultValue: false,
+	let typeDropdown = {
+		type: 'items',
+		items: {
+			MyDropdownProp: {
+				type: 'string',
+				component: 'dropdown',
+				label: translation.label.type,
+				ref: 'type',
+				options: [
+					{
+						value: 'Button',
+						label: translation.label.button
+					}, {
+						value: 'Button Container',
+						label: translation.label.buttonContainer
+					}, {
+						value: 'Single Select',
+						label: translation.label.singleSelect
+					}, {
+						value: 'Sense Select',
+						label: translation.label.senseSelect
+					}, {
+						value: 'Variable Dropdown',
+						label: translation.label.variableDropdown
+					}, {
+						value: 'Group',
+						label: translation.label.group
+					}
+				],
+				defaultValue: 'Button Container'
+			}
+		}
 	};
 
-	var typeDropdown = {
+	let groupTypeDropdown = {
 		type: "items",
 		items: {
 			MyDropdownProp: {
@@ -1633,43 +1710,35 @@ function Properties(){
 				ref: "type",
 				options: [
 					{
-                        value: "Button",
-                        label: translation.label.button
-                    },	{
-                        value: "Button Container",
-                        label: translation.label.buttonContainer
-                    },	{
-                        value: "Button Dropdown",
-                        label: translation.label.buttonDropdown
-                    },	{
-                        value: "Multi Select",
-                        label: translation.label.multiSelect
-                    }, {
-                        value: "Single Select",
-                        label: translation.label.singleSelect
-                    }, {
-                        value: "Sense Select",
-                        label: translation.label.senseSelect
-                    }, {
-                        value: "Variable Dropdown",
-                        label: translation.label.variableDropdown
+						value: 'Button',
+						label: translation.label.button
+					}, {
+						value: 'Button Container',
+						label: translation.label.buttonContainer
+					}, {
+						value: 'Single Select',
+						label: translation.label.singleSelect
+					}, {
+						value: 'Sense Select',
+						label: translation.label.senseSelect
+					}, {
+						value: 'Variable Dropdown',
+						label: translation.label.variableDropdown
 					}
-					//, {
-					//	value: "Calendar",
-					//	label: "Calendar"
-					//}
 				],
 				defaultValue: "Button Container"
 			}
 		}
 	};
 
-	var stateItem = {
+	let stateItem = {
 		type: "items",
-		defaultValue: new State()
+		get defaultValue(){
+			return  new State();
+		}
 	};
 
-	var stateItems = {
+	let stateItems = {
 		component: customCmp.list,
 		type: "array",
 		ref: "stateItems",
@@ -1685,15 +1754,19 @@ function Properties(){
 		allowAdd: true,
 		allowRemove: false,
 		add: function(data, layout, model){
-			var state = new State();
+			let state = new State();
 			delete state.condition;
 
 			angular.extend(data, state);
 
 			model.setProperties(model.properties);
+
+			data.type = 'buttonState';
+			data.cId = _utilService.generateGuid();
 		},
 		addTranslation: translation.label.addState,
 		items: {
+			copyPaste: copyPaste,
 			openEditModal: openeEditModal,
 			conditionInput: conditionInput,
 			conditionNameInput: conditionNameInput,
@@ -1702,7 +1775,7 @@ function Properties(){
 		defaultValue: [stateItem.defaultValue]
 	};
 
-	var buttonItem = {
+	let singleButtonItem = {
 		type: "items",
 		items: {
 			buttonNameInput: {
@@ -1720,17 +1793,22 @@ function Properties(){
 			props: {
 				buttonName: 'My Button'
 			},
-			stateItems: stateItems.defaultValue
+			stateItems: JSON.parse(JSON.stringify(stateItems.defaultValue)),
+			type: 'subButton'
 		}
 	};
 
-	var buttonItems = {
+	let buttonItem = {...singleButtonItem, items: {copyPaste: copyPaste, ...singleButtonItem.items}};
+
+	let buttonItems = {
 		component: customCmp.list,
 		type: "array",
 		ref: "subItems",
 		itemTitleRef: 'props.buttonName',
 		add: function(data){
 			data.props.buttonName = data.stateItems[0].text;
+			data.type = 'subButton';
+			data.cId = _utilService.generateGuid();
 		},
 		allowAdd: true,
 		allowRemove: false,
@@ -1743,17 +1821,17 @@ function Properties(){
 		]
 	};
 
-	var singleButton = {
+	let singleButton = {
 		type: "items",
 		show: function ( data ) {
 			return data.type === "Button" || data.subType === "Button";
 		},
 		items: {
-			buttonItem: buttonItem
+			buttonItem: singleButtonItem
 		}
 	};
 
-	var variableDropdown = {
+	let variableDropdown = {
 		type: "items",
 		show: function ( data ) {
 			return data.type === "Variable Dropdown";
@@ -1763,6 +1841,9 @@ function Properties(){
 				component: customCmp.list,
 				type: "array",
 				ref: "variableItems",
+				add: function(item){
+					item.cId = _utilService.generateGuid();
+				},
 				itemTitleRef: "props.itemLabel",
 				allowAdd: true,
 				allowRemove: false,
@@ -1784,35 +1865,7 @@ function Properties(){
 		}
 	};
 
-	var buttonDropdown = {
-		type: "items",
-		show: function ( data ) {
-			return data.type === "Button Dropdown" || data.subType === "Button Dropdown";
-		},
-		items: {
-			MyList: {
-				component: customCmp.list,
-				type: "array",
-				ref: "dropdownItems",
-				label: translation.label.dropdownItems,
-				itemTitleRef: 'props.buttonName',
-				add: function(data){
-					data.props.buttonName = data.stateItems[0].text;
-				},
-				allowAdd: true,
-				allowRemove: false,
-				addTranslation: translation.label.addDropdownItem,
-				items: {
-					buttonItem: buttonItem
-				},
-				defaultValue: [
-					buttonItem.defaultValue
-				]
-			}
-		}
-	};
-
-	var buttonContainer = {
+	let buttonContainer = {
 		type: "items",
 		show: function ( data ) {
 			return data.type === "Button Container";
@@ -1823,59 +1876,79 @@ function Properties(){
 		}
 	};
 
-	var multiSelect = {
+	let group = {
 		type: "items",
 		show: function ( data ) {
-			return data.type === "Multi Select";
+			return data.type === "Group";
 		},
 		items: {
 			MyList: {
 				component: customCmp.list,
-				type: "array",
-				ref: "selectItems",
+				type: 'array',
+				allowAdd: true,
+				allowRemove: false,
+				allowMove: true,
+				addTranslation: translation.label.addItem,
+				add: function(item){
+					_utilService.replaceListItemsIdsRecursiv([item]);
+				},
 				itemTitleRef: function(data, index, handler){
-					if(data.props.itemLabel === ''){
+					if(data.props && data.props.buttonName){
+						return data.props.buttonName;
+					}
+
+					if(data.type === 'Single Select' || data.type === 'Sense Select'){
 						let dimName = data.props.dimId;
-						handler.layout.qHyperCube.qDimensionInfo.some(dimInfo =>{
+						handler.layout.qHyperCube.qDimensionInfo.some(dimInfo => {
 							if(dimInfo.cId === data.props.dimId){
 								dimName = dimInfo.title || dimInfo.qFallbackTitle;
 								return true;
 							}
 						});
-						return dimName;
-					}else{
-						return data.props.itemLabel;
+						return data.type + ': ' + dimName;
+					}else if(data.type === 'Variable Dropdown'){
+						return data.type + ': ' + data.props.variableName;
 					}
+					return data.type
 				},
-				allowAdd: true,
-				allowRemove: false,
-				addTranslation: translation.label.addSingleSelect,
+				ref: 'groupItems',
 				items: {
-					selectDimension: selectSubDimensions,
-					showSubToolbar: showSubToolbar,
-					selectSubValueCheckbox : selectSubValueCheckbox,
+					copyPaste: copyPaste,
+					groupTypeDropdown: groupTypeDropdown,
+					buttonNameInput: buttonNameInput,
+					showCondition: showConditionInput,
+					variableName: variableInput,
+					selectDimension: selectDimensions,
+					showToolbar: showToolbar,
+					selectValueCheckbox: selectValueCheckbox,
 					selectValueInput: selectValueInput,
+					widthSwitch: sizeSwitch,
+					groupHeightItemInput: groupHeightItemInput,
 					textOrientationDropdown: textOrientationGrp,
 					iconsDropdown: iconsDropdown,
-					labelInput: selectItemLabel,
+					labelInput: itemLabel,
 					alignmentHorizontalLabel: alignmentHorizontalLabel,
 					alignmentVerticalLabel: alignmentVerticalValue,
-					customSelectionSubSwitch: customSelectionSubSwitch,
-					selectionLabelInput: selectionLabelSubInput,
+					customSelectionSwitch: customSelectionSwitch,
+					selectionLabelInput: selectionLabelInput,
 					alignmentHorizontalSelectionLabel: alignmentHorizontalSelectionLabel,
 					alignmentVerticalSelectionValue: alignmentVerticalSelectionValue,
-					tooltipInput: tooltipInput
-
+					tooltipInput: tooltipInput,
+					variableArray: variableDropdown,
+					stateItems: singleButton,
+					itemsArray: buttonContainer,
 				}
 			}
 		}
 	};
 
-
 	const panelList = {
 		component: customCmp.list,
 		type: 'array',
 		ref: 'listItems',
+		add: function(item){
+			_utilService.replaceListItemsIdsRecursiv([item]);
+		},
 		itemTitleRef: function(data, index, handler){
 
 			if(data.props && data.props.buttonName){
@@ -1901,6 +1974,7 @@ function Properties(){
 		allowMove: true,
 		addTranslation: translation.label.addItem,
 		items: {
+			copyPaste: copyPaste,
 			typedropwdown: typeDropdown,
 			buttonNameInput: buttonNameInput,
 			showCondition: showConditionInput,
@@ -1925,12 +1999,9 @@ function Properties(){
 			tooltipInput: tooltipInput,
 			variableArray: variableDropdown,
 			stateItems: singleButton,
-			dropdownItems: buttonDropdown,
-			selectItemsArray: multiSelect,
-			itemsArray: buttonContainer
+			itemsArray: buttonContainer,
+			groupElement: group
 		}
-
-
 	};
 
 	let sorting = {
@@ -1981,7 +2052,7 @@ function Properties(){
 	// *****************************************************************************
 	// Panel section
 	// *****************************************************************************
-	var panelDefinitionSection = {
+	let panelDefinitionSection = {
 		label: translation.label.items,
 		type: "items",
 		items: {
@@ -2065,7 +2136,8 @@ function Properties(){
 							vertHeightButtonGrp: vertHeightButtonGrp,
 							heightSetting: heightButtonGrp,
 							width: widthInput,
-							height: heightInput
+							height: heightInput,
+							verticalAlignment: verticalAlignmentDropdown,
 						}
 					},
 					gaps: {
@@ -2083,8 +2155,6 @@ function Properties(){
 							seperator2: seperator,
 							gapRight: gapRight,
 							gapRighttSize: gapRightSize
-
-
 						}
 					},
 					colors: {
@@ -2092,7 +2162,6 @@ function Properties(){
 						label: translation.label.colors,
 						items: {
 							seperatorLabelColorMain: seperatorLabelColorMain,
-							verticalAlignment: verticalAlignmentDropdown,
 							backgroundColorPicker: colorPickerBackground,
 							hoverActiveColorPicker: colorPickerHoverActive,
 							textColorPicker: colorPickerText,
@@ -2153,14 +2222,14 @@ function Properties(){
 					}
 				}
 			},
-
-			/*repair: {
-				type: "items",
-				label: translation.label.repair,
-				items:{
-					repairButton: repairButton,
-				}
-			}*/
+//			repair: {
+//				type: "items",
+//				label: translation.label.repair,
+//				items:{
+//					repairButton: repairButton,
+//					updateButton: updateButton,
+//				}
+//			}
 		}
 	};
 
@@ -2181,7 +2250,7 @@ function Properties(){
 				'client.property-panel/components/list/list',
 				'client.property-panel/components/buttongroup/buttongroup'
 			], function(components){
-				var cmp;
+				let cmp;
 
 				// customize buttongroup component
 				cmp = angular.merge({}, requirejs('client.property-panel/components/buttongroup/buttongroup'));

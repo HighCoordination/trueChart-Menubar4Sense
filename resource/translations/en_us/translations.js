@@ -2,7 +2,6 @@ export default {
 	"label": {
 		"addButton": "Add button",
 		"addDimension": "Add dimension",
-		"addDropdownItem": "Add button",
 		"addItem": "Add item",
 		"addSingleSelect": "Add Single Select",
 		"addState": "Add state",
@@ -17,7 +16,6 @@ export default {
 		"bottom": "Bottom",
 		"button": "Button",
 		"buttonContainer": "Button Container",
-		"buttonDropdown": "Button Dropdown",
 		"buttonNameInput": "Name (only properties panel)",
 
 
@@ -47,6 +45,7 @@ export default {
 		"displaySenseSelectionBar": "Display Sense Selection Bar",
 		"displaySenseTitleBar": " Display Sense Title Bar",
 		"dropdownItems": "Dropdown items",
+		"duplicate": "Duplicate",
 
 		"expression": "Expression",
 
@@ -63,6 +62,7 @@ export default {
 		"gapTop": "Top",
 		"gapTopSize": "Top in pixel",
 		"getConfig": "Show Configuration",
+		"group": "Group",
 
 		"heightSetting": "Height setting",
 		"horizontal": "Horizontal",
@@ -81,7 +81,6 @@ export default {
 		"menuMain": "Main element",
 		"menuSub": "Sub-element",
 		"multi": "Multi",
-		"multiSelect": "Multi Select",
 
 		"next": "Next",
 		"noDimension": "No dimension",
@@ -89,13 +88,15 @@ export default {
 		"numeric": "Numeric",
 
 		"orientation": "Orientation",
+
 		"panelHeight": "Panel height in pixel",
 		"panelWidth": "Panel width in pixel",
+		"paste": "Paste",
 		"predefined": "Predefined",
 
 		"repair": "Reparieren",
-		"repairBtn": "Repair All Menus",
-		"repairBtnTp": "Checks all menus in this app and shows error, which then can be resolved",
+		"repairBtn": "Repair Menu",
+		"repeatUpdateBtn": "Repeat Last Update",
 		"reset": "Reset",
 		"resolved": "Resolved",
 		"right": "Right",
@@ -153,21 +154,26 @@ export default {
 
 		"calcCondVar": "Will be set to '1' after initial selections",
 		"center": "Center",
+		"copy": "Copies the current item into clipboard",
 		"customWidth": "Custom width",
 		"customHeight": "Custom height",
 
-		"displayShow": "Display the Element allways",
+		"displayShow": "Display the Element always",
 		"displayHide": "Never Display the Element",
 		"displayOptional": "Display the Element optional",
+		"duplicate": "Duplicates the current item and adds it at the end of the list",
 
 		"fullWidth": "Full extension width",
 		"fullHeight": "Full extension height",
 
 		"left": "Left",
 
+		"paste": "Replaces the current item with the copied item",
 		"pixel": "Pixel",
 		"percent": "Percent",
 
+		"repairBtnTp": "Checks the menu and repairs possible errors",
+		"repeatUpdateBtn": "Apply the last update for the extension",
 		"right": "Right",
 
 		"top": "Top"

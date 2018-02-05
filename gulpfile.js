@@ -1,6 +1,4 @@
-const spawn = require('child_process').spawn,
-	path = require('path'),
-	merge = require('merge-stream'),
+const merge = require('merge-stream'),
 
 	gulp = require('gulp'),
 	cache = require('gulp-cached'),
@@ -10,6 +8,7 @@ const spawn = require('child_process').spawn,
 	webpack = require('webpack'),
 	gulpWebpack = require('gulp-webpack'),
 	zip = require('gulp-zip'),
+	asciidoctor = require('gulp-asciidoctor'),
 
 	_env = require('./env'),
 	_watchMode = process.argv.indexOf('watch') > -1;
@@ -71,7 +70,7 @@ gulp.task('watch', ['default'], function(){
 
 gulp.task('default', sequence('clean', 'local-install'));
 
-gulp.task('build', ['resources'/*, 'copy-hico-libs', 'copy-hico-styles'*/, 'update-doc'], () => build(false));
+gulp.task('build', ['resources'/*, 'copy-hico-libs', 'copy-hico-styles', 'update-doc'*/], () => build(false));
 
 gulp.task('zip', function(){
 	gulp.src(_env.distDir + '/**/*')
@@ -79,25 +78,16 @@ gulp.task('zip', function(){
 		.pipe(gulp.dest('builds'))
 });
 
-gulp.task('build-doc', function(cb){
-	gulp.src(_env.srcDir + '/doc/**/*')
-		.pipe(replace('##VERSION', _env.VERSION))
-		.pipe(replace('##BUILDDATE', _env.BUILD_DATE))
-		.pipe(gulp.dest(_env.tmpDir + '/tcmenu-doc'))
-		.pipe(spawn('asciidoctor-pdf', [path.resolve(_env.tmpDir + '/tcmenu-doc/tcmenu.adoc')], {cwd: process.cwd()}).stderr.on('data', function(err){
-			console.log(err);
-		}).on('close', cb));
-});
-
-gulp.task('update-doc', function(){
-	// updates the version number and date, also copy it to the local temp directory, where it is copy later in the build-doc step
-	merge(
-		gulp.src(_env.srcDir + '/doc/img{,/*}'),
-		gulp.src(_env.srcDir + '/doc/tcmenu.adoc')
-			.pipe(replace('##VERSION', _env.VERSION))
-			.pipe(replace('##BUILDDATE', _env.BUILD_DATE))
-	).pipe(gulp.dest(process.env.TEMP + '/tcmenu-doc'));
-});
+gulp.task('build-doc-html', () =>
+    merge(
+        gulp.src(_env.srcDir + '/doc/img{,/*}'),
+        gulp.src(_env.srcDir + '/doc/tcmenu.adoc')
+            .pipe(asciidoctor({
+                safe: 'unsafe',
+                attributes: ['appversion=' + _env.VER]
+            }))
+    ).pipe(gulp.dest(_env.tmpDir + '/tcmenu-doc'))
+);
 
 /**
  * Builds tcmenu and watch for changes if needed

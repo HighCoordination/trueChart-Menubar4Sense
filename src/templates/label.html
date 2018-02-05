@@ -8,7 +8,7 @@
 				</span>
 				<strong class="" ng-style="item.labelStyle">{{item.props.itemLabel}}</strong>
 				<span class="hico-flex-textwrap" ng-if="item.props.textLayout === 'single' && item.props.selectedValue !== '' &&
-			 		item.props.selectedValue && item.type !== 'Button Dropdown' && !item.props.isCustomSelection"
+			 		item.props.selectedValue && !item.props.isCustomSelection"
 					ng-style="item.selectionStyle">
 				<span ng-if="item.props.itemLabel !== ''">&nbsp;</span>{{item.props.selectedValue}}</span>
 				<span class="hico-flex-textwrap" ng-if="item.props.textLayout === 'single' && item.props.selectionLabel !== '' && item.props.isCustomSelection"

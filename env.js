@@ -22,7 +22,8 @@ const path = require('path'),
 		this.DATE = new Date().toLocaleDateString().split('.').reverse().join('-'); // convert locale Date DD.MM.YYYY to format YYYY-MM-DD
 		this.BUILD_DATE = new Date().toISOString().substr(0, 10);
 		this.BUILD_NUMBER = process.env.BUILD_NUMBER || 'dev';
-		this.VERSION = `${pjson.version}_${this.BUILD_NUMBER}`;
+        this.VER = pjson.version;
+		this.VERSION = `${this.VER}_${this.BUILD_NUMBER}`;
 		this.IS_PROD = process.env.IS_PRODUCTION_BUILD === 'true' || false;
 
 		this.LOG_LEVEL = process.env.LOG_LEVEL || this.IS_PROD ? 'WARN' : 'ALL';

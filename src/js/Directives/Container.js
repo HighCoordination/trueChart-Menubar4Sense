@@ -1,8 +1,9 @@
+import {QlikService} from '../../lib/hico/services/qlik-service';
+
 define([
 	'qvangular',
-	'../../templates/container.html',
-	'../../lib/hico/services/qlik-service'
-], function(qvangular, template, QlikService){
+	'../../templates/container.html'
+], function(qvangular, template){
 
 	return qvangular.directive('containerelement', [
 		'utilService', function(utilService){
@@ -10,16 +11,19 @@ define([
 				restrict: 'E',
 				scope: {
 					item: '<',
-					layout: '<',
 					itemindex: '<',
-					colors: '<'
+					subitemindex: '<',
+					groupitem: '<',
+					parentscope: '<',
 				},
 				replace: true,
 				template: template,
 				controller: ['$scope', function($scope){
-					var qlikService = QlikService.getInstance(),
+					const qlikService = QlikService.getInstance(),
 						isStoryMode = qlikService.inStoryMode();
 
+					$scope.layout = $scope.parentscope.layout;
+					$scope.colors = $scope.parentscope.colors;
 					$scope.utilService = utilService;
 					// do not evaluate button states for snapshots
 					$scope.evaluateStates = $scope.layout.qInfo.qType !== 'embeddedsnapshot' && !qlikService.isPrinting();
@@ -37,10 +41,16 @@ define([
 							return; // do nothing in story mode
 						}
 
+						const listItem = $scope.layout.listItems[itemindex];
+
 						currSubItem.activeStates = activeStates;
 						($scope.item.subItems || []).some(function(subItem, index){
-							if(subItem === currSubItem){
-								$scope.layout.listItems[itemindex].subItems[index].activeStates = subItem.activeStates;
+							if(subItem === currSubItem && listItem){
+								if(typeof $scope.subitemindex !== 'undefined' && listItem.groupItems && listItem.groupItems[$scope.subitemindex] && listItem.groupItems[$scope.subitemindex].subItems[index]){
+									listItem.groupItems[$scope.subitemindex].subItems[index].activeStates = subItem.activeStates;
+								}else if(listItem.subItems && listItem.subItems[index]){
+									listItem.subItems[index].activeStates = subItem.activeStates;
+								}
 								return true;
 							}
 						});

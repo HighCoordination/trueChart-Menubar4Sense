@@ -1,5 +1,5 @@
 <div class="hico-fullHeight">
-	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.screenWidth < 768" class="hico-fullHeight">
+	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.screenWidth < 768 || groupitem" class="hico-fullHeight">
 		<button class="accordion" qva-activate="openSenseSelect(item)" ng-class="{'active':item.show}"
 				change-background item="item" colors="colors"
 				ng-style="
@@ -36,7 +36,7 @@
 	</div>
 
 	<div id="hico-item-horizontal_{{itemId}}" class="hico-item-horizontal hico-item-horizontal-default"
-		 ng-mouseleave="closeDropdown(item)" ng-if="layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767">
+		 ng-mouseleave="closeDropdown(item)" ng-if="layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767 && !groupitem">
 		<button class="accordion hico-fullHeight" qva-activate="openSenseSelect(item)" ng-class="{'active':item.show}"
 				change-background item="item" colors="colors"
 				ng-style="item.show && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor} ||
@@ -45,8 +45,9 @@
 				<labeldirective item="item" type="'Sense Select'" layout="layout"></labeldirective>
 			</div>
 		</button>
-		<div class="hico-select-panel-horizontal-container" ng-show="item.show" ng-mouseover="mouseOver()" ng-mouseleave="mouseLeave()">
-			<div id="toolbar_{{itemId}}" class="hico-select-toolbar hico-bottom-seperator"
+		<div class="hico-select-panel-horizontal-container" ng-show="item.show" ng-mouseover="mouseOver()" ng-mouseleave="mouseLeave()"
+			 ng-style="{ 'transform' : 'translate( ' + panelDropdownOffset + 'px,-1px)'}">
+			<div class="hico-select-toolbar hico-bottom-seperator"
 				 ng-show="parentscope._listObjects[item.props.dimId].layout.qListObject.qDimensionInfo.qGroupFieldDefs.length > 1">
 				<div class="hico-select-item">
 					<span class="lui-icon lui-icon--small lui-icon--back hico-select-padding" qva-activate="drillUp()" aria-hidden="true"></span>

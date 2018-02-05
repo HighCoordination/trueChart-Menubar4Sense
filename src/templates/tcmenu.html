@@ -6,8 +6,7 @@
 	 ng-if="layout.appearance.orientation==='btn-block' ||  utilService.screenWidth < 768">
 	<div id="hico-menu-vertical_{{::layout.qInfo.qId}}" class="hico-fullHeight"
 		 ng-class="!utilService.isMobile ? ('hico-menu-vertical'):('hico-menu-vertical-mobile')" scrollable
-		 ng-style="layout.appearance.vertHeightSetting === '100%' && {'background-color': colors.backgroundColor} ||
-				{'background-color': 'transparent'}">
+		 ng-style="layout.appearance.vertHeightSetting === '100%' && {'background-color': colors.backgroundColor} || {'background-color': 'transparent'}">
 		<div  ng-class="
 	 {'hico-fullWidth':layout.appearance.widthSetting === 'full',
 	 'hico-container-vertical':layout.appearance.orientation==='btn-block' || utilService.screenWidth < 768,
@@ -20,11 +19,11 @@
 			<div class="hico-border-bottom-default" ng-repeat="item in listItemsDub track by $index" ng-if="checkExpressionCondition(item.showCondition || '')"
 				 ng-style="{'border-bottom': 'solid ' + layout.appearance.borderSeparatorColor + ' 1px'}">
 
-				<dropdown title="{{item.props.tooltip}}" ng-if="item.type==='Button Dropdown'" item="item" layout="layout" listitems="listItemsDub"
-						  itemindex="$index" first-item="$first" colors="colors"></dropdown>
+				<group id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Group'" item="item" listitems="listItemsDub"
+						  itemindex="$index" first-item="$first" parentscope="this"></group>
 
-				<variabledropdown title="{{item.props.tooltip}}" ng-if="item.type==='Variable Dropdown'" item="item" layout="layout" listitems="listItemsDub"
-								  itemindex="$first" colors="colors"></variabledropdown>
+				<variabledropdown title="{{item.props.tooltip}}" ng-if="item.type==='Variable Dropdown'" item="item" listitems="listItemsDub"
+								  itemindex="$first" parentscope="this"></variabledropdown>
 
 				<div class="hico-relative" ng-if="item.type==='Button'" change-background item="item" colors="colors"
 					 ng-style="
@@ -35,20 +34,14 @@
 								   default-styles="item.labelStyle"></div>
 				</div>
 
-				<calendar id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Calendar'" item="item" layout="layout"
-						  listitems="listItemsDub" colors="colors"></calendar>
+				<singleselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Single Select'" item="item"
+							  type="item.type" listitems="listItemsDub" parentscope="this"></singleselect>
 
-				<singleselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Single Select'" item="item" layout="layout"
-							  type="item.type" listitems="listItemsDub" colors="colors" parentscope="this"></singleselect>
+				<senseselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Sense Select'" item="item"
+							 listitems="listItemsDub" parentscope="this"></senseselect>
 
-				<containerelement id="item_{{layout.qInfo.qId}}-{{item.cId}}" ng-if="item.type==='Button Container'" item="item" layout="layout"
-								  itemindex="$index" colors="colors"></containerelement>
-
-				<senseselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Sense Select'" item="item" layout="layout"
-							 listitems="listItemsDub" colors="colors" parentscope="this"></senseselect>
-
-				<selectdropdown id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Multi Select'" item="item" listitems="listItemsDub"
-								layout="layout" colors="colors" parentscope="this"></selectdropdown>
+				<containerelement id="item_{{layout.qInfo.qId}}-{{item.cId}}" ng-if="item.type==='Button Container'" item="item"
+								  itemindex="$index" parentscope="this"></containerelement>
 
 			</div> <!--end repeat-->
 		</div> <!--end hico-menu-vertical-->
@@ -68,6 +61,9 @@
 		 'flex': (!item.props.isCustomSize ? '1 0 0px' : '0 0 ' + item.props.width + item.props.sizeType),
 		 'border-left': (!$first ? 'solid ' + colors.borderSeparatorColor + ' 1px': 0)}">
 
+		<group class="hico-item-horizontal" title="{{item.props.tooltip}}" ng-if="item.type==='Group'"
+			   item="item" itemindex="$index" first-item="$first" listitems="listItemsDub" parentscope="this"></group>
+
 		<div class="hico-relative hico-fullHeight" ng-if="item.type==='Button'" change-background item="item" colors="colors"
 				ng-style="{'background-color': 'rgba(1,1,1,0)', 'color': layout.appearance.textColor}">
 			<div data-tcmenu-button id="item_{{layout.qInfo.qId}}-{{item.cId}}" states="item.stateItems"
@@ -75,27 +71,17 @@
 						   default-styles="item.labelStyle"></div>
 		</div>
 
-		<dropdown class="hico-item-horizontal" title="{{item.props.tooltip}}" ng-if="item.type==='Button Dropdown'"
-				  item="item" itemindex="$index" first-item="$first"
-				  layout="layout" listitems="listItemsDub" colors="colors"></dropdown>
+		<variabledropdown title="{{item.props.tooltip}}" ng-if="item.type==='Variable Dropdown'" item="item" listitems="listItemsDub"
+						  itemindex="$first" parentscope="this"></variabledropdown>
 
-		<variabledropdown title="{{item.props.tooltip}}" ng-if="item.type==='Variable Dropdown'" item="item" layout="layout"
-						  listitems="listItemsDub"	itemindex="$first" colors="colors"></variabledropdown>
+		<singleselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Single Select'" item="item"
+					  type="item.type" listitems="listItemsDub" parentscope="this"></singleselect>
 
-		<calendar class="hico-item-horizontal"  id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Calendar'" item="item"
-				  layout="layout" listitems="listItemsDub" colors="colors"></calendar>
-
-		<singleselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Single Select'" item="item" layout="layout"
-					  type="item.type" listitems="listItemsDub" colors="colors" parentscope="this"></singleselect>
-
-		<senseselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Sense Select'" item="item" layout="layout"
-					 listitems="listItemsDub" colors="colors" parentscope="this"></senseselect>
-
-		<selectdropdown class="hico-item-horizontal" id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Multi Select'" item="item"
-						layout="layout" listitems="listItemsDub" colors="colors" parentscope="this"></selectdropdown>
+		<senseselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Sense Select'" item="item"
+					 listitems="listItemsDub" parentscope="this"></senseselect>
 
 		<containerelement class="hico-item-horizontal" id="item_{{layout.qInfo.qId}}-{{item.cId}}" ng-if="item.type==='Button Container'" item="item"
-						  itemindex="$index" layout="layout" colors="colors"></containerelement>
+						  itemindex="$index" parentscope="this"></containerelement>
 
 	</div>
 </div>

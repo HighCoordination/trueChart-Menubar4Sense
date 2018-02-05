@@ -6,18 +6,26 @@ define(['jquery', 'qlik', 'qvangular', '../../templates/variableDropdown.html'],
 				restrict: 'E',
 				scope: {
 					item: '<',
-					layout: '<',
 					itemindex: '<',
 					listitems: '<',
-					colors: '<'
+					groupitem: '<',
+					parentscope: '<',
 				},
-				replace: false,
+				replace: true,
 				template: template,
 				controller: ['$scope', '$element', function($scope, $element){
+					$scope.layout = $scope.parentscope.layout;
+					$scope.colors = $scope.parentscope.colors;
 					$scope.itemId = $scope.layout.qInfo.qId + '-' + $scope.item.cId;
 					$scope.utilService = utilService;
+					$scope.panelDropdownOffset = 0;
 
 					$scope.appearance = $scope.layout.appearance;
+
+					$scope.$watch('item.cId', function() {
+						$scope.itemId = $scope.layout.qInfo.qId + '-' + $scope.item.cId;
+					});
+
 					$scope.handleDropdown = function(item, itemindex){
 						if(qlik.navigation.getMode() !== "edit"){
 
@@ -25,8 +33,9 @@ define(['jquery', 'qlik', 'qvangular', '../../templates/variableDropdown.html'],
 
 							item.show = !item.show;
 
-							if($scope.appearance.orientation === 'btn-inline' && $scope.utilService.screenWidth > 767){
-								$element.find('#panel_' + $scope.itemId).width($element.find('#hico-item-horizontal_' + $scope.itemId)[0].clientWidth);
+							if($scope.appearance.orientation === 'btn-inline' && $scope.utilService.screenWidth > 767 && !$scope.groupitem){
+								$scope.panelDropdownOffset = utilService.getDropdownOffset($element);
+								$element.find('#panel_' + $scope.itemId).width($element[0].clientWidth);
 
 								if(item.show){
 									$element.parents("article").css("z-index", 2);

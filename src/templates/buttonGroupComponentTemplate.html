@@ -1,0 +1,12 @@
+<div class="hico">
+    <div class="pp-component pp-string-component">
+        <div class="lui-buttongroup flex-container">
+            <button class="lui-button  lui-buttongroup__button flex"  ng-repeat="button in definition.buttons"
+                    title="{{button.tooltip}}"
+                    ng-class="button.activeClass"
+                    ng-click="button.action(data, args.handler, args.model, update); updateButtons()">
+                <i ng-class="button.icon"></i> {{button.label}}
+            </button>
+        </div>
+    </div>
+</div>

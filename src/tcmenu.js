@@ -47,9 +47,6 @@ define([], function(){
 			exportData : false
 		},
 		controller : ['$scope', '$element', 'utilService', 'apiService',  ext.controller],
-		/*resize: function( $element, layout ) {
-			this.paint($element, layout);
-		},*/
 		paint: ext.paint,
 		updateData: ext.updateData
 	};

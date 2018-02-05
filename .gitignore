@@ -1,4 +1,7 @@
-/.idea
+/.idea/workspace.xml
 /node_modules
 /build
 /builds
+/github
+/src/lib/hico
+/npm-debug.log

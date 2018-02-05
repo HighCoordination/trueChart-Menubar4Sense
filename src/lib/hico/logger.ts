@@ -26,7 +26,7 @@ export const Logger = (function(){
 		 * Initialize the default logger
 		 * @param {TOptions} opts - Initialization options
 		 */
-		init(opts: TOptions){
+		init(opts: TOptions = {}){
 			// remove all previous added appenders
 			this.Logger.removeAllAppenders();
 

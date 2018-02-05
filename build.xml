@@ -46,7 +46,7 @@
     </exec>
   </target>
 
-  <target name="build-doc" description="builds documentatrion">
+  <target name="build-doc-local" description="builds documentatrion">
     <exec executable="${npm}" failonerror="true">
       <arg value="run"/>
       <arg value="build-doc"/>

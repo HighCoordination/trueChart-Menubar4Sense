@@ -1,17 +1,13 @@
-import * as qlik from 'qlik';
-import * as qvangular from 'qvangular';
 import * as config from 'config';
-import * as QlikService from './qlik-service';
-import {prefix} from '../prefix';
+import {QlikService} from './qlik-service';
+import {Deferred} from '../common/global';
 
-const _qlikService = QlikService.getInstance();
-
-export const serviceName = prefix + 'ConfigService';
-
-export default class ConfigService {
+export class ConfigService {
 	constructor(){
-		var actionBlacklist = [];
-		var ready = qlik.Promise.defer();
+		ConfigService._instance = this;
+
+		let actionBlacklist = [],
+			ready = new Deferred();
 
 		/* Public/privileged functions */
 		this.getActionBlacklist = getActionBlacklist;
@@ -60,7 +56,7 @@ export default class ConfigService {
 	 * @return {object}
 	 */
 	static getInstance(){
-		return qvangular.getService(serviceName);
+		return this._instance || new ConfigService();
 	}
 
 	/**
@@ -70,11 +66,11 @@ export default class ConfigService {
 	 */
 	getBlacklistedActions(config){
 
-		if(_qlikService.isPrinting()){
+		if(QlikService.isPrinting()){
 			return Promise.resolve([]);
 		}
 
-		return qlik.getGlobal().getAuthenticatedUser().then(function(reply){
+		return QlikService.getAuthenticatedUser().then(function(reply){
 
 			var user = {};
 
@@ -133,6 +129,3 @@ export default class ConfigService {
 		});
 	}
 }
-
-// register angular service
-qvangular.service(serviceName, [ConfigService]);

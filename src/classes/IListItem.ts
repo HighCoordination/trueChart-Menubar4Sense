@@ -1,10 +1,9 @@
 export type TSingleSelect = 'Single Select';
-export type TMultiSelect = 'Multi Select';
 export type TSenseSelect = 'Sense Select';
 export type TVariableDropdown = 'Variable Dropdown';
-export type TButtonDropdown = 'Button Dropdown';
 export type TButtonContainer = 'Button Container';
 export type TButton = 'Button';
+export type TGroup = 'Group';
 
 export type TSizeType = '%' | 'px';
 export type TTextLayout = 'single' | 'multiple';
@@ -13,8 +12,8 @@ export type TTextStyleDef = {
 };
 export type TAlignLabel = 'flex-start' | 'center' | 'flex-end';
 
-export type TSelectTypes = TSingleSelect | TMultiSelect | TSenseSelect;
-export type TListItemsTypes = TSelectTypes;
+export type TSelectTypes = TSingleSelect | TSenseSelect;
+export type TListItemsTypes = TSelectTypes | TButtonContainer | TButton | TGroup;
 
 export type TListItems = IListItem<TListItemsTypes>[];
 
@@ -27,6 +26,7 @@ export interface IListItem<T> {
 	"selectItems": any[],
 	"stateItems": any[],
 	"dropdownItems": any[],
+	"groupItems": any[],
 	"subItems": any[],
 	"labelStyle": TTextStyleDef,
 	"selectionStyle": TTextStyleDef
@@ -58,9 +58,6 @@ export interface IListItemProps<T> {
 export interface ISelectItemProps<T> extends IListItemProps<T> {
 }
 
-export interface IDropdownItemProps<T> extends IListItemProps<T> {
-}
-
 export interface IContainerItemProps<T> extends IListItemProps<T> {
 }
 
@@ -77,11 +74,6 @@ export interface IVariableDropdownProps extends IListItemProps<TVariableDropdown
 	variableName: string;
 }
 
-
 export interface ISelectItem<T> extends IListItem<T> {
 	showToolbar: boolean;
-}
-
-export interface IMultiSelect extends IListItem<TMultiSelect> {
-	selectItems: Array<ISelectItem<TSingleSelect>>
 }

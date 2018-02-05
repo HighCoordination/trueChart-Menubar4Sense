@@ -97,6 +97,7 @@ module.exports = {
 								{search: /##EXTENSION_NAME##/g, replace: 'trueChart-Menubar'},
 								{search: /##DATE##/g, replace: _env.DATE},
 								{search: /##VERSION##/g, replace: _env.VERSION},
+								{search: /##VER##/g, replace: _env.VER},
 								{search: /##BUILD_NUMBER##/g, replace: _env.BUILD_NUMBER},
 								{search: /##LOG_LEVEL##/g, replace: _env.LOG_LEVEL},
 								{search: /'##HAS_SERVICE##'/g, replace: _env.HAS_SERVICE},

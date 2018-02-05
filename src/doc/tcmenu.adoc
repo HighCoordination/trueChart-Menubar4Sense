@@ -1,10 +1,8 @@
 = {tcmenu}: Documentation
-HighCoordination GmbH <info@highcoordination.de>
-##VERSION, ##BUILDDATE
-:Author:    HighCoordination GmbH
-:Email:     <info@highcoordination.de>
-:Date:      ##BUILDDATE
-:Revision:  ##VERSION
+:author:    HighCoordination GmbH
+:email:     info@highcoordination.de
+:revnumber: {appversion}
+:revdate:   {docdate}
 :tcmenu:    trueChart Menubar
 :title-logo-image: image:wortbildmarke.png[Logo,400]
 // :title-page-background-image: image:background.jpg[]
@@ -13,8 +11,12 @@ HighCoordination GmbH <info@highcoordination.de>
 :icons: font
 :toc: left
 :toclevels: 4
-:appversion: ##VERSION
-:data-uri:
+:idprefix:
+:sectlinks:
+:sectanchors:
+:sectnums:
+:sectnumlevels: 3
+
 
 // :numbered!:
 // [abstract]
@@ -23,37 +25,55 @@ HighCoordination GmbH <info@highcoordination.de>
 <<<
 :numbered:
 == Introduction
+**{tcmenu}** allows for vertical and horizontal buttons and selections
+(fields, drill-down dimensions, master dimensions and variables) as well as unlimited trigger based Actions.
 
-{tcmenu} is an extension for _Qlik Sense_ that provides a customizable menu bar for centralized navigation, interaction and selection using buttons and select lists based on existing data and utilizing individually configurable actions such as '`Go to a certain sheet`' that can be attached to triggers like '`when the item is clicked`' or '`when the item is loaded`'.
+In addition, you can share apps with the current selection with a single click, as well as conveniently chain
+documents including current or changed selections to navigate between apps.
 
 .Qlik Sense showing a sheet in edit mode with a {tcmenu} (left) next to trueChart (center) with the menu bar's options in the properties panel (right).
+
 image::tcmenu-intro.png[{tcmenu} intro, 550]
 
-=== What is new in {tcmenu} ##VERSION?
+[#whats_new]
+=== What is new in {tcmenu} {appversion}?
 
-With {tcmenu} ##VERSION, we introduced the support of Qlik Sense PDF export. In addition, Master Dimensions, Drilldown Dimensions, and expression based
-dimensions are now supported. It is now also possible to hide elements by condition.
+App sharing::
+With {tcmenu} {appversion} we offer great possibilities to give users uncomplicated access to the current
+analysis status of your app. With the new' Share app' button action, you can easily distribute a link
+to the current worksheet and selection via clipboard or email to interested users.
+
+Document chaining::
+As a professional add-on, the new' Go to app' button action can be used to create efficient navigation
+chains within the same or across different apps. Within this, existing selections can be simply
+"taken along" into the other app. In addition, new selections can be added or overwritten or bookmarks
+can be applied.
+
+Responsive font sizes::
+Text sizes are now automatically adjusted depending on the width of the browser for an optimal display
+of the menu bar. This is also advantageous when exporting the {tcmenu} as PDF.
+
+New element 'Group' (replaces multi and button dropdown)::
+With the new element' Group' different {tcmenu} elements can be combined in a space-saving way within
+one element. The following elements are possible within a group: Single & Sense Select, Variable Dropdown,
+Button & Button Container.
+
+Duplicate and copy/paste elements::
+To further simplify the configuration of the  {tcmenu}, the new element functions' Duplicate and
+Copy/Paste' offer a quick way to create new elements based on already existing elements. Furthermore,
+a previously copied element can now be transferred to another {tcmenu} object.
+
+*For more information about the changes in this version, refer to the chapter <<release_notes_latest_version>>*
 
 [CAUTION]
-An upgrade to the current version requires a migration. If this migration is not done carefully, apps may break. The procedure is described in detail in
- chapter 1.1.3.
+An upgrade from version less than v1.1.0 to the current version may require an migration. If this migration is not done
+carefully, apps may break. The procedure is described in detail in <<migration_older_110>>.
 
-==== Features and Improvements
+[#migration_older_110]
+==== Migration from version less v1.1.0.
 
-* *Support of Sense PDF export function* [HICO-2178]
-* *Support of drill-down dimensions* in selections (Single, Sense and Multi) [HICO-2560]
-* *Conditional display and hiding of menu elements* [HICO-2890]
-* Improvement when using master item dimensions and expression-based dimensions [HICO-2524]
-* Specify expressions for dimension definition directly [HICO-2601]
-* Option to enter title, subtitle or footnote [HICO-2889]
-* Mark button+ actions for parallel (faster) or sequential (in order)execution [HICO-40445]
-* New position of edit button state in properties panel [HICO-40461]
-* Performance: Reduced initial loading time [HICO-40463]
-
-==== Migrate to {tcmenu} ##VERSION
-
-The new {tcmenu} release introduces the support of master and dynamic dimensions.
-To use this awesome feature, you have to be sure that all expressions
+With the release of version v1.1.0 we introduced the support of master and dynamic dimensions.
+To use this feature, you have to be sure that all expressions
 correspond to the expression syntax known from _Qlik Sense_, which means:
 
 * No `'` or `"` before and after field or dimension names
@@ -129,13 +149,12 @@ image::new-menu.png[new-menu,200]
 
 The _Dimensions_ pane is used to define all the dimensions needed for the _Select_ items of {tcmenu}.
 
-Dimensions can be added in the way known from Qlik Sense. The dimension’s name is subsequently used as the Dimension Title. This value is only for usage in
- trueChart Menubar and can be changed if desired.
+Dimensions can be added in the way known from Qlik Sense. The dimension’s name is subsequently used as the Dimension Title. This value is only for usage in {tcmenu} and can be changed if desired.
 
 .Adding a new dimension to the menu.
 image::adding-dimensions.png[adding-dimensions, 250]
 
-The dimensions defined here can be later used in the _Single Select_, _Multi Select_ or _Sense Select_ items.
+The dimensions defined here can be later used in the _Single Select_ or _Sense Select_ items.
 
 .Using the predefined dimensions in a Single Select.
 image::dimensions-select.png[adding-dimensions]
@@ -161,15 +180,14 @@ image::dimensions-sorting.png[dimensions-sorting,200]
 
 === Adding items
 
-{tcmenu} features seven different item types:
+{tcmenu} features six different item types:
 
-* Button
-* Button Container
-* Button Dropdown
-* Multi Select
-* Single Select
-* Sense Select
-* Variable Dropdown
+ * <<Button>>
+ * <<button_container>>
+ * <<Single Select>>
+ * <<Sense Select>>
+ * <<Variable Dropdown>>
+ * <<Group>>
 
 To create a new item, open _Items_ in the properties panel and click on _Add Items_. This will create a new _Button Container_ including a new button called _My Button_ by default. The item type can be changed by clicking on the _Type_ drop-down list, which gives you the selection between the different types mentioned above.
 
@@ -186,6 +204,10 @@ The first thing you want to do every time you create a new item is giving them d
 There are some properties that {tcmenu}'s items have in common. These are:
 
 |====
+| Duplicate, Copy/Paste | Actions to duplicate, copy and paste current element. Please read for further explanations
+in the following chapter <<Copy/Paste and duplicating Items>>.
+| Type | Specifies the item type for current element. Available types are:
+_Button_, _Button Container_, _Single Select_, _Sense Select_, _Variable Dropdown_, _Group_.
 | Name (only Property Panel) | This is the name of the item used in the property panel.
 | Show condition | This element will only be shown if this condition evaluates to true.
 | Use Custom Size | By default,  the item spans over the entire available area. Set this to _Custom_ to define a custom height or width depending on the menu's orientation.
@@ -197,7 +219,22 @@ There are some properties that {tcmenu}'s items have in common. These are:
 | Tooltip | The tooltip's text to appear when the user hovers over the item.
 |====
 
-=== Buttons
+=== Copy/Paste and duplicating Items
+
+For easy editing of the {tcmenu} Copy/Paste and Duplicating items offers a fast way to create a {tcmenu}. Once
+you have one item defined Copy/Paste and Duplicating allows you to easily create other items with the exact same
+definition.
+
+.From left to right: _duplicate_, _copy_, _paste_ button.
+image::copypaste.png[copypaste, 200]
+
+You can either duplicate an item to create an exact copy of the item in the current element.
+Or you can copy an item and paste it later to replace any item you want.
+
+Furthermore, this function can be used to paste a previously copied element on an element of another {tcmenu} object and
+thus to transfer definitions from one {tcmenu} object to another one.
+
+=== Button
 
 _Buttons_ are grouped by states that are defined by conditional expressions. This allows you to use different settings for the button depending on which of the given conditions is true.
 
@@ -359,16 +396,13 @@ For use cases were the execution order is important, every action can be defined
 
 Apart from static values, every input box that features Qlik Sense's _fx_ icon also accepts Sense expressions.
 
+[[button_container,Button Container]]
 === Arranging buttons using _Button Container_
 
 The _Button Container_ is an item to group multiple buttons together while inverting the orientation. That means, if your menu is oriented vertically, the buttons in the container will be arranged horizontally and vice verse.
 
 .A vertically and horizontally arranged menu bar, each featuring two plain buttons and another two buttons in a Button Container in between.
 image::ver-hor-menu.png[ver-hor-menu,800]
-
-=== Button Dropdown
-
-The _Button Dropdown_ is a drop-down list that contains a variable number of buttons that will unfold after the user clicks the dropdown element and are otherwise hidden. The buttons are added in the same fashion as in a _Button Container_.
 
 === Selects
 
@@ -408,17 +442,6 @@ If you use the _Single Select_ with drilldown dimensions, you get some more opti
 
 |===
 
-==== Multi Select
-
-The _Multi Select_ is a drop-down list that allows the user to make selections from *more* than one dimension at the same time. Just like the _Button Container_, it can be seen as an item containing multiple _Single Selects_, each configurable independently.
-
-To do so, the properties panel features a button _Add Single Select_ to add as many _Single Select_ items to the _Multi Select_ as desired. They are configured the same way as stand-alone _Single Select_ items.
-
-Apart from that, you can set the same text and layout options for the parent _Multi Select_ as for a _Single Select_.
-
-.A simple Multi Select for two dimensions, City, and Customer, called '`City & Customer.`'
-image::multi-select.png[multi-select,300]
-
 ==== Sense Select
 
 _Sense Selects_ use the native selection widget of Qlik Sense and is otherwise configured the same way as a _Single Select_ but you cannot define a default value.
@@ -444,6 +467,34 @@ In the properties panel of the _Variable Dropdown_ element, define the variable 
 
 .A bar chart that uses a variable as the number of displayed results.
 image::bar-chart-variable.png[bar-chart-variable]
+
+=== Group
+
+The _Group Element_ is a dropdown list that allows to combine different  {tcmenu} elements into a single dropdown.
+
+.Group element in property panel.
+image::group-example.png[group-example]
+
+<<<
+_Group Element_ makes it possible to create dropdowns with multiple button actions (button dropdowns), dropdowns with multiple single and
+sense selects (multi selects) or completely new combinations of the different {tcmenu} elements.
+
+.Multiple elements in a single group.
+image::group-add-element.png[group-add]
+
+Button dropdowns can be created by adding multiple buttons to the _group element_ and Multi Selects can be created by adding multiple single or sense selects
+ to the _group element_
+
+.Multi Select group example.
+image::group-multi-example.png[group-multi]
+
+Currently the _Group Element_ supports
+
+ * <<Button>>
+ * <<button_container>>
+ * <<Single Select>>
+ * <<Sense Select>>
+ * <<Variable Dropdown>>
 
 <<<
 == The _Add-ons_ pane
@@ -561,9 +612,6 @@ The following color expressions can be used in {tcmenu}:
 * HSL and HSLA: `hsl(360,100%,50%)`, `hsla(360,100%,50%,.8)` or `hsl(360 100% 50%)`, `hsla(360 100% 50% / .8)`
 * ARGB: `=argb(127,255,63,15)` with the alpha channel being a value between `0` and `255`.
 
-// === Layout
-// {tbd}
-
 [appendix]
 == List of actions for triggers
 
@@ -595,6 +643,40 @@ The following actions can be attached to events that trigger a button.
 | Go to sheet | _Sheet id_ of the sheet to go to; can be entered manually or automatically by using the drop-down list.
 | Go to story | _Story id_ of the story to go to; can be entered manually or automatically by using the drop-down list.
 | Go to url | Specify the URL in the _Url_ input box and the target in the _Target_ list. The _Mashup only_ option restricts the action to mashups.
+| Go to app a| Specify the id of the app you'd like to navigate to in the _App ID_ input box
+and the id of the specific sheet in the _Sheet ID_ input.
+
+image:buttoneditor-actions-gotoapp.png[buttoneditor-actions-gotoapp, 738]
+
+If you select _Email_ as the target you can further specify an _email address_, _email subject_
+and _email body_. You can use _{0}_ as a placeholder for the generated link.
+If omitted, it will be inserted at the end of the body.
+You can also specify the link to be opened in the _same, new, custom named window_
+or just be copied to the clipboard.
+
+It is possible to _clear all selections_ or apply _current selections_
+in the target app by checking the corresponding checkboxes.
+For _current selections_ to work, the currently selected fields/dimensions need to be present in the target app as well.
+
+Additionally you can add optional parameters to apply specific selections
+or a bookmark.
+
+.Limitations:
+* In "Qlik Sense Desktop" the _Email_ target doesn't work.
+* Fields/Dimensions containing "%" characters, they will not be applied.
+* When importing apps from another system, their ID changes. So, for example,
+ if you designed a target app locally and push it to a server, this action will
+ no longer work since the target app ID has changed. It needs to be manually
+ repaired. This is also the case when publishing.
+| Share app a| Specify the _target_ of a generated link to be shared as email or added to clipboard.
+
+If you select _Email_ as the target you can further specify an _email address_, _email subject_ and _email body_.
+You can use _{0}_ as a placeholder for the generated link. If omitted, it will be inserted at the end of the body.
+Target clipboard adds the generated link to the clipboard and shows a message to the user.
+
+.Limitations:
+ * In "Qlik Sense Desktop" the _Email_ target doesn't work.
+ * In mashup/story mode the URL can't be properly generated.
 |===
 
 === Sense
@@ -617,6 +699,7 @@ The following actions can be attached to events that trigger a button.
 | Unlock all | _No parameters._
 | Apply bookmark | _Bookmark id_ which can be entered manually or automatically by using the drop-down list.
 | Reload data | Set the desired mode in the _Mode_ list. Set the _Partial_ option to do only a partial reload.
+
 |===
 
 [CAUTION]
@@ -636,9 +719,26 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 == Releases Notes
 
 :sectnums!:
-=== {tcmenu} ##VERSION
+[#release_notes_latest_version]
+=== {tcmenu} v{appversion}
 
-##BUILDDATE
+{docdate}
+
+* Features and Improvements
+** *New action "Go to app" (document chaining)* [HICO-2564]
+** *New action "Share app" (email | clipboard)* [HICO-40703]
+** *Responsive font sizes* (menubar and buttons) [HICO-2901]
+** *Grouping of elements*: Single & Sense Select, Variable Dropdown, Button & Button Container [HICO-40496]
+*** Migration of multi and button dropdown elements to group elements [HICO-40533]
+** *Option to duplicate and copy/paste existing elements and sub elements* [HICO-2233]
+** Trigger default selection when showing single select again [HICO-40576]
+
+* Bugs
+** Exception when creating new dimensions in extension as master item [HICO-40671
+
+=== {tcmenu} v1.1.3
+
+2018-1-31
 
 ** Bugs
 * Exception when creating new dimensions in extension as master item [HICO-40671]
@@ -690,11 +790,11 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 * Button+: Automatic line breaks in button+ text [HICO-2324]
 
 ** Bugs
-* [HICO-2897] - Button+ overwrites default hover color of the tCMenu, although no hover color is defined in Button+
-* [HICO-2905] - Button+ code editor not working in tc menubar
-* [HICO-2933] - Scrolling with the mouse wheel in Sense Select does not work with IE11
-* [HICO-28625] - Single select description text im menubar not initial visible on iPad
-* [HICO-31517] - Sense select breakes after selection with dynamic dimensions
+* Button+ overwrites default hover color of the tCMenu, although no hover color is defined in Button+ [HICO-2897]
+* Button+ code editor not working in tc menubar [HICO-2905]
+* Scrolling with the mouse wheel in Sense Select does not work with IE11 [HICO-2933]
+* Single select description text im menubar not initial visible on iPad [HICO-28625]
+* Sense select breakes after selection with dynamic dimensions [HICO-31517]
 
 === {tcmenu} v1.0.7
 
@@ -723,9 +823,9 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 * *Support of Sense 2017.07 Release* [HICO-2571]
 
 ** Bug
-* [HICO-2419] - Initial logo does not match the object size
-* [HICO-2598] - Change of background color not applied
-* [HICO-2675] - JS Exception on click on button dropdown
+* Initial logo does not match the object size [HICO-2419]
+* Change of background color not applied [HICO-2598]
+* JS Exception on click on button dropdown [HICO-2675]
 
 === {tcmenu} v1.0.4
 
@@ -735,10 +835,10 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 * Improvement in handling session timeouts (selections fail, display not correct) [HICO-2612]
 * Add option to apply default selections sequentially [HICO-2620]
 
-* Bug
-    ** [HICO-2453] - Sense Select and Single Select broken with Error from Engine after toggeling qlikSense Mode
-    ** [HICO-2584] - Sense Dropdown is sometimes empty
-    ** [HICO-2618] - Accumulation of the QlikSense error "Internal error" with trueChart4Sense-3.2.4
+** Bug
+* Sense Select and Single Select broken with Error from Engine after toggeling qlikSense Mode [HICO-2453]
+* Sense Dropdown is sometimes empty [HICO-2584]
+* Accumulation of the QlikSense error "Internal error" with trueChart4Sense-3.2.4 [HICO-2618]
 
 
 === {tcmenu} v1.0.3
@@ -751,22 +851,22 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 * Renaming tc-Menu > {tcmenu} [HICO-2473]
 * Hidden field support for select actions in button+ [HICO-2531]
 
-* Bug
-    ** [HICO-2413] - Initial selection is not reset correctly when using dynamic (expression) default selection value for Single Selects
-    ** [HICO-2416] - Wrong selection count / undefined in selection label
-    ** [HICO-2417] - Dropdown placeholder in menu to long
-    ** [HICO-2434] - ButtonPlus IE overlay in DropDown General State
-    ** [HICO-2440] - Select value(s) action not working correct with some number values
-    ** [HICO-2441] - Button not updated after setting new state condition
-    ** [HICO-2443] - Menu elements in IE differs from Chrome
-    ** [HICO-2444] - Dropdown backround longer than element size
-    ** [HICO-2456] - Hover color isn't working in Button Dropdown IE
-    ** [HICO-2470] - Extension repaint while open/close sense select
-    ** [HICO-2498] - Performance issues in "edit" mode, in combination with Qlik Sense v3.2SR3 or v3.2SR4
-    ** [HICO-2514] - Error while perform selection based on master item with expression
-    ** [HICO-2523] - Expression based dimensions not working correct, selected dimension on item could be removed
-    ** [HICO-2537] - New menu property calculation variable is not visible
-    ** [HICO-2553] - Vertical Multi-Select scrolls to top when opening Single Select
+** Bug
+* Initial selection is not reset correctly when using dynamic (expression) default selection value for Single Selects [HICO-2413]
+* Wrong selection count / undefined in selection label [HICO-2416]
+* Dropdown placeholder in menu to long [HICO-2417]
+* ButtonPlus IE overlay in DropDown General State [HICO-2434]
+* Select value(s) action not working correct with some number values [HICO-2440]
+* Button not updated after setting new state condition [HICO-2441]
+* Menu elements in IE differs from Chrome [HICO-2443]
+* Dropdown backround longer than element size [HICO-2444]
+* Hover color isn't working in Button Dropdown IE [HICO-2456]
+* Extension repaint while open/close sense select [HICO-2470]
+* Performance issues in "edit" mode, in combination with Qlik Sense v3.2SR3 or v3.2SR4 [HICO-2498]
+* Error while perform selection based on master item with expression [HICO-2514]
+* Expression based dimensions not working correct, selected dimension on item could be removed [HICO-2523]
+* New menu property calculation variable is not visible [HICO-2537]
+* Vertical Multi-Select scrolls to top when opening Single Select [HICO-2553]
 
 === {tcmenu} v1.0.2
 
@@ -778,8 +878,8 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 minor improvements on button action editor (sorting & add new action) [HICO-2391]
 *  User documentation in "Apperance/Info" section in properties panel [HICO-2392]
 
-* Bug
-    ** [HICO-2393] - Default selections lead to endles loop when fields hidden by data script
+** Bug
+* Default selections lead to endles loop when fields hidden by data script [HICO-2393]
 
 === {tcmenu} v1.0.1
 
@@ -794,28 +894,27 @@ minor improvements on button action editor (sorting & add new action) [HICO-2391
 * Touch support for trueChart & {tcmenu} [HICO-2243]
 * Performance improvement regarding button+ and trueChart communication with sense [HICO-2255]
 
-* Bug
-    ** [HICO-2216] - Selection label is empty after opening sheet
-    ** [HICO-2230] - Variable dropdown selection lable switch has no effect, if custom label was defined
-    ** [HICO-2234] - Qlik color expression (argb) is evaluated wrong
-    ** [HICO-2235] - Horizontal seperator is repeated on the right
-    ** [HICO-2236] - Single Select scroll position for selected element is not as expected (for long lists)
-    ** [HICO-2238] - No seperator between element and subelement in vertical menu
-    ** [HICO-2239] - No scrolling in long horizontal Button Dropdown elements
-    ** [HICO-2241] - Button Dropdown selection label is not working
-    ** [HICO-2245] - Multi Select name can't be an expression -> no expression support for elements name anymore
-    ** [HICO-2247] - Menu element icons can't be removed
-    ** [HICO-2257] - Scrollbar doesn't disapear after reseting scrolling condition
-    ** [HICO-2271] - Buttons not clickable in IE11 and wrong styles displayed (trueChart and {tcmenu})
-    ** [HICO-2319] - Sorting at sense selection incorrect ->
-                     * If sorting is set to automatic, the sorting by selection status (ascending) is set internally
-                     * If sorting is defined manually, the user has to define the sorting himself and, if necessary,
-                       he must also specify the sorting by selection status. With this sort, the selection behavior
-                       corresponds to the Qlik Sense standard.
-                     * The recommendation is to define sorting by selection status for Sense Selects and
-                       never for single selection (corresponds to the automatic behavior).
-    ** [HICO-2357] - Performance improvement: Single Selects default selections are triggered multiple times
-
+** Bug
+* Selection label is empty after opening sheet [HICO-2216]
+* Variable dropdown selection lable switch has no effect, if custom label was defined [HICO-2230]
+* Qlik color expression (argb) is evaluated wrong [HICO-2234]
+* Horizontal seperator is repeated on the right [HICO-2235]
+* Single Select scroll position for selected element is not as expected (for long lists) [HICO-2236]
+* No seperator between element and subelement in vertical menu [HICO-2238]
+* No scrolling in long horizontal Button Dropdown elements [HICO-2239]
+* Button Dropdown selection label is not working [HICO-2241]
+* Multi Select name can't be an expression -> no expression support for elements name anymore [HICO-2245]
+* Menu element icons can't be removed [HICO-2247]
+* Scrollbar doesn't disapear after reseting scrolling condition [HICO-2257]
+* Buttons not clickable in IE11 and wrong styles displayed (trueChart and {tcmenu}) [HICO-2271]
+* Sorting at sense selection incorrect -> [HICO-2319]
+    * If sorting is set to automatic, the sorting by selection status (ascending) is set internally
+    * If sorting is defined manually, the user has to define the sorting himself and, if necessary,
+      he must also specify the sorting by selection status. With this sort, the selection behavior
+      corresponds to the Qlik Sense standard.
+    * The recommendation is to define sorting by selection status for Sense Selects and
+      never for single selection (corresponds to the automatic behavior).
+* Performance improvement: Single Selects default selections are triggered multiple times [HICO-2357]
 
 === {tcmenu} v1.0.0
 

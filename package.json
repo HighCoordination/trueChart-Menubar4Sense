@@ -1,7 +1,7 @@
 {
   "name": "truechart-menubar",
-  "version": "1.1.3",
-  "description": "trueChart-Menubar as visualization extension for Qlik Sense® allows for vertical and horizontal buttons and selections (fields, master dimensions and variables) as well as unlimited trigger based Actions. #trueChart #trueChart-Menubar #highcoordination",
+  "version": "1.2.0",
+  "description": "trueChart-Menubar as visualization extension for Qlik Sense® allows for vertical and horizontal buttons and selections (fields, drill-down dimensions, master dimensions  and variables) as well as unlimited trigger based Actions. In addition, you can share apps with the current selection with a single click, as well as conveniently chain documents including current or changed selections to navigate between apps. #trueChart #trueChart-Menubar #highcoordination",
   "main": "tcmenu.js",
   "keywords": [
     "Qlik Sense",
@@ -18,12 +18,11 @@
     "gulp": "gulp",
     "prebuild": "npm run clean",
     "build": "gulp build",
-    "postbuild": "npm run build-doc",
     "start": "gulp watch --dev",
     "test": "echo \"Error: no test specified\" && exit 1",
     "zip": "gulp zip",
     "webpack": "webpack",
-    "build-doc": "build_doc.bat"
+    "build-doc": "gulp build-doc-html"
   },
   "dependencies": {
     "bootstrap": "^3.3.7",
@@ -45,6 +44,7 @@
     "css-loader": "^0.28.7",
     "file-loader": "^1.1.5",
     "gulp": "^3.9.1",
+    "gulp-asciidoctor": "^1.5.5-4.3",
     "gulp-cached": "^1.1.1",
     "gulp-clean": "^0.3.2",
     "gulp-replace": "^0.6.0",
@@ -68,6 +68,6 @@
   "homepage": "https://www.highcoordination.com/en/products/truechart-menubar/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/HighCoordination/trueChart-Menubar4Sense.git"
+    "url": "http://dev.highcoordination.de/bitbucket/scm/hico/tcmenu.git"
   }
 }
