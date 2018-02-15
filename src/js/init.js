@@ -166,6 +166,8 @@ export function Extension(){
 
 			// set active select items
 			setSelectItems($scope, $scope.layout.listItems);
+			$scope.applyColors($scope.layout);
+			$scope.applyStyles($scope.layout.appearance);
 
 			// after this step all listObjects should be used from $scope._listObjects
 			return Promise.all(objectIds.map(id => qlikService.getObjectLayout(id))).then(listObjects => initListObjects(listObjects)).then(() => {
