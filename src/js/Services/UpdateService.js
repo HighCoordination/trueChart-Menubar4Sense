@@ -61,7 +61,7 @@ export default class UpdateService {
 					// trigger update for all tcMenu extensions when not already in progress
 					if(!updatesInProgress){
 						updatesInProgress = true;
-						!_qlikService.isPublished() && this.updateAllExtensions(); // update all extensions only in NOT published apps
+						!_qlikService.isPublished() &&  this.updateAllExtensions(); // update all extensions only in NOT published apps
 					}
 
 					Logger.info('update is running');
@@ -478,18 +478,21 @@ export default class UpdateService {
 					qSortByExpressionCheck: dimension.qSortByExpressionCheck,
 					qSortByLoadOrderCheck: dimension.sortByLoadOrderCheck,
 					qSortByNumericCheck: dimension.qSortByNumericCheck,
+					qExpression: {
+						qv: qv
+					},
 					qSortCriterias: [
 						{
 							qExpression: {
 								qv: qv,
 								qExpr: qv
 							},
-							qSortByAscii: dimension.qSortByAsciiCheck ? dimension.sortByAscii : 0,
-							qSortByState: dimension.qSortByStateCheck ? dimension.sortByState : 1,
-							qSortByFrequency: dimension.qSortByFrequencyCheck ? dimension.sortByFrequency : 0,
-							qSortByExpression: dimension.qSortByExpressionCheck ? dimension.sortByExpression : 0,
-							qSortByLoadOrder: dimension.sortByLoadOrderCheck ? dimension.sortByLoadOrder : 0,
-							qSortByNumeric: dimension.qSortByNumericCheck ? dimension.sortByNumeric : 0,
+							qSortByAscii: dimension.qSortByAsciiCheck && !dimension.customSortOrder ? dimension.sortByAscii : 0,
+							qSortByState: dimension.qSortByStateCheck && !dimension.customSortOrder ? dimension.sortByState : 0,
+							qSortByFrequency: dimension.qSortByFrequencyCheck && !dimension.customSortOrder ? dimension.sortByFrequency : 0,
+							qSortByExpression: dimension.qSortByExpressionCheck && !dimension.customSortOrder ? dimension.sortByExpression : 0,
+							qSortByLoadOrder: dimension.sortByLoadOrderCheck && !dimension.customSortOrder ? dimension.sortByLoadOrder : 0,
+							qSortByNumeric: dimension.qSortByNumericCheck && !dimension.customSortOrder ? dimension.sortByNumeric : 0,
 						}
 					],
 				},

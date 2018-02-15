@@ -724,6 +724,13 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 
 {docdate}
 
+* Bugs
+** Select sorting after migration to v1.2 not correct (custom expression is missing) [HICO-40731]
+
+=== {tcmenu} v1.2.0
+
+2018-2-5
+
 * Features and Improvements
 ** *New action "Go to app" (document chaining)* [HICO-2564]
 ** *New action "Share app" (email | clipboard)* [HICO-40703]
@@ -734,7 +741,7 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 ** Trigger default selection when showing single select again [HICO-40576]
 
 * Bugs
-** Exception when creating new dimensions in extension as master item [HICO-40671
+** Exception when creating new dimensions in extension as master item [HICO-40671]
 
 === {tcmenu} v1.1.3
 

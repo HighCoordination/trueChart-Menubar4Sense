@@ -1,6 +1,6 @@
 {
   "name": "truechart-menubar",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "trueChart-Menubar as visualization extension for Qlik Sense® allows for vertical and horizontal buttons and selections (fields, drill-down dimensions, master dimensions  and variables) as well as unlimited trigger based Actions. In addition, you can share apps with the current selection with a single click, as well as conveniently chain documents including current or changed selections to navigate between apps. #trueChart #trueChart-Menubar #highcoordination",
   "main": "tcmenu.js",
   "keywords": [

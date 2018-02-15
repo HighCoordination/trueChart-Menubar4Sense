@@ -9,9 +9,9 @@ export class RepairService {
 		return this._instance || new RepairService();
 	}
 
-	private _uniqueIds;
-	private _errors;
-	private _uniqueIdError;
+	_uniqueIds;
+	_errors;
+	_uniqueIdError;
 
 	constructor(){
 
@@ -22,7 +22,7 @@ export class RepairService {
 		RepairService._instance = this;
 	}
 
-	public startRepair(properties){
+	startRepair(properties){
 
 		this.initRepair();
 		this.parseIdsUnique(properties.listItems);
@@ -34,13 +34,13 @@ export class RepairService {
 		}
 	}
 
-	private initRepair(){
+	initRepair(){
 		this._uniqueIds = [];
 		this._errors = [];
 		this._uniqueIdError = false;
 	}
 
-	private parseIdsUnique(listItems){
+	parseIdsUnique(listItems){
 		listItems.forEach(listItem =>{
 			this.checkUniqueIds(listItem.cId, listItem);
 
@@ -66,7 +66,7 @@ export class RepairService {
 		});
 	}
 
-	private checkUniqueIds(searchString, obj){
+	checkUniqueIds(searchString, obj){
 		if(!searchString){
 			this._uniqueIdError = true;
 			this.writeError('Object has no Id');
@@ -80,11 +80,11 @@ export class RepairService {
 		}
 	}
 
-	private writeError(message){
+	writeError(message){
 		this._errors.push(message);
 	}
 
-	private logErrors(){
+	logErrors(){
 
 		if(this._errors.length === 0){
 			Logger.warn('No Errors found in tcMenubar');

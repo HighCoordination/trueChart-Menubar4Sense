@@ -59,7 +59,7 @@ define([
 
 								if($scope.layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767 && !$scope.groupitem){
 									$scope.panelDropdownOffset = utilService.getDropdownOffset($element);
-									$element.find('#panel_' + $scope.itemId).width($element[0].clientWidth);
+									$element.find('#panel_container_' + $scope.itemId).width($element[0].clientWidth);
 
 									if(item.show){
 										$element.parents("article").css("z-index", 2);

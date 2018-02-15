@@ -1,7 +1,7 @@
 import * as log4javascript from 'log4javascript';
 import {prefix} from './prefix';
 
-export const Logger = (function(){
+export const Logger = (()=>{
 
 	class Logger {
 		Logger: log4javascript.Logger;
@@ -15,8 +15,8 @@ export const Logger = (function(){
 
 			// make properties "protected"
 			Object.defineProperties(this.Logger, {
-				'Log': {configurable: false, enumerable: false, value: log4javascript},
-				'init': {configurable: false, enumerable: false, value: (opts: TOptions) => _this.init(opts)}
+				Log: {configurable: false, enumerable: false, value: log4javascript},
+				init: {configurable: false, enumerable: false, value: (opts: TOptions) => _this.init(opts)}
 			});
 
 			this.init(options);
@@ -80,4 +80,4 @@ type TOptions = {
 	username?: string;
 	hasService?: boolean;
 	serviceUrl?: string;
-}
+};

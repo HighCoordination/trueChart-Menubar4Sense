@@ -26,7 +26,9 @@ export class Deferred {
 	}
 
 	get pending(){return this.status === 0;}
+
 	get resolved(){return this.status === 1;}
+
 	get rejected(){return this.status === 2;}
 }
 
@@ -42,15 +44,15 @@ export class PaintingPromise {
 
 	constructor(){
 		Logger.debug('create HiCoMVCInit');
-		let res: Function,
-			isResolved = false,
-			prom = newPromise(),
-			tcPaintedEventName = 'tcPainted',
+		let _res: Function,
+			_isResolved = false,
+			_prom = newPromise(),
+			_tcPaintedEventName = 'tcPainted',
 			_callbacks: Function[] = [],
-			delayed = false;
+			_delayed = false;
 
 		let evnt = document.createEvent('CustomEvent');
-		evnt.initEvent(tcPaintedEventName, true, true);
+		evnt.initEvent(_tcPaintedEventName, true, true);
 
 		function newPromise(){
 			let intRes: Function,
@@ -58,10 +60,10 @@ export class PaintingPromise {
 					intRes = resolve;
 				});
 
-			isResolved = false;
+			_isResolved = false;
 
-			res = () =>{
-				isResolved = true;
+			_res = () =>{
+				_isResolved = true;
 				intRes();
 			};
 
@@ -72,47 +74,44 @@ export class PaintingPromise {
 		 * Add callbacks which will be executed before resolving the main promise
 		 * @param {Function} callback
 		 */
-		this.addCallback = function(callback){
+		this.addCallback = (callback) =>{
 			_callbacks.push(callback);
 		};
 
-		this.delayPromise = function(){
+		this.delayPromise = () =>{
 			Logger.debug('delay paintingPromise (because of cancelling of painting)');
-			delayed = true;
+			_delayed = true;
 		};
 
-		this.createNewPromise = function(){
-			if(delayed){
-				Logger.debug('delay Promise create');
-				delayed = false;
+		this.createNewPromise = () =>{
+			if(_delayed){
+				_delayed = false;
 				return;
 			}
-			Logger.debug('create new Promise');
 
-			let divTcPainted = document.getElementById(tcPaintedEventName);
+			let divTcPainted = document.getElementById(_tcPaintedEventName);
 			if(divTcPainted){
 				document.body.removeChild(divTcPainted);
 			}
-			if(isResolved){
-				prom = newPromise();
+			if(_isResolved){
+				_prom = newPromise();
 			}
 		};
 
-		this.getPromise = function(){
-			return prom;
+		this.getPromise = () =>{
+			return _prom;
 		};
 
-		this.resolveProm = function(){
-			if(delayed){
-				Logger.debug('delay Promise resolve');
+		this.resolveProm = () =>{
+			if(_delayed){
 				return;
 			}
 
 			const callbacks = _callbacks;
 			if(callbacks.length){
 				_callbacks = [];
-				window.setTimeout(() => {
-					Promise.all(callbacks.map(callback => callback())).then(resolvePromise).catch(err => {
+				window.setTimeout(() =>{
+					Promise.all(callbacks.map((callback) => callback())).then(resolvePromise).catch((err) =>{
 						Logger.warn('failed executing paintingPromise callbacks', err);
 					});
 				}, 0);
@@ -124,16 +123,15 @@ export class PaintingPromise {
 		function resolvePromise(){
 			Logger.info('finish painting trueChart');
 
-			let divTcPainted = document.getElementById(tcPaintedEventName);
+			let divTcPainted = document.getElementById(_tcPaintedEventName);
 			if(!divTcPainted){
 				divTcPainted = document.createElement('div');
-				divTcPainted.id = tcPaintedEventName;
+				divTcPainted.id = _tcPaintedEventName;
 				divTcPainted.style.display = 'none';
 				document.body.appendChild(divTcPainted);
 			}
 
-			Logger.debug('resolve Promise');
-			res && res();
+			_res && _res();
 
 			// DispatchEvent needs some time, that's why we call it async via timeout
 			window.setTimeout(() =>{

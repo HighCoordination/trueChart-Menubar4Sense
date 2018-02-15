@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 import {EXTENSION_NAME} from '../entry';
 
 // default options
-const _options: ToastOptions = {
+const _options: IToastOptions = {
 	opacity: 0.9,
 	closeButton: true,
 	timeOut: 5000,
@@ -52,10 +52,10 @@ const _containerStyle: React.CSSProperties = {
 	_toastClass = 'flex-container a-i-center lui-toast',
 
 	_iconClasses: { [type: string]: string } = {
-		'info': 'fa-info',
-		'success': 'fa-check',
-		'warning': 'fa-exclamation-triangle',
-		'danger': 'fa-bolt'
+		info: 'fa-info',
+		success: 'fa-check',
+		warning: 'fa-exclamation-triangle',
+		danger: 'fa-bolt'
 	};
 
 export class Toast extends React.Component<ToastProps, { opacity: number }> {
@@ -127,11 +127,11 @@ export class Toast extends React.Component<ToastProps, { opacity: number }> {
 	}
 }
 
-export class Toastr extends React.Component<{}, { toasts: ToastDefinition[] }> {
+export class Toastr extends React.Component<{}, { toasts: IToastDefinition[] }> {
 	private static _instance: Toastr;
 	private static _idCounter = -1;
 
-	constructor(props: any, state: { toasts: ToastDefinition[] }){
+	constructor(props: any, state: { toasts: IToastDefinition[] }){
 		super(props, state);
 
 		Toastr._instance = this;
@@ -146,10 +146,10 @@ export class Toastr extends React.Component<{}, { toasts: ToastDefinition[] }> {
 	 * @param {string} type
 	 * @param {string} message
 	 * @param {string} title
-	 * @param {ToastOptions} options
+	 * @param {IToastOptions} options
 	 */
-	private static _makeToast(type: string, message: string, title: string = EXTENSION_NAME, options?: ToastOptions){
-		const toast: ToastDefinition = {id: this._idCounter++, type, message, title, options: {..._options, ...options}},
+	private static _makeToast(type: string, message: string, title: string = EXTENSION_NAME, options?: IToastOptions){
+		const toast: IToastDefinition = {id: this._idCounter++, type, message, title, options: {..._options, ...options}},
 			toasts = this.Instance.state.toasts.slice();
 
 		toasts.push(toast);
@@ -158,9 +158,9 @@ export class Toastr extends React.Component<{}, { toasts: ToastDefinition[] }> {
 
 	/**
 	 * Handles onClose events
-	 * @param {ToastDefinition} toast
+	 * @param {IToastDefinition} toast
 	 */
-	private _onClose(toast: ToastDefinition){
+	private _onClose(toast: IToastDefinition){
 		const toasts = this.state.toasts.slice();
 
 		toasts.splice(toasts.indexOf(toast), 1);
@@ -195,9 +195,9 @@ export class Toastr extends React.Component<{}, { toasts: ToastDefinition[] }> {
 	 *
 	 * @param {string} message
 	 * @param {string} title
-	 * @param {ToastOptions} options
+	 * @param {IToastOptions} options
 	 */
-	static success(message: string, title?: string, options?: ToastOptions){
+	static success(message: string, title?: string, options?: IToastOptions){
 		this._makeToast('success', message, title, options);
 	}
 
@@ -206,9 +206,9 @@ export class Toastr extends React.Component<{}, { toasts: ToastDefinition[] }> {
 	 *
 	 * @param {string} message
 	 * @param {string} title
-	 * @param {ToastOptions} options
+	 * @param {IToastOptions} options
 	 */
-	static info(message: string, title?: string, options?: ToastOptions){
+	static info(message: string, title?: string, options?: IToastOptions){
 		this._makeToast('info', message, title, options);
 	}
 
@@ -217,9 +217,9 @@ export class Toastr extends React.Component<{}, { toasts: ToastDefinition[] }> {
 	 *
 	 * @param {string} message
 	 * @param {string} title
-	 * @param {ToastOptions} options
+	 * @param {IToastOptions} options
 	 */
-	static warning(message: string, title?: string, options?: ToastOptions){
+	static warning(message: string, title?: string, options?: IToastOptions){
 		this._makeToast('warning', message, title, options);
 	}
 
@@ -228,9 +228,9 @@ export class Toastr extends React.Component<{}, { toasts: ToastDefinition[] }> {
 	 *
 	 * @param {string} message
 	 * @param {string} title
-	 * @param {ToastOptions} options
+	 * @param {IToastOptions} options
 	 */
-	static error(message: string, title?: string, options?: ToastOptions){
+	static error(message: string, title?: string, options?: IToastOptions){
 		this._makeToast('danger', message, title, options);
 	}
 
@@ -239,35 +239,35 @@ export class Toastr extends React.Component<{}, { toasts: ToastDefinition[] }> {
 	 *
 	 * @param {string} message
 	 * @param {string} title
-	 * @param {ToastOptions} options
+	 * @param {IToastOptions} options
 	 */
-	static show(message: string, title?: string, options?: ToastOptions){
+	static show(message: string, title?: string, options?: IToastOptions){
 		this._makeToast('', message, title, options);
 	}
 
 	render(){
 		return (
 			<div style={_containerStyle}>
-				{this.state.toasts.map(toast => <Toast toast={toast} onClose={this._onClose} key={toast.id}/>)}
+				{this.state.toasts.map((toast) => <Toast toast={toast} onClose={this._onClose} key={toast.id}/>)}
 			</div>
 		);
 	}
 }
 
 type ToastProps = {
-	toast: ToastDefinition;
+	toast: IToastDefinition;
 	onClose: Function;
 };
 
-interface ToastDefinition {
+interface IToastDefinition {
 	id: number;
 	type: string;
 	message: string;
 	title?: string;
-	options?: ToastOptions;
+	options?: IToastOptions;
 }
 
-interface ToastOptions {
+interface IToastOptions {
 	closeButton?: boolean;
 	escapeHtml?: boolean;
 	extendedTimeOut?: number;

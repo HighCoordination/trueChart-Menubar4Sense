@@ -556,7 +556,7 @@ function Properties(){
 			label: translation.label.automatic
 		}],
 		change: function(item){
-			updateSortCriterias(item.qDef);
+			switchSortCriterias(item.qDef);
 		}
 	};
 
@@ -775,15 +775,22 @@ function Properties(){
 	let sortExpression = {
 		ref: "qDef.qExpression.qv",
 		label: translation.label.expression,
-		type: "string",
+		type: "number",
 		expression: "always",
+		expressionType: "ValueExpr",
+		component: "expression",
 		defaultValue: "",
 		show: function (item) {
+			if(item.qDef.qSortCriterias[item.qDef.currentDim || 0].qExpression){
+				item.qDef.qExpression = item.qDef.qExpression || {qv: ''};
+				item.qDef.qExpression.qv = item.qDef.qSortCriterias[item.qDef.currentDim || 0].qExpression.qv;
+			}
 			return !item.qDef.autoSort && item.qDef.qSortByExpressionCheck;
 		},
 		change: function(item){
 			let expr = item.qDef.qExpression.qv.qStringExpression ? item.qDef.qExpression.qv.qStringExpression.qExpr : item.qDef.qExpression.qv;
-			item.qDef.qSortCriterias[item.qDef.currentDim || 0].qExpression.qv = expr;
+			item.qDef.qSortCriterias[item.qDef.currentDim || 0].qExpression.qv = expr.qv;
+			item.qDef.qSortCriterias[item.qDef.currentDim || 0].qSortByExpression = item.qDef.qSortByExpression || 1;
 		},
 	};
 
@@ -2313,6 +2320,40 @@ function Properties(){
 		qDef.qSortByNumericCheck = !!(qDef.qSortByNumeric = sortcrit.qSortByNumeric);
 		qDef.qSortByExpressionCheck = (qDef.qExpression = sortcrit.qExpression).qv && sortcrit.qExpression.qv !== '';
 		qDef.qSortByExpression = sortcrit.qSortByExpression;
+	}
+
+	/**
+	 * Resets sorting criterias to defaults
+	 *
+	 * @param qDef
+	 */
+	function switchSortCriterias(qDef){
+		qDef.qSortCriterias.forEach((sortCrit, i) => {
+			qDef.qSortCriterias[i].qSortByStateCheck = false;
+			qDef.qSortCriterias[i].qSortByState = 0;
+			qDef.qSortByState = 0;
+			qDef.qSortByStateCheck = false;
+			qDef.qSortCriterias[i].qSortByLoadOrderCheck = true;
+			qDef.qSortCriterias[i].qSortByLoadOrder = 1;
+			qDef.qSortByLoadOrder = 1;
+			qDef.qSortByLoadOrderCheck = true;
+			qDef.qSortCriterias[i].qSortByAsciiCheck = true;
+			qDef.qSortCriterias[i].qSortByAscii = 1;
+			qDef.qSortByAscii = 1;
+			qDef.qSortByAsciiCheck = true;
+			qDef.qSortCriterias[i].qSortByNumericCheck = false;
+			qDef.qSortCriterias[i].qSortByNumeric = 0;
+			qDef.qSortByNumeric = 0;
+			qDef.qSortByNumericCheck = false;
+			qDef.qSortCriterias[i].qSortByFrequencyCheck = false;
+			qDef.qSortCriterias[i].qSortByFrequency = 0;
+			qDef.qSortByFrequency = 0;
+			qDef.qSortByFrequencyCheck = false;
+			qDef.qSortCriterias[i].qSortByExpressionCheck = false;
+			qDef.qSortCriterias[i].qExpression = { qv: ''};
+			qDef.qExpression = { qv: ''};
+			qDef.qSortByExpressionCheck = false;
+		});
 	}
 }
 

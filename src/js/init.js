@@ -285,20 +285,7 @@ export function Extension(){
 
 			// create listoObject and cache it locally
 			return qlikService.createChild(_model, definition).then(listObject =>{
-				// in case of master dimensions only qLibraryId was used but not qDef. So we need to update some properties separatelly
-				if(qDimension.qLibraryId){
-					return qlikService.getProperties(listObject, true).then(props =>{
-						qDimension.qDef.qSortCriterias.forEach(sortCrit =>{
-							sortCrit.qSortByState = 1; // REVIEW why sorting criterias are modified here???
-						});
-
-						props.qListObjectDef.qDef = qDimension.qDef;
-						return qlikService.setProperties(listObject, props).then(() => qlikService.getObjectLayout(listObject.id));
-					});
-				}else{
-					// no more changes required in case of "normal" dimensions
-					return Promise.resolve(qlikService.getObjectLayout(listObject.id));
-				}
+				return Promise.resolve(qlikService.getObjectLayout(listObject.id));
 			});
 		}
 
@@ -433,20 +420,22 @@ export function Extension(){
 		}
 
 		function updateSelectItems(activeSelects){
-			activeSelects.forEach(selectItem =>{
-				const listObject = $scope._listObjects[selectItem.props.dimId];
-				selectItem.selectValues = listObject.layout.qListObject; // temporary
-				selectItem.listInfo = listObject.layout.qInfo;
-				selectItem.dimId = listObject.layout.dimId;
+			activeSelects && Object.keys(activeSelects).forEach(key => {
+				activeSelects[key].forEach(selectItem =>{
+					const listObject = $scope._listObjects[selectItem.props.dimId];
+					selectItem.selectValues = listObject.layout.qListObject; // temporary
+					selectItem.listInfo = listObject.layout.qInfo;
+					selectItem.dimId = listObject.layout.dimId;
 
-				if(selectItem.selectValues.qDimensionInfo.qError){
-					Logger.warn("invalid dimension selected: ", selectItem.props.dimTitle);
+					if(selectItem.selectValues.qDimensionInfo.qError){
+						Logger.warn("invalid dimension selected: ", selectItem.props.dimTitle);
 
-					if(selectItem.selectValues.qDataPages.length === 0){
-						selectItem.selectValues.qDataPages = [{qMatrix: []}]
+						if(selectItem.selectValues.qDataPages.length === 0){
+							selectItem.selectValues.qDataPages = [{qMatrix: []}]
+						}
 					}
-				}
-			});
+				});
+			})
 		}
 
 		function calculateGaps(layout){
@@ -909,6 +898,7 @@ export function Extension(){
 			$scope.$broadcast('leaveEditMode');
 
 			setSelectItems($scope, $scope.layout.listItems);
+			$scope.updateSelectItems($scope._selectItems);
 
 		}else if($scope.inEditMode()){
 			if(!$scope.wasEditMode){
