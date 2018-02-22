@@ -54,7 +54,7 @@ from version 3.0.0 up to currently latest version November 2017 Patch 2 includin
 
 ### Qlik Sense® Support
 trueChart-Menubar supports Qlik Sense® from version 3.0.0 up to currently
-latest version November 2017 Patch 2 including exporting and story mode capability.
+latest version February 2018 including exporting and story mode capability.
 
 #### nPrinting Support
 The trueChart-Menubar does not yet fully support nPrinting. Expression updates are not 
