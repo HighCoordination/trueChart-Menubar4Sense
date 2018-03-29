@@ -7,9 +7,12 @@ export type TGroup = 'Group';
 
 export type TSizeType = '%' | 'px';
 export type TTextLayout = 'single' | 'multiple';
-export type TTextStyleDef = {
-	'font-family': string, 'font-size': number, 'font-weight': string, 'font-style': string
-};
+export interface ITextStyleDef {
+	'font-family': string;
+	'font-size': number;
+	'font-weight': string;
+	'font-style': string;
+}
 export type TAlignLabel = 'flex-start' | 'center' | 'flex-end';
 
 export type TSelectTypes = TSingleSelect | TSenseSelect;
@@ -17,19 +20,19 @@ export type TListItemsTypes = TSelectTypes | TButtonContainer | TButton | TGroup
 
 export type TListItems = IListItem<TListItemsTypes>[];
 
-export interface IListItem<T> {
+export interface IListItem<T = TListItemsTypes> {
 	cId: string;
 	props: IListItemProps<T>;
 	type: T;
 	showCondition: string,
 	variableItems: any[],
-	"selectItems": any[],
-	"stateItems": any[],
-	"dropdownItems": any[],
-	"groupItems": any[],
-	"subItems": any[],
-	"labelStyle": TTextStyleDef,
-	"selectionStyle": TTextStyleDef
+	selectItems: any[],
+	stateItems: any[],
+	dropdownItems: any[],
+	groupItems: any[],
+	subItems: ISubItem[],
+	labelStyle: ITextStyleDef,
+	selectionStyle: ITextStyleDef
 }
 
 export interface IListItemProps<T> {
@@ -74,6 +77,73 @@ export interface IVariableDropdownProps extends IListItemProps<TVariableDropdown
 	variableName: string;
 }
 
+/** subItems are just buttons inside a button container */
+export interface ISubItemProps {
+	buttonName: string
+}
+
+export interface ISubItem {
+	cId: string;
+	labelStyle: ITextStyleDef;
+	selectionStyle: ITextStyleDef;
+	stateItems: IButtonState[];
+	activeStates: IButtonState[];
+}
+
 export interface ISelectItem<T> extends IListItem<T> {
 	showToolbar: boolean;
+}
+
+export interface IQStringExpression {
+	qStringExpression: {
+		qExpr: string;
+	}
+}
+
+export interface IParameters {
+	[key: number]: string | number | boolean;
+}
+
+export interface IExpressionParameters {
+	[key: number]: IQStringExpression;
+}
+
+export interface IAction {
+	name: string;
+	params: IParameters;
+	paramsExpr: IExpressionParameters;
+}
+
+export interface ITrigger {
+	type: string;
+	actions: IAction[];
+}
+
+export interface IButtonStyle {
+	icon: {};
+	font: {};
+	background: {
+		position: {};
+		repeat: string;
+	};
+	border: {}
+}
+
+export interface IButtonLayout {
+	width: string | number;
+	height: string | number;
+	icon: {}
+}
+
+export interface IButtonState {
+	cId: string;
+	buttonState: 'normal' | 'active' | 'disabled';
+	buttonType: string;
+	condition: string;
+	hasActions: boolean;
+	layout: IButtonLayout;
+	style: IButtonStyle;
+	text: string;
+	triggers: ITrigger[];
+	version: number;
 }

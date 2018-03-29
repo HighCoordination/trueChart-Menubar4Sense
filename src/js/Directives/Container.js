@@ -19,14 +19,11 @@ define([
 				replace: true,
 				template: template,
 				controller: ['$scope', function($scope){
-					const qlikService = QlikService.getInstance(),
-						isStoryMode = qlikService.inStoryMode();
-
 					$scope.layout = $scope.parentscope.layout;
 					$scope.colors = $scope.parentscope.colors;
 					$scope.utilService = utilService;
 					// do not evaluate button states for snapshots
-					$scope.evaluateStates = $scope.layout.qInfo.qType !== 'embeddedsnapshot' && !qlikService.isPrinting();
+					$scope.evaluateStates = $scope.parentscope.evaluateStates;
 					$scope.handleButtonStates = handleButtonStates;
 
 
@@ -37,7 +34,7 @@ define([
 					 * @param {number} itemindex
 					 */
 					function handleButtonStates(activeStates, currSubItem, itemindex){
-						if(isStoryMode){
+						if(!$scope.evaluateStates){
 							return; // do nothing in story mode
 						}
 

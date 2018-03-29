@@ -34,6 +34,7 @@ export default {
 
         "descending": "Absteigend",
         "dimension": "Dimension",
+        "dimensionCalculation": "Dimensionsberechnung",
         "dimensions": "Dimensionen",
         "dimensionTitel": "Dimensionstitel",
         "display": "Display",
@@ -86,6 +87,8 @@ export default {
         "noIcon": "Kein Icon",
         "numeric": "Numerisch",
 
+        "off": "Aus",
+        "on": "An",
         "orientation": "Ausrichtung",
 
         "panelHeight": "Panel-Höhe in Pixel",

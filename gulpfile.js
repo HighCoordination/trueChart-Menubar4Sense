@@ -6,7 +6,8 @@ const merge = require('merge-stream'),
 	replace = require('gulp-replace'),
 	sequence = require('gulp-sequence'),
 	webpack = require('webpack'),
-	gulpWebpack = require('gulp-webpack'),
+	webpackStream = require('webpack-stream'),
+	log = require('fancy-log'),
 	zip = require('gulp-zip'),
 	asciidoctor = require('gulp-asciidoctor'),
 
@@ -15,8 +16,7 @@ const merge = require('merge-stream'),
 
 gulp.task('clean', function(){
 	return gulp.src([
-		_env.buildDir,
-//		_env.hicoDir // temporary (local) hico lib directory
+		_env.buildDir
 	], {read: false}).pipe(clean());
 });
 
@@ -35,25 +35,6 @@ gulp.task('resources', function(){
 	return merge(textData, binaryData);
 });
 
-gulp.task('copy-hico-libs', function(){
-	const hicomvcDir = _env.hicomvcDir, dest = _env.hicoDir;
-	return gulp.src([
-			hicomvcDir + '/HiCoMVCFramework/components/**/*',
-			'!' + hicomvcDir + '/HiCoMVCFramework/components/layouteditor{,/**/*}'
-		])
-		.pipe(replace('require([\'./directives/button-editor', '// require([\'./directives/button-editor')) // temporary workaround for webpack
-		.pipe(cache('hico-libs'))
-		.pipe(gulp.dest(dest));
-});
-
-gulp.task('copy-hico-styles', function(){
-	const hicomvcDir = _env.hicomvcDir, dest = _env.getPath(_env.hicoDir, 'style');
-	return gulp.src([
-		hicomvcDir + '/HiCoMVCFramework/resource/less/*',
-		'!' + hicomvcDir + '/HiCoMVCFramework/resource/less/style.less',
-	]).pipe(cache('hico-styles')).pipe(gulp.dest(dest));
-});
-
 gulp.task('local-install', ['build'], function(){
 	return gulp.src([_env.distDir + '/**/*']).pipe(gulp.dest(_env.installDir));
 });
@@ -61,16 +42,12 @@ gulp.task('local-install', ['build'], function(){
 gulp.task('watch', ['default'], function(){
 	_env.distDir = _env.installDir; // build directly to installation directory
 
-	setTimeout(build, 0); // run webpack asynchronous in watch mode
-
 	gulp.watch(_env.resourceDir + '/**/*', ['resources']);
-//	gulp.watch(_env.hicomvcDir + '/HiCoMVCFramework/components/**/*', ['copy-hico-libs']);
-//	gulp.watch(_env.hicomvcDir + '/HiCoMVCFramework/resource/**/*', ['copy-hico-styles']);
 });
 
 gulp.task('default', sequence('clean', 'local-install'));
 
-gulp.task('build', ['resources'/*, 'copy-hico-libs', 'copy-hico-styles', 'update-doc'*/], () => build(false));
+gulp.task('build', ['resources'], bundle);
 
 gulp.task('zip', function(){
 	gulp.src(_env.distDir + '/**/*')
@@ -92,15 +69,65 @@ gulp.task('build-doc-html', () =>
 /**
  * Builds tcmenu and watch for changes if needed
  *
- * @param {boolean} [watch] Watches for changes if true
  * @return {*}
  */
-function build(watch){
-	let config = Object.assign({}, require('./webpack.config'));
+function bundle(){
+	return new Promise(resolve =>{
+		const config = Object.assign({}, require('./webpack.config'), {watch: _watchMode});
 
-	config.watch = typeof watch === 'boolean' ? watch : _watchMode;
+		let bufferLength = 0, done = false, timeout;
 
-	return gulp.src(_env.srcDir)
-		.pipe(gulpWebpack(config, webpack))
-		.pipe(gulp.dest(_env.distDir)).on('finish', () => console.log('close'));
+
+		const stream = runWebpack(config, () => done = true)
+			.on('data', (chunk) =>{bufferLength += chunk._contents.length;})
+			.pipe(gulp.dest(_env.distDir))
+			.on('data', (chunk) =>{
+				bufferLength -= chunk._contents.length;
+
+				// we must resolve the promise in watch mode manually
+				if(done && !bufferLength && config.watch){
+					timeout = setTimeout(resolve, 1000);
+				}else if(config.watch){
+					clearTimeout(timeout);
+				}
+			}).on('finish', resolve);
+
+		// pipe also directly to the install directory in watch mode
+		if(config.watch){
+			stream.pipe(gulp.dest(_env.installDir));
+		}
+	});
+}
+
+function runWebpack(config, callback){
+	return gulp.src(_env.srcDir).pipe(webpackStream(config, webpack, (error, stats) =>{
+		error && log(error);
+
+		showStats(stats);
+
+		// resolve here in watch mode, otherwise stream would never end
+		config.watch && callback();
+	}));
+}
+
+function showStats(stats){
+	log(stats.toString({
+		colors: process.argv.indexOf('--dev') !== -1 ? true : false,
+		entrypoints: true,
+		excludeAssets: /(img|fonts)\//,
+		hash: false,
+		timings: true,
+		chunks: false,
+		chunkModules: false,
+		modules: false,
+		maxModules: 15,
+		children: false,
+		version: true,
+		cached: true,
+		cachedAssets: false,
+		reasons: false,
+		usedExports: true,
+		source: true,
+		errorDetails: true
+	}));
 }

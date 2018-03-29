@@ -4,7 +4,7 @@ const path = require('path'),
 	env = new function(){
 		this.PKG_NAME = 'tcmenu';
 
-		this.analyseBundle = process.argv.indexOf('--dev') !== -1 || false;
+		this.analyseBundle = process.env.ANALYSE_BUNDLE === 'true' || process.argv.indexOf('--dev') !== -1 || false;
 
 		this.timeStamp = Date.now();
 

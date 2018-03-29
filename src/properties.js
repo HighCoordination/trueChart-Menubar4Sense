@@ -316,22 +316,7 @@ function Properties(){
 			scope.state = state;
 			scope.condition = state.condition.qStringExpression ? state.condition.qStringExpression.qExpr : state.condition;
 			scope.onClose = (data) =>{
-				switch(data.type){
-					case 'apply':
-						angular.extend(state, data.state);
-						resolve(data.state);
-						if(!scope.$$phase){
-							try{
-								scope.$apply();
-							}catch(err){
-								console.log(err);
-							}
-						}
-						break;
-					case 'cancel':
-						reject();
-						break;
-				}
+				data.type === 'apply' ? resolve() : reject();
 			};
 
 			const compile = qvangular.getService('$compile'),
@@ -782,7 +767,7 @@ function Properties(){
 		defaultValue: "",
 		show: function (item) {
 			if(item.qDef.qSortCriterias[item.qDef.currentDim || 0].qExpression){
-				item.qDef.qExpression = item.qDef.qExpression || {qv: ''};
+				item.qDef.qExpression = item.qDef.qExpression ? item.qDef.qExpression : {qv: ''};
 				item.qDef.qExpression.qv = item.qDef.qSortCriterias[item.qDef.currentDim || 0].qExpression.qv;
 			}
 			return !item.qDef.autoSort && item.qDef.qSortByExpressionCheck;
@@ -2056,6 +2041,21 @@ function Properties(){
 		}
 	};
 
+	const hyperCubeModeSwitch = {
+		type: "string",
+		component: "switch",
+		label: translation.label.dimensionCalculation,
+		ref: "qHyperCubeDef.qMode",
+		options: [{
+			value: 'K',
+			label: translation.label.off
+		}, {
+			value: 'S',
+			label: translation.label.on
+		}],
+		defaultValue: 'K'
+	};
+
 	// *****************************************************************************
 	// Panel section
 	// *****************************************************************************
@@ -2097,7 +2097,8 @@ function Properties(){
 							calcCond: {
 								show: true
 							},
-							calcCondVar: calcCondVar
+							calcCondVar: calcCondVar,
+							hyperCubeModeSwitch,
 						}
 					}
 				}
@@ -2219,16 +2220,16 @@ function Properties(){
 								return data.appearance && data.appearance.displaySenseTitleBar === '2';
 							})
 						}
-					},
-					information: {
-						type: "items",
-						label: translation.label.information,
-						items: {
-							information: information
-						}
 					}
 				}
 			},
+			information: {
+				type: "items",
+				label: translation.label.information,
+				items: {
+					information: information
+				}
+			}
 //			repair: {
 //				type: "items",
 //				label: translation.label.repair,

@@ -133,11 +133,12 @@ export default class UpdateService {
 			needsUpdate(1, 0, 4) && updates.push(update104);
 			needsUpdate(1, 1, 0) && updates.push(migrate110) && updates.push(update110);
 			needsUpdate(1, 2, 0) && updates.push(update120);
+			needsUpdate(1, 2, 2) && updates.push(update122);
 
 			//!!!Important allways push the latest update when adding a new one
 			//Make sure that the update can be applied multiple times!!!
 			if(force && !updates.length){
-				updates.push(update120);
+				updates.push(update122);
 			}
 
 			return updates;
@@ -416,6 +417,20 @@ export default class UpdateService {
 					});
 				});
 			}
+
+			return Promise.resolve(updateObject);
+		}
+
+		/**
+		 * Updates for all extensions created before release 1.2.2
+		 *
+		 * @param {UpdateService_updateObject} updateObject - Update object containing all update related data
+		 *
+		 * @return {Promise<UpdateService_updateObject>} - Updated extension properties in a Promise
+		 */
+		function update122(updateObject){
+			updateObject.properties.qHyperCubeDef.qMode = 'K';
+			updateObject.properties.qHyperCubeDef.qMaxStackedCells = 0;
 
 			return Promise.resolve(updateObject);
 		}

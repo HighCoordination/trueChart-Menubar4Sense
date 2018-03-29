@@ -1,23 +1,12 @@
 const webpack = require('webpack'),
+	ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin'),
 	BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin,
-	UglifyJsPlugin = require('uglifyjs-webpack-plugin'),
 
 	_env = require('./env'),
-	_plugins = [
-		new webpack.EnvironmentPlugin({
-			NODE_ENV: _env.IS_PROD ? 'production' : 'development',
-		})
-	];
+	_plugins = [new ForkTsCheckerWebpackPlugin({
+		checkSyntacticErrors: true
+	})];
 
-if(_env.IS_PROD){
-	_plugins.push(
-		new UglifyJsPlugin({
-			test: /\.(js|ts|tsx)($|\?)/i,
-			parallel: true,
-			sourceMap: false
-		})
-	);
-}
 if(_env.analyseBundle){
 	_plugins.push(new BundleAnalyzerPlugin({
 		openAnalyzer: false,
@@ -26,6 +15,16 @@ if(_env.analyseBundle){
 }
 
 module.exports = {
+	mode: _env.IS_PROD ? 'production' : 'development',
+
+	optimization: {
+		minimize: _env.IS_PROD || _env.DO_UGLIFY,
+		splitChunks: {
+			name: _env.PKG_NAME,
+			minChunks: Infinity
+		}
+	},
+
 	entry: {
 		'tcmenu': `${_env.srcDir}/${_env.PKG_NAME}`
 	},
@@ -113,11 +112,11 @@ module.exports = {
 	},
 
 	resolve: {
-		extensions: ['.ts', '.tsx', '.js'],
+		extensions: ['.ts', '.tsx', '.js', '.less'],
 	},
 
 	// hide source code from source-map in production
-	devtool: _env.IS_PROD ? 'nosources-source-map' : 'cheap-module-eval-source-map',
+	devtool: _env.IS_PROD ? undefined : 'cheap-module-eval-source-map',
 
 	externals: {
 		'ng!$q': 'ng!$q',

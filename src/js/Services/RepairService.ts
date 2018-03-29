@@ -1,28 +1,28 @@
 import {Logger} from '../../lib/hico/logger';
 import {UtilService} from './UtilService';
+import {IListItem, TListItems, ISubItem, IButtonState} from '../../classes/IListItem';
+
+interface ITcMenuProperties {
+	listItems: TListItems
+}
 
 const _utilService = UtilService.getInstance();
 
-
 export class RepairService {
+	private static _instance: RepairService;
+
 	static getInstance(){
-		return this._instance || new RepairService();
+		if(!this._instance){
+			this._instance = new RepairService();
+		}
+		return this._instance;
 	}
 
-	_uniqueIds;
-	_errors;
-	_uniqueIdError;
+	private _uniqueIds: string[] = [];
+	private _errors: string[] = [];
+	private _uniqueIdError: boolean = false;
 
-	constructor(){
-
-		this._uniqueIds = [];
-		this._errors = [];
-		this._uniqueIdError = false;
-
-		RepairService._instance = this;
-	}
-
-	startRepair(properties){
+	public startRepair(properties: ITcMenuProperties){
 
 		this.initRepair();
 		this.parseIdsUnique(properties.listItems);
@@ -34,13 +34,13 @@ export class RepairService {
 		}
 	}
 
-	initRepair(){
+	private initRepair(){
 		this._uniqueIds = [];
 		this._errors = [];
 		this._uniqueIdError = false;
 	}
 
-	parseIdsUnique(listItems){
+	private parseIdsUnique(listItems: TListItems){
 		listItems.forEach(listItem =>{
 			this.checkUniqueIds(listItem.cId, listItem);
 
@@ -52,7 +52,7 @@ export class RepairService {
 				this.checkUniqueIds(subItem.cId, subItem);
 
 				subItem.stateItems && subItem.stateItems.forEach(stateItem =>{
-					this.checkUniqueIds(stateItem.cId, );
+					this.checkUniqueIds(stateItem.cId, stateItem);
 				});
 			});
 
@@ -66,7 +66,7 @@ export class RepairService {
 		});
 	}
 
-	checkUniqueIds(searchString, obj){
+	private checkUniqueIds(searchString: string, obj: IListItem | ISubItem | IButtonState){
 		if(!searchString){
 			this._uniqueIdError = true;
 			this.writeError('Object has no Id');
@@ -80,11 +80,11 @@ export class RepairService {
 		}
 	}
 
-	writeError(message){
+	private writeError(message: string){
 		this._errors.push(message);
 	}
 
-	logErrors(){
+	private logErrors(){
 
 		if(this._errors.length === 0){
 			Logger.warn('No Errors found in tcMenubar');

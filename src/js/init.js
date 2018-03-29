@@ -925,7 +925,7 @@ export function Extension(){
 			loadEditor().catch(err => Logger.error('Error ocurred while button-editor was loaded', err));
 		}
 
-		$scope.updateListItemsProps($scope.listItemsDub, $scope.layout.listItems, layout.qHyperCube.qDimensionInfo);
+		$scope.updateListItemsProps($scope.listItemsDub, $scope.layout.listItems, $scope.layout.qHyperCube.qDimensionInfo);
 		$scope.updateSelectionLabels();
 
 		if(!$scope.isPrinting){

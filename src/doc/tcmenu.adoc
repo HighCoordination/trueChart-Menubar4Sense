@@ -507,8 +507,18 @@ Use the _Calculation condition_ input box to define a Sense variable that is che
 .Calculation condition variable
 The _Calculation condition variable_ is the opposite of the _Calculation condition_: It is do define a variable that is set to `true` as soon as {tcmenu} initialized all the default selections you may have set in _Single Selects_ and to be used by other extensions supporting this _Data handling_ feature.
 
+.Dimension calculation
+The _Dimension calculation_ switch toggles the calculation for dimensions used in trueChart-Menubar.
+
+The Calculation is *disabled* by default, but in this mode it is not possible to use the same dimension multiple
+times.
+
+If you have to use multiple dimensions or if you have a drilldown dimension, which contains
+some dimensions, which are already in the dimension list, you have to *enable* the calculation.
+In this case you could have some performance drawbacks.
+
 .The calculation condition properties in the _Data handling_ section.
-image::calc-cond.png[calc-cond]
+image::calc-cond2.png[calc-cond]
 
 <<<
 == The _Appearance_ pane
@@ -723,6 +733,19 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 === {tcmenu} v{appversion}
 
 {docdate}
+
+* Features and Improvements
+** Disable calculations in tcmenus HyperCube [HICO-40853]
+
+[CAUTION]
+Properties updates can not be applied when the app is published! To upgrade {tcmenu} properly,
+you have to open the published app in a writable stream (i.e. by duplicating it),
+open a sheet containing the {tcmenu}, so that updates can be performed.
+Afterwards you can (re-)publish the updated app.
+
+=== {tcmenu} v1.2.1
+
+2018-02-09
 
 * Bugs
 ** Select sorting after migration to v1.2 not correct (custom expression is missing) [HICO-40731]

@@ -20,6 +20,7 @@ export default {
 
 
 		"calcCondVar": "Calculation variable other objects",
+		"calculations": "Calculations",
 		"center": "Center",
 		"colors": "Colors",
 		"condition": "Condition",
@@ -35,6 +36,7 @@ export default {
 
 		"descending": "Descending",
 		"dimension": "Dimension",
+		"dimensionCalculation": "Dimension calculation",
 		"dimensions": "Dimensions",
 		"dimensionTitel": "Dimension title",
 		"display": "Display",
@@ -87,6 +89,8 @@ export default {
 		"noIcon": "No icon",
 		"numeric": "Numeric",
 
+		"off": "Off",
+		"on": "On",
 		"orientation": "Orientation",
 
 		"panelHeight": "Panel height in pixel",

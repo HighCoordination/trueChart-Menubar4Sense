@@ -584,7 +584,7 @@ export class ActionService {
 								title: getTranslation('RELOAD_IN_PROGRESS'),
 								body: getTranslation('RELOAD_IS_RUNNING')
 							});
-							return qlikService.app.doReload(parseInt(params[0]), params[1]).then(function(){
+							return qlikService.doReload(parseInt(params[0]), params[1]).then(() =>{
 								setTimeout(function(){ $scope.close(); }, 1000); // Show the dialog for minimum 1s
 							}).catch(function(err){
 								console.warn('Error occurred during "reloadData" action', err);

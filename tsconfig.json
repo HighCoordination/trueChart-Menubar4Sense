@@ -12,6 +12,17 @@
         "lib": [
             "dom",
             "es6"
+        ],
+        "types": [
+            "react",
+            "react-dom"
         ]
-    }
+    },
+    "files": [
+        "./src/custom.d.ts",
+        "./src/tcmenu.js"
+    ],
+    "exclude": [
+        "./build/**/*"
+    ]
 }

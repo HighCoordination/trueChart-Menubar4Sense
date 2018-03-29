@@ -902,6 +902,21 @@ export class QlikService {
 		window.clearTimeout(_appsTimeouts[appId]);
 		window.setTimeout(() => this.closeApp(appId), _appClosingDelay);
 	}
+
+	/**
+	 * Reloads the data in a Qlik Sense app.
+	 *
+	 * @param {string} [mode] - Error handling Mode: 0 = default, 1 = attempt recovery on all errors, 2 = fail on all errors
+	 * @param {boolean} [partial] - Set to true for partial reload
+	 * @param {boolean} [debug] - Set to true if debug breakpoints are honored. Execution of the script will be in debug mode.
+	 */
+	doReload(mode, partial, debug){
+		return this.app.doReload(mode, partial, debug).then((resp) =>{
+			if(resp === true || typeof resp === 'object' && resp.qReturn === true){
+				return this.app.doSave();
+			}
+		});
+	}
 }
 
 /**

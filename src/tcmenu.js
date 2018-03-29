@@ -37,7 +37,9 @@ define([], function(){
 						qWidth: 0,
 						qHeight: 0
 					}
-				]
+				],
+				qMaxStackedCells: 0,
+				qMode: 'K',
 			},
 		},
 		definition: props,
