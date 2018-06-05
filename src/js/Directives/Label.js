@@ -8,6 +8,7 @@ define(['jquery', 'qvangular', '../../templates/label.html'], function($, qvangu
 				type: '=',
 				layout: '='
 			},
+			replace: true,
 			template: template
 		}
 	});

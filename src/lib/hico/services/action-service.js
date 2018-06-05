@@ -7,6 +7,7 @@ import {Toastr} from '../common/toastr';
 import {ConfigService} from './config-service';
 
 const qlikService = QlikService.getInstance(),
+	selectionProvider = qlikService.selectionProvider,
 	_configService = ConfigService.getInstance();
 
 export class ActionService {
@@ -172,38 +173,19 @@ export class ActionService {
 							email = params[6] || '',
 							emailSubject = params[7] || '',
 							emailBody = (params[8] || '').replace(/(\\n|<br>|<br\/>)/g, '\n'),
-							options = '',
-							selections = {},
+							options = clearSelections ? 'options/clearselections/' : '',
+							selections = currentSelections ? getCurrentSelectionsMap() : {},
 							selectionStr = '',
 							bookmark = '';
 
-						if(clearSelections){
-							options += 'options/clearselections/';
-						}
-
-						if(currentSelections){
-							// collect all current selections, to omit duplications in the url
-							qlikService.selectionProvider.getCurrentSelections().forEach(selection =>{
-								let list = selections[selection.fieldName];
-								if(!list){
-									list = selections[selection.fieldName] = [];
-								}
-								selections[selection.fieldName] = list.concat(selection.selectedValues.map(v => '[' + v + ']'));
-							});
-						}
-
 						optionalParams && optionalParams.forEach(param =>{
-							let fieldName, values, list;
+							let fieldName, values;
 							switch(param.type){
 								case 'selectValues':
 									fieldName = param.params[0];
 									values = param.params[1];
 									if(fieldName){
-										list = selections[fieldName];
-										if(!list){
-											list = selections[fieldName] = [];
-										}
-										selections[fieldName] = list.concat(values.split(';').map(v => '[' + v + ']'));
+										addSelections(selections, fieldName, values.split(';'));
 									}
 									break;
 								case 'applyBookmark':
@@ -218,7 +200,7 @@ export class ActionService {
 						const fieldNames = Object.keys(selections);
 						if(fieldNames.length){
 							selectionStr = fieldNames.reduce((str, fieldName) =>{
-								return str + `select/${encodeURIComponent(fieldName)}/${encodeURIComponent(selections[fieldName].join(';'))}/`;
+								return str + buildSelectionURL(fieldName, selections[fieldName]);
 							}, '');
 						}
 
@@ -270,24 +252,14 @@ export class ActionService {
 							email = params[1] || '',
 							emailSubject = params[2] || '',
 							emailBody = (params[3] || '').replace(/(\\n|<br>|<br\/>)/g, '\n'),
-							selections = {},
+							selections = getCurrentSelectionsMap(),
 							selectionStr = '';
-
-
-						// collect all current selections, to omit duplications in the url
-						qlikService.selectionProvider.getCurrentSelections().forEach(selection =>{
-							let list = selections[selection.fieldName];
-							if(!list){
-								list = selections[selection.fieldName] = [];
-							}
-							selections[selection.fieldName] = list.concat(selection.selectedValues.map(v => '[' + v + ']'));
-						});
 
 						// build selections string
 						const fieldNames = Object.keys(selections);
 						if(fieldNames.length){
 							selectionStr = fieldNames.reduce((str, fieldName) =>{
-								return str + `select/${encodeURIComponent(fieldName)}/${encodeURIComponent(selections[fieldName].join(';'))}/`;
+								return str + buildSelectionURL(fieldName, selections[fieldName]);
 							}, '');
 						}
 
@@ -332,7 +304,7 @@ export class ActionService {
 							if(!varName || keep && value){
 								return;
 							}
-							return qlikService.app.variable.setStringValue(varName, varContent);
+							return qlikService.setVariableStringValue(varName, varContent);
 						});
 					}
 				},
@@ -343,21 +315,20 @@ export class ActionService {
 					description: getTranslation('SELECTS_SPECIFIC_VALUES_IN_A_FIELD'),
 					parameters: ['fieldName', 'fieldValues', 'toggle', 'softLock', 'initial', 'additional'],
 					execute: function(params){
-						var field, engineApp, deferred,
-							fParams = getFieldParameters(params[0]),
+						var fParams = getFieldParameters(params[0]),
 							toggle = !!params[2],
 							softLock = !!params[3],
 							selectedValues = ActionService.getExistingSelectionValues(fParams.fieldName),
 							values = params[1].split(';').map(function(val){ return val.trim(); });
 
 						if(selectedValues.length > 0){
-							if(!toggle && values.every(value => selectedValues.indexOf(value) !== -1)){
+							if(!toggle && values.every(value => selectedValues.indexOf(value) !== -1) && values.length === selectedValues.length){
 								return; // no toggle defined and values are already selected, nothing more to select
 							}else if(params[4]){
 								return;
 							}else if(params[5]){
 								// Filter additional values
-								values = params[1].filter(function(val){ return selectedValues.indexOf(val) === -1; });
+								values = values.filter(function(val){ return selectedValues.indexOf(val) === -1; });
 								if(values.length === 0){
 									return; // Nothing to select
 								}else{
@@ -365,25 +336,11 @@ export class ActionService {
 								}
 							}
 						}
-						field = qlikService.app.field(fParams.fieldName);
-						engineApp = qlikService.app.model.engineApp;
-						deferred = qlik.Promise.defer();
 
-						// Get all field data for numeric values
-						fParams.isNumeric ? getFieldData(field, fieldDataFetched) : deferred.resolve(field);
-
-						return deferred.promise.then(function(field){ return Promise.all(values.map(function(value){
-							if((!fParams.isNumeric || fParams.isTimestamp || fParams.isDate) && value.indexOf("'") !== 0){
-								value = "'" + value + "'";
-								return engineApp.evaluateEx(value);
-							}else if(fParams.isNumeric){
-								field.rows.some(function(item){ // get exact number value
-									if(item.qText === value){
-										value = item.qNum;
-										return true;
-									}
-								});
-								return value;
+						return qlikService.getField(fParams.fieldName).then((field) => Promise.all(values.map((value) =>{
+							if(fParams.isNumeric){
+								// get exact number value
+								return getFieldValueAsNumber(field, value);
 							}else{
 								return value;
 							}
@@ -392,11 +349,32 @@ export class ActionService {
 								return value.qValue || value;
 							});
 
-							return field.selectValues(values, toggle, softLock);
-						});});
+							return selectionProvider.selectValues(fParams.fieldName, values, toggle, softLock);
+						}));
 
-						function fieldDataFetched(){
-							field.rowCount > field.rows.length ? getFieldData(field, fieldDataFetched) : deferred.resolve(field);
+						function getFieldValueAsNumber(field, value, rowIdx = 0){
+							const rows = field.rows;
+
+							// load data if no available before continue
+							if(rows.length === 0){
+								return new Promise((resolve) => getFieldData(field, () => resolve(getFieldValueAsNumber(field, value, rowIdx))));
+							}
+
+							// search for the value in fields rows
+							for(let i = rowIdx, len = rows.length; i < len; i++){
+								if(rows[i].qText === value){
+									return Promise.resolve(rows[i].qNum);
+								}
+							}
+
+							// load more data if possible and retry
+							if(rows.length < field.rowCount){
+								rowIdx = rows.length;
+								return new Promise((resolve) => getFieldData(field, () => resolve(getFieldValueAsNumber(field, value, rowIdx))));
+							}
+
+							// value not found
+							return Promise.resolve(value);
 						}
 					}
 				},
@@ -413,7 +391,7 @@ export class ActionService {
 							return;
 						}
 
-						return qlikService.app.field(fParams.fieldName).selectMatch(params[1], params[2]);
+						return selectionProvider.selectMatch(fParams.fieldName, params[1], params[2]);
 					}
 				},
 				'selectAlternative': {
@@ -424,7 +402,7 @@ export class ActionService {
 					parameters: ['fieldName', 'softLock'],
 					execute: function(params){
 						try{
-							return qlikService.app.field(getFieldParameters(params[0]).fieldName).selectAlternative(params[1]);
+							return selectionProvider.selectAlternative(getFieldParameters(params[0]).fieldName, params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -438,7 +416,7 @@ export class ActionService {
 					parameters: ['fieldName', 'softLock'],
 					execute: function(params){
 						try{
-							return qlikService.app.field(getFieldParameters(params[0]).fieldName).selectExcluded(params[1]);
+							return selectionProvider.selectExcluded(getFieldParameters(params[0]).fieldName, params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -452,7 +430,7 @@ export class ActionService {
 					parameters: ['fieldName', 'softLock'],
 					execute: function(params){
 						try{
-							return qlikService.app.field(getFieldParameters(params[0]).fieldName).selectPossible(params[1]);
+							return selectionProvider.selectPossible(getFieldParameters(params[0]).fieldName, params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -466,7 +444,7 @@ export class ActionService {
 					parameters: ['fieldName', 'softLock'],
 					execute: function(params){
 						try{
-							return qlikService.app.field(getFieldParameters(params[0]).fieldName).selectAll(params[1]);
+							return selectionProvider.selectAll(getFieldParameters(params[0]).fieldName, params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -480,7 +458,7 @@ export class ActionService {
 					parameters: ['fieldName'],
 					execute: function(params){
 						try{
-							return qlikService.app.field(getFieldParameters(params[0]).fieldName).clear();
+							return selectionProvider.clearField(getFieldParameters(params[0]).fieldName);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -494,7 +472,7 @@ export class ActionService {
 					parameters: ['fieldName', 'softLock'],
 					execute: function(params){
 						try{
-							return qlikService.app.field(getFieldParameters(params[0]).fieldName).clearOther(params[1]);
+							return selectionProvider.clearOther(getFieldParameters(params[0]).fieldName, params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -508,7 +486,7 @@ export class ActionService {
 					parameters: ['lockedAlso'/*, 'alternateState'*/], // don't know how to deal with "alternateState", so don't use it...
 					execute: function(params){
 						try{
-							return qlikService.app.clearAll(params[0], params[1]);
+							return qlikService.clearAll(params[0], params[1]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -522,7 +500,7 @@ export class ActionService {
 					parameters: ['fieldName'],
 					execute: function(params){
 						try{
-							return qlikService.app.field(getFieldParameters(params[0]).fieldName).lock();
+							return selectionProvider.lockField(getFieldParameters(params[0]).fieldName);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -533,10 +511,24 @@ export class ActionService {
 					name: 'lockAll',
 					label: getTranslation('LOCK_ALL'),
 					description: getTranslation('LOCKS_ALL_SELECTIONS'),
-					parameters: ['lockedAlso'/*, 'alternateState'*/],
+					parameters: [/*'alternateState'*/ 'none'],
 					execute: function(params){
 						try{
-							return qlikService.app.lockAll(params[0]);
+							return qlikService.lockAll(/*params[0]*/);
+						}catch(e){
+							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
+						}
+					}
+				},
+				'unlockField': {
+					type: 'Sense',
+					name: 'unlockField',
+					label: getTranslation('UNLOCK_FIELD'),
+					description: getTranslation('UNLOCKS_FIELD_SELECTIONS'),
+					parameters: ['fieldName'],
+					execute(params){
+						try{
+							return qlikService.unlockField(params[0]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -550,7 +542,7 @@ export class ActionService {
 					parameters: [/*'alternateState'*/ 'none'],
 					execute: function(params){
 						try{
-							return qlikService.app.unlockAll(params[0]);
+							return qlikService.unlockAll(/*params[0]*/);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -564,7 +556,7 @@ export class ActionService {
 					parameters: ['bookmarkId'],
 					execute: function(params){
 						try{
-							return qlikService.app.bookmark.apply(params[0]);
+							return qlikService.applyBookmark(params[0]);
 						}catch(e){
 							console.warn("Action:", this.name, "| Parameters:", this.parameters.toString(), "| Value:", params, "| Error:", e);
 						}
@@ -615,7 +607,8 @@ export class ActionService {
 					supportedTriggers: ['click'],
 					parameters: ['fullScreenExpression'],
 					execute: function(params){
-						var fullscreen = ActionService.isTrue(typeof params[0] !== 'undefined' ? params[0] : !inFullScreen());
+						// In this case an empty string must be treated as undefined/not set -> auto toggle
+						const fullscreen = QlikService.isTrueCondition(params[0] !== undefined && params[0] !== '' ? params[0] : !inFullScreen());
 
 						toggleFullScreen(fullscreen);
 
@@ -1182,13 +1175,14 @@ export class ActionService {
 
 		/**
 		 * Get data of a given field
-		 * @param field Field object
-		 * @param callback Callback, which will be executed on data
+		 * @param {Object} field - Field object
+		 * @param {Function} callback - Callback, which will be executed on data
+		 * @param {number} [rows] - Data rows to fetch (default: 10000 maximum possible data fetch)
 		 */
-		function getFieldData(field, callback){
+		function getFieldData(field, callback, rows = 10000){
 			field.OnData.once(callback);
 			if(field.rows.length === 0){
-				field.getData({rows: 10000}); // try to get as much data as possible on first request
+				field.getData({rows});
 			}else if(field.rowCount > field.rows.length){
 				field.getMoreData();
 			}else{
@@ -1315,17 +1309,14 @@ export class ActionService {
 	}
 
 	static getExistingSelectionValues(fieldName){
-		var existingSelections = qlikService.app.selectionState().selections.filter(function(selection){
-			return selection.fieldName === fieldName;
-		});
+		const currentSelections = selectionProvider.getCurrentSelections();
 
-		if(existingSelections.length > 0){
-			return existingSelections[0].selectedValues.map(function(value){
-				return value.qName;
-			});
-		}else{
-			return []; // No existing selections found
+		for(const selection of currentSelections){
+			if(selection.fieldName === fieldName){
+				return selection.selectedValues;
+			}
 		}
+		return []; // No existing selections found
 	}
 
 	/**
@@ -1363,14 +1354,6 @@ export class ActionService {
 	 */
 	static performCustomTrigger(name, data){
 		qvangular.$rootScope.$broadcast('performCustomTrigger', {name: name, data: data});
-	}
-
-	static isTrue(condition){
-		condition  = condition.toString().toLowerCase();
-		return condition === ''
-			|| condition === 'true'
-			|| condition === '1'
-			|| condition === '-1';
 	}
 
 	/**
@@ -1457,4 +1440,58 @@ export class ActionService {
 		}
 		return Promise.resolve();
 	}
+}
+
+/**
+ * Collects current selections and returns them as a collection
+ *
+ * @return {object} - Selection collection with fieldName as key and selected values as value
+ */
+function getCurrentSelectionsMap(){
+	return selectionProvider.getCurrentSelections().reduce((selections, selection) =>{
+		return addSelections(selections, selection.fieldName, selection.selectedValues);
+	}, {});
+}
+
+/**
+ * Adds selections to given selection map
+ *
+ * @param {object} selectionsMap - Selection map with fieldName as key and selected values in array as value
+ * @param {string} fieldName
+ * @param {string[]} selectedValues
+ *
+ * @return {object} - Returns the selectionMap
+ */
+function addSelections(selectionsMap, fieldName, selectedValues){
+	let list = selectionsMap[fieldName];
+	if(!list){
+		list = selectionsMap[fieldName] = [];
+	}
+	selectionsMap[fieldName] = list.concat(selectedValues.map(encodeSelectionValue));
+
+	return selectionsMap;
+}
+
+/**
+ * Encodes the selection value for document chaining
+ *
+ * @param {string} value
+ *
+ * @return {string}
+ */
+function encodeSelectionValue(value){
+	return '[' + encodeURIComponent(value) + ']';
+}
+
+/**
+ * Builds the selection url for document chaining
+ *
+ * @param {string} fieldName
+ * @param {string[]} selectedValues
+ *
+ * @return {string}
+ */
+function buildSelectionURL(fieldName, selectedValues){
+	// we must encode fieldName twice, because sense decodes it also twice and otherwise fieldName containing '/' would break the url
+	return `select/${encodeURIComponent(encodeURIComponent(fieldName))}/${encodeURIComponent(selectedValues.join(';'))}/`;
 }

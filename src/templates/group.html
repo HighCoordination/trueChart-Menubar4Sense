@@ -18,6 +18,15 @@
                 <variabledropdown title="{{groupItem.props.tooltip}}" ng-if="groupItem.type==='Variable Dropdown'" item="groupItem" listitems="item.groupItems"
                                   itemindex="$first" parentscope="parentscope"></variabledropdown>
 
+                <datepicker id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Date Picker'" item="groupItem"
+                            itemindex="$index" first-item="$first" parentscope="parentscope"></datepicker>
+
+				<variableinput id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Variable Input'"
+								item="groupItem" itemindex="$index" first-item="$first" parentscope="parentscope"></variableinput>
+
+                <variableslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Variable Slider'"
+                               item="groupItem" itemindex="$index" first-item="$first" parentscope="parentscope"></variableslider>
+
                 <div class="hico-relative" ng-if="groupItem.type==='Button'" change-background item="groupItem" colors="colors"
                      ng-style="
 					!groupItem.props.isCustomSize && { 'height': '56px', 'background-color': 'rgba(1,1,1,0)' , 'color': colors.textColor}
@@ -50,9 +59,9 @@
             </div>
         </button>
 
-        <div id="panel_{{itemId}}" class="hico-panel-scrollcontainer tcmenu-scrollable"
+        <div id="panel_{{itemId}}" class="hico-panel-scrollcontainer tcmenu-scrollable hico-select-panel-horizontal-container"
              ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')"  ng-show="item.show"
-             ng-style="{ 'transform' : 'translate( ' + panelDropdownOffset + 'px,-1px)', 'background-color' : colors.backgroundColor}">
+             ng-style="{ 'top' : panelDropdownOffsetY + 'px', 'left':panelDropdownOffsetX + 'px', 'background-color' : colors.backgroundColor}">
             <div  class="hico-panel-horizontal" ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')" scrollable
                   ng-style="{'background-color': colors.backgroundColor}">
                 <div  class="hico-selectdropdownitem" ng-repeat="groupItem in item.groupItems" title="{{dropdownItem.props.tooltip}}"
@@ -61,6 +70,15 @@
 
                     <variabledropdown title="{{groupItem.props.tooltip}}" ng-if="groupItem.type==='Variable Dropdown'" item="groupItem" listitems="item.groupItems"
                                       itemindex="$first" parentscope="parentscope" groupitem="true"></variabledropdown>
+
+                    <datepicker id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Date Picker'" item="groupItem"
+                                itemindex="$index" first-item="$first" parentscope="parentscope" groupitem="true"></datepicker>
+
+                    <variableinput id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Variable Input'"
+                                    item="groupItem" groupitem="true" itemindex="$index" first-item="$first" parentscope="parentscope"></variableinput>
+
+                    <variableslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Variable Slider'"
+                                    item="groupItem" groupitem="true" itemindex="$index" first-item="$first" parentscope="parentscope"></variableslider>
 
                     <div class="hico-relative" ng-if="groupItem.type==='Button'" change-background item="groupItem" colors="colors" groupitem="true"
                          ng-style="

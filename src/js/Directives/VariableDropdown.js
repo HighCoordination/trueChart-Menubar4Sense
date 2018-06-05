@@ -1,3 +1,5 @@
+import {UtilService} from '../Services/UtilService';
+
 define(['jquery', 'qlik', 'qvangular', '../../templates/variableDropdown.html'], function($, qlik, qvangular, template){
 
 	return qvangular.directive('variabledropdown', [
@@ -9,7 +11,7 @@ define(['jquery', 'qlik', 'qvangular', '../../templates/variableDropdown.html'],
 					itemindex: '<',
 					listitems: '<',
 					groupitem: '<',
-					parentscope: '<',
+					parentscope: '=',
 				},
 				replace: true,
 				template: template,
@@ -18,7 +20,6 @@ define(['jquery', 'qlik', 'qvangular', '../../templates/variableDropdown.html'],
 					$scope.colors = $scope.parentscope.colors;
 					$scope.itemId = $scope.layout.qInfo.qId + '-' + $scope.item.cId;
 					$scope.utilService = utilService;
-					$scope.panelDropdownOffset = 0;
 
 					$scope.appearance = $scope.layout.appearance;
 
@@ -26,16 +27,19 @@ define(['jquery', 'qlik', 'qvangular', '../../templates/variableDropdown.html'],
 						$scope.itemId = $scope.layout.qInfo.qId + '-' + $scope.item.cId;
 					});
 
-					$scope.handleDropdown = function(item, itemindex){
+					$scope.handleDropdown = function(item){
 						if(qlik.navigation.getMode() !== "edit"){
 
 							utilService.closeMenus($scope.listitems, $scope.item.cId);
 
 							item.show = !item.show;
+							$scope.parentscope.menuOpen = true;
 
 							if($scope.appearance.orientation === 'btn-inline' && $scope.utilService.screenWidth > 767 && !$scope.groupitem){
-								$scope.panelDropdownOffset = utilService.getDropdownOffset($element);
-								$element.find('#panel_' + $scope.itemId).width($element[0].clientWidth);
+								const panel = $element.find('#panel_' + $scope.itemId);
+								UtilService.setPanelOffsets($scope, $element, panel);
+
+								panel.width($element[0].clientWidth);
 
 								if(item.show){
 									$element.parents("article").css("z-index", 2);
@@ -50,6 +54,7 @@ define(['jquery', 'qlik', 'qvangular', '../../templates/variableDropdown.html'],
 
 					$scope.closeDropdown = function(item){
 						item.show = false;
+						$scope.parentscope.menuOpen = false;
 					};
 
 					$scope.handleAction = function(item){

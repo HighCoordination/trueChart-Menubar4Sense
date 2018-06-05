@@ -13,7 +13,7 @@ export class ListItem {
 	 * @return {Array} - Select items in an array
 	 */
 	static getSelectItems(listItems: LI.TListItems){
-		const selectTypes = ['Single Select', 'Sense Select', 'Group'];
+		const selectTypes = ['Single Select', 'Sense Select', 'Group', 'Date Picker'];
 
 		return (listItems || [])
 			.filter(item => selectTypes.indexOf(item.type) !== -1)
@@ -36,20 +36,41 @@ export class ListItem {
 	 * @param {TListItems} listItems - Extensions $scope
 	 * @param {string} dimId - cId of target dimension
 	 * @param {boolean} [ignoreShowCondition] - if true showCondition will not be respected
+	 * @param {any} [qListObject] - qListObject of the dimension
 	 *
 	 * @return {*}
 	 */
-	static getDefaultSelection(listItems: LI.TListItems, dimId: string, ignoreShowCondition?: boolean){
+	static getDefaultSelection(listItems: LI.TListItems, dimId: string, ignoreShowCondition?: boolean, qListObject?: any){
 		let defaultSelection = null;
 
 		// get the first list item, which uses current dimension
 		const selectItem = ListItem.getSelectItems(listItems).filter(item =>{
-			return item.props.dimId === dimId && item.props.alwaysSelectValue
+			return item.props.dimId === dimId && (item.props.alwaysSelectValue)
 				&& (ignoreShowCondition || _utilService.checkExpressionCondition(item.showCondition));
 		})[0];
 
 		if(selectItem){
-			defaultSelection = selectItem.props.selectValue;
+			if(selectItem.type === 'Date Picker' && selectItem.props.date.type === 'range'){
+				let dateProps = selectItem.props.date,
+					startDate = new Date(UtilService.stringToDate(dateProps.defaultStartDate, dateProps.format)),
+					endDate = new Date(UtilService.stringToDate(dateProps.defaultEndDate, dateProps.format));
+
+				if(isNaN(startDate.getDate()) || isNaN(endDate.getDate())){
+					return null;
+				}
+
+				const format = dateProps.format === 'custom' ? dateProps.customFormat : dateProps.format;
+
+				defaultSelection = UtilService.getItemIndexArray(_utilService.getDates(startDate, endDate, format), qListObject, format);
+
+				if(defaultSelection.length < 1){
+					return null;
+				}
+			}else if(selectItem.type === 'Date Picker'){
+				defaultSelection = selectItem.props.date.defaultStartDate;
+			}else{
+				defaultSelection = selectItem.props.selectValue;
+			}
 		}
 
 		return defaultSelection;

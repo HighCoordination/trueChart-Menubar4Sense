@@ -45,8 +45,8 @@
 				<labeldirective item="item" type="'Sense Select'" layout="layout"></labeldirective>
 			</div>
 		</button>
-		<div class="hico-select-panel-horizontal-container" ng-show="item.show" ng-mouseover="mouseOver()" ng-mouseleave="mouseLeave()"
-			 ng-style="{ 'transform' : 'translate( ' + panelDropdownOffset + 'px,-1px)'}">
+		<div id="panel_container_{{itemId}}" class="hico-select-panel-horizontal-container" ng-show="item.show" ng-mouseover="mouseOver()"
+			 ng-mouseleave="mouseLeave()" ng-style="{ 'top' : panelDropdownOffsetY + 'px', 'left':panelDropdownOffsetX + 'px'}">
 			<div class="hico-select-toolbar hico-bottom-seperator"
 				 ng-show="parentscope._listObjects[item.props.dimId].layout.qListObject.qDimensionInfo.qGroupFieldDefs.length > 1">
 				<div class="hico-select-item">

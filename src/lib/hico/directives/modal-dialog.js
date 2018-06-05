@@ -1,10 +1,10 @@
 import {prefix} from '../prefix';
+import {AngularService} from '../services/AngularService';
 
 define([
 	'qvangular',
-	'ng!$compile',
 	'./modal-dialog.html'
-], function(qvangular, $compile, template){
+], function(qvangular, template){
 	qvangular.directive(prefix + 'ModalDialog', Modal);
 
 	/**
@@ -25,7 +25,7 @@ define([
 		scope.footer = opts.footer;
 		scope.buttons = opts.buttons;
 		template = '<' + prefix + '-modal-dialog class="hico-lui hico-fa"></' + prefix + '-modal-dialog>';
-		element = $compile(template)(scope);
+		element = AngularService.$compile(template)(scope);
 		document.body.appendChild(element[0]);
 	};
 

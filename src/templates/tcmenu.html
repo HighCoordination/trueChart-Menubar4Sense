@@ -22,8 +22,17 @@
 				<group id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Group'" item="item" listitems="listItemsDub"
 						  itemindex="$index" first-item="$first" parentscope="this"></group>
 
+                <datepicker id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Date Picker'" item="item"
+                       itemindex="$index" first-item="$first" parentscope="this"></datepicker>
+
 				<variabledropdown title="{{item.props.tooltip}}" ng-if="item.type==='Variable Dropdown'" item="item" listitems="listItemsDub"
 								  itemindex="$first" parentscope="this"></variabledropdown>
+
+				<variableinput title="{{item.props.tooltip}}" ng-if="item.type==='Variable Input'" item="item" listitems="listItemsDub"
+								  itemindex="$first" parentscope="this"></variableinput>
+
+				<variableslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Variable Slider'" item="item"
+							itemindex="$index" first-item="$first" parentscope="this"></variableslider>
 
 				<div class="hico-relative" ng-if="item.type==='Button'" change-background item="item" colors="colors"
 					 ng-style="
@@ -64,6 +73,9 @@
 		<group class="hico-item-horizontal" title="{{item.props.tooltip}}" ng-if="item.type==='Group'"
 			   item="item" itemindex="$index" first-item="$first" listitems="listItemsDub" parentscope="this"></group>
 
+        <datepicker id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Date Picker'" item="item"
+                    itemindex="$index" first-item="$first" parentscope="this"></datepicker>
+
 		<div class="hico-relative hico-fullHeight" ng-if="item.type==='Button'" change-background item="item" colors="colors"
 				ng-style="{'background-color': 'rgba(1,1,1,0)', 'color': layout.appearance.textColor}">
 			<div data-tcmenu-button id="item_{{layout.qInfo.qId}}-{{item.cId}}" states="item.stateItems"
@@ -73,6 +85,12 @@
 
 		<variabledropdown title="{{item.props.tooltip}}" ng-if="item.type==='Variable Dropdown'" item="item" listitems="listItemsDub"
 						  itemindex="$first" parentscope="this"></variabledropdown>
+
+		<variableinput id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Variable Input'" item="item"
+						itemindex="$index" first-item="$first" parentscope="this"></variableinput>
+
+		<variableslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Variable Slider'" item="item"
+						itemindex="$index" first-item="$first" parentscope="this"></variableslider>
 
 		<singleselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Single Select'" item="item"
 					  type="item.type" listitems="listItemsDub" parentscope="this"></singleselect>

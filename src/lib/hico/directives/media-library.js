@@ -2,16 +2,15 @@ import {prefix} from '../prefix';
 import {QlikService, qlik} from '../services/qlik-service';
 import {MediaService} from '../services/media-service';
 import {getTranslation} from '../translations/translation';
+import {AngularService} from '../services/AngularService';
 
 define([
 	'require',
 	'qvangular',
-	'ng!$compile',
-	'ng!$timeout',
 	'./media-library.html',
 	'./modal-dialog',
 	'leonardo-ui'
-], function(require, qvangular, $compile, $timeout, template, Modal, leonardoui){
+], function(require, qvangular, template, Modal, leonardoui){
 
 	const _qlikService = QlikService.getInstance();
 	const _mediaService = !QlikService.isPrinting() ? MediaService.getInstance(qlik.currApp().id) : {};
@@ -52,7 +51,7 @@ define([
 		scope.onCancel = opts.onCancel;
 		scope.mediaUrl = opts.mediaUrl;
 		template = '<' + prefix + '-media-library on-confirm="onConfirm(url)" on-cancel="onCancel()" media-url="mediaUrl"></' + prefix + '-media-library>';
-		element = $compile(template)(scope);
+		element = AngularService.$compile(template)(scope);
 		document.body.appendChild(element[0]);
 	};
 
@@ -190,7 +189,7 @@ define([
 					fragment.appendChild(div);
 				});
 
-				$timeout(function(){
+				AngularService.$timeout(function(){
 					$filesPreview.empty();
 					$filesPreview.append(fragment);
 				});
@@ -233,7 +232,7 @@ define([
 		this.addFromUrl = function(url){
 			addUrls([url], false).then(resolveConflicts).then(function(mediaItems){
 				let url = mediaItems && mediaItems.length && mediaItems[mediaItems.length - 1].tcMedia.url;
-				$timeout(function(){
+				AngularService.$timeout(function(){
 					updateMediaItems(url);
 					$scope.importUrl = '';
 				});
@@ -250,7 +249,7 @@ define([
 
 			addFiles(files, false).then(resolveConflicts).then(function(mediaItems){
 				let url = mediaItems && mediaItems.length && mediaItems[mediaItems.length - 1].tcMedia.url;
-				$timeout(function(){
+				AngularService.$timeout(function(){
 					updateMediaItems(url);
 					_this.elements.$fileInput.get(0).value = '';
 					_this.elements.$filesPreview.empty();
@@ -265,7 +264,7 @@ define([
 			let fileInput = evt.target,
 				files = fileInput.files;
 
-			$timeout(function(){
+			AngularService.$timeout(function(){
 				if(files.length){
 					_this.importFilesInputString = files.length === 1 ? files[0].name : (files.length + ' ' + $scope.trans('FILES'));
 					_this.previewFiles(files);
@@ -298,7 +297,7 @@ define([
 
 		function showBIMediaLibrary(){
 			require(['general.services/media-library/media-library'], function(BIMediaLibrary){
-				$timeout(function(){
+				AngularService.$timeout(function(){
 					let prevState = $scope.state;
 					setState(STATES.HIDDEN);
 					BIMediaLibrary.show({
@@ -415,13 +414,13 @@ define([
 			let trans = $scope.trans;
 
 			renameMediaItem(mediaItem).then(function(renamedItem){
-				$timeout(function(){
+				AngularService.$timeout(function(){
 					_this.previewMedia(renamedItem.tcMedia);
 					setState(STATES.DEFAULT);
 				});
 			}).catch(function(err){
 				if(err && err.code === 409){
-					$timeout(function(){
+					AngularService.$timeout(function(){
 						Modal.show({
 							title: trans('ATTENTION'),
 							body: trans('MEDIA_ALREADY_EXISTS'),
@@ -429,7 +428,7 @@ define([
 						});
 					});
 				}else if(err === false){
-					$timeout(function(){
+					AngularService.$timeout(function(){
 						setState(STATES.DEFAULT);
 					});
 				}else{
@@ -488,7 +487,7 @@ define([
 					[].slice.apply(popover.element.querySelectorAll('[data-add-media]')).forEach(function(element){
 						element.addEventListener('click', function(){
 							let source = this.getAttribute('data-add-media');
-							$timeout(function(){
+							AngularService.$timeout(function(){
 								addMedia(source);
 							});
 							popover.close();
@@ -599,7 +598,7 @@ define([
 					return;
 				}
 
-				$timeout(function(){
+				AngularService.$timeout(function(){
 					let rejected = rejectedItems.map(function(item){
 						return item.name || item;
 					}).join('\',<br> \'');
@@ -655,7 +654,7 @@ define([
 					$scope.currentItem = null;
 				}
 
-				$timeout(function(){
+				AngularService.$timeout(function(){
 					if(previewItem){
 						// default case
 						setState(STATES.DEFAULT);

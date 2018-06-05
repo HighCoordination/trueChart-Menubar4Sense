@@ -1,3 +1,4 @@
+// tslint:disable:object-literal-key-quotes
 export default {
 	"ACTION": "Aktion",
 	"ACTIONS": "Aktionen",
@@ -123,7 +124,6 @@ export default {
 	"HELP_EDIT_GRID_PROPERTIES": "Eigenschaften des Grids bearbeiten",
 	"HELP_EDIT_INNER_GRID": "Inneres Grid auswählen",
 	"HELP_EDIT_OUTER_GRID": "Äußeres Grid auswählen",
-	"HELP_EDIT_SETTINGS": "Öffnet den Settings-Editor um diese zu bearbeiten",
 	"HELP_EMAIL_BODY_PARAMETER": "Verwende {0} als Platzhalter für den generierten Link. Zum Beispiel:\nHallo,\n"
 	+ "hier ist der Link zur App: {0}\nViele Grüße!",
 	"HELP_GOTO_APP_TARGET": "Navigationsziel der 'Navigiere zur App' Aktion",
@@ -171,7 +171,6 @@ export default {
 	"LAYOUT_DIMENSIONTYPE_WEIGHTED": "Gewicht",
 	"LAYOUT_EDITGRID_CAPTION": "Grid bearbeiten",
 	"LAYOUT_EDITLEGACY_CAPTION": "Inhalt bearbeiten",
-	"LAYOUT_EDITSETTINGS_CAPTION": "Settings bearbeiten",
 	"LAYOUT_EMPTYCELL_CONTENT_CAPTION": "Leer",
 	"LAYOUT_CELLTYPE_EMPTY_CAPTION": "Leer",
 	"LAYOUT_CELLTYPE_GRID_CAPTION": "Grid",
@@ -302,8 +301,10 @@ export default {
 	"TRUECHART_EXTENSION_WHICH_SHOULD_PERFORM_THE_ACTION": "trueChart Objekt, welches die Aktion ausführen soll.",
 	"TRUECHART_MEDIA_LIBRARY": "trueChart Medienbibliothek",
 	"TYPE": "Art",
-	"UNLOCK_ALL": "Freischalten",
-	"UNLOCKS_ALL_SELECTIONS_THAT_HAS_PREVIOUSLY_BEEN_LOCKED": "Schalte alle Selektionen frei, die bisher gesperrt wurden.",
+	"UNLOCK_ALL": "Alle entsperren",
+	"UNLOCKS_ALL_SELECTIONS_THAT_HAS_PREVIOUSLY_BEEN_LOCKED": "Entsperrt alle Selektionen, die bisher gesperrt wurden.",
+	"UNLOCK_FIELD": "Feld entsprerren",
+	"UNLOCKS_FIELD_SELECTIONS": "Entsperrt die Selektionen eines bestimmtes Feldes, die bisher gesperrt wurden",
 	"URL": "URL",
 	"URL_OF_THE_WEBSITE": "URL der Webseite",
 	"UPLOAD_MEDIA": "Medien hochladen",

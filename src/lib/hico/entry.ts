@@ -5,8 +5,8 @@
 import './polyfills';
 
 // require modules which shouldn't be included in every chunk (if required by chunks modules) but in entry chunk only
-//require.include('react');
-//require.include('react-dom');
+require.include('react');
+require.include('react-dom');
 
 export const EXTENSION_NAME = '##EXTENSION_NAME##';
 

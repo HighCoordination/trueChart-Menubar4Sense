@@ -1,6 +1,8 @@
 import {Logger} from '../../lib/hico/logger';
 import {QlikService} from '../../lib/hico/services/qlik-service';
 import {ListItem} from '../../classes/ListItem';
+import {UtilService} from '../Services/UtilService';
+import {$timeout} from '../Services/AngularService';
 
 define([
 	'qvangular',
@@ -19,19 +21,18 @@ define([
 					type: '<',
 					listitems: '=',
 					multiid: '<',
-					parentscope: '<',
+					parentscope: '=',
 					groupitem: '<',
 				},
 				replace: true,
 				template: template,
-				controller: ['$scope', '$element', '$timeout', '$window', function($scope, $element, $timeout, $window){
+				controller: ['$scope', '$element', function($scope, $element){
 					$scope.layout = $scope.parentscope.layout;
 					$scope.colors = $scope.parentscope.colors;
 					$scope.itemId = $scope.layout.qInfo.qId + '-' + $scope.item.cId;
 					$scope.utilService = utilService;
 					$scope.activeItem = null;
 					$scope.showDimPopover = false;
-					$scope.panelDropdownOffset = 0;
 
 					$scope.$watch('item.cId', function() {
 						$scope.itemId = $scope.layout.qInfo.qId + '-' + $scope.item.cId;
@@ -53,13 +54,15 @@ define([
 							if(!item.show){
 								utilService.closeMenus($scope.listitems, $scope.item.cId);
 
+								$scope.parentscope.menuOpen = true;
 								item.show = !item.show;
-								item.isOpen = !item.isOpen;
 								item.alignement = utilService.checkNumeric(item);
 
 								if($scope.layout.appearance.orientation==='btn-inline' && utilService.screenWidth > 767 && !$scope.groupitem){
-									$scope.panelDropdownOffset = utilService.getDropdownOffset($element);
-									$element.find('#panel_container_' + $scope.itemId).width($element[0].clientWidth);
+									const panelConatiner = $element.find('#panel_container_' + $scope.itemId);
+									UtilService.setPanelOffsets($scope, $element, panelConatiner);
+
+									panelConatiner.width($element[0].clientWidth);
 
 									if(item.show){
 										$element.parents("article").css("z-index", 2);
@@ -68,8 +71,8 @@ define([
 
 								utilService.handleMenuScroll($scope.itemId);
 							}else{
+								$scope.parentscope.menuOpen = false;
 								item.show = !item.show;
-								item.isOpen = !item.isOpen;
 							}
 
 							let offset = 0;
@@ -90,7 +93,6 @@ define([
 
 							$timeout(function() {
 								$element.find("#panel_" + $scope.itemId).scrollTop(offset);
-
 							});
 
 						}
@@ -114,10 +116,10 @@ define([
 
 					$scope.closeDropdown = function(item){
 						item.show = false;
-						item.isOpen = false;
 
+						$scope.parentscope.menuOpen = false;
 						$scope.selectValues = null;
-						$window.removeEventListener('click', clickevent);
+						window.removeEventListener('click', clickevent);
 						$scope.showDimPopover = false;
 					};
 
@@ -144,7 +146,7 @@ define([
 							$scope.parentscope._listObjects[$scope.item.props.dimId].drillUp('/qListObjectDef',0,1);
 						}
 
-						$window.removeEventListener('click', clickevent);
+						window.removeEventListener('click', clickevent);
 						$scope.showDimPopover = false;
 					};
 
@@ -153,7 +155,7 @@ define([
 						$scope.fields = dimInfo.qGroupFieldDefs.slice(0, dimInfo.qGroupPos);
 
 						if(!$scope.showDimPopover && $scope.fields.length > 0){
-							$window.addEventListener('click', clickevent);
+							window.addEventListener('click', clickevent);
 						}
 					};
 
@@ -161,7 +163,7 @@ define([
 						e.stopPropagation();
 						let target = $(e.target);
 						if($scope.showDimPopover && !target.hasClass('hico-popover-evt')){
-							$window.removeEventListener('click', clickevent);
+							window.removeEventListener('click', clickevent);
 							$scope.$apply(()=> $scope.showDimPopover = false);
 						}else if(!$scope.showDimPopover){
 							$scope.showDimPopover = true;

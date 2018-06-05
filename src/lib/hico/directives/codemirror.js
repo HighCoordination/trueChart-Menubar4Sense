@@ -1,16 +1,16 @@
 import {prefix} from '../prefix';
+import {AngularService} from '../services/AngularService';
 
 define([
 	'qvangular',
 	'angular',
-	'ng!$timeout',
 	'codemirror/lib/codemirror',
 	'codemirror/mode/javascript/javascript',
 	'codemirror/mode/css/css',
 	'codemirror/addon/display/autorefresh',
 	'codemirror/addon/display/placeholder'
 
-], function(qvangular, angular, $timeout, CodeMirror){
+], function(qvangular, angular, CodeMirror){
 
 	const directiveName = prefix + 'Codemirror';
 
@@ -73,7 +73,7 @@ define([
 				codemirrorOptions.onLoad(codemirror);
 			}
 
-			$timeout(() => codemirror.refresh());
+			AngularService.$timeout(() => codemirror.refresh());
 		}
 
 		/**
@@ -189,7 +189,7 @@ define([
 			scope.$watch(uiRefreshAttr, function(newVal, oldVal){
 				// Skip the initial watch firing
 				if(newVal !== oldVal){
-					$timeout(function(){
+					AngularService.$timeout(function(){
 						codeMirror.refresh();
 					});
 				}

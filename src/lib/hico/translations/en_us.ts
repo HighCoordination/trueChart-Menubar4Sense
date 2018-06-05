@@ -1,3 +1,4 @@
+// tslint:disable:object-literal-key-quotes
 export default {
 	"ACTION": "Action",
 	"ACTIONS": "Actions",
@@ -121,7 +122,6 @@ export default {
 	"HELP_EDIT_GRID_PROPERTIES": "Edit grid properties",
 	"HELP_EDIT_INNER_GRID": "Select inner grid",
 	"HELP_EDIT_OUTER_GRID": "Select outer grid",
-	"HELP_EDIT_SETTINGS": "Opens the settings editor for editing them",
 	"HELP_EMAIL_BODY_PARAMETER": "Use {0} as a placeholder for the generated link. For example:\n Hello,\n"
 	+ "here is the link to the app: {0} \nBest regards!",
 	"HELP_GOTO_APP_TARGET": "Specify the target of the 'go to app' action",
@@ -179,7 +179,6 @@ export default {
 	"LAYOUT_DIMENSIONTYPE_WEIGHTED": "Weight",
 	"LAYOUT_EDITGRID_CAPTION": "Edit grid",
 	"LAYOUT_EDITLEGACY_CAPTION": "Edit content",
-	"LAYOUT_EDITSETTINGS_CAPTION": "Edit settings",
 	"LAYOUT_EMPTYCELL_CONTENT_CAPTION": "Empty",
 	"LAYOUT_PREVENT_SCROLLING": "Prevent scrolling",
 	"LEFT_EDGE": "Left",
@@ -302,6 +301,8 @@ export default {
 	"TYPE": "Type",
 	"UNLOCK_ALL": "Unlock all",
 	"UNLOCKS_ALL_SELECTIONS_THAT_HAS_PREVIOUSLY_BEEN_LOCKED": "Unlocks all selections that has previously been locked",
+	"UNLOCK_FIELD": "Unlock field",
+	"UNLOCKS_FIELD_SELECTIONS": "Unlocks field selections that has previously been locked",
 	"URL": "URL",
 	"URL_OF_THE_WEBSITE": "URL of the website",
 	"UPLOAD_MEDIA": "Upload media",

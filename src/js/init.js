@@ -5,9 +5,9 @@ import {Logger} from '../lib/hico/logger';
 import UpdateService from './Services/UpdateService';
 import {QlikService, qlik} from '../lib/hico/services/qlik-service';
 import {Utils} from '../lib/hico/common/utils';
+import {UtilService} from "./Services/UtilService";
 
 const qvangular = require('qvangular'),
-	$ = require('jquery'),
 	updateService = UpdateService.getInstance();
 
 export function Extension(){
@@ -45,6 +45,14 @@ export function Extension(){
 			_ready = qlik.Promise.defer(),
 			_eventListener = {}; // collect "unbind" callbacks for added eventListener with object id as key
 
+		let oldStyleInputBackground,
+			oldStyleInputText,
+			oldStyleInputPlaceholder,
+			oldStyletextSelectionFamily,
+			oldStyletextSelectionSize,
+			oldStyletextSelectionWeight,
+			oldStyletextSelectionStyle;
+
 		$scope.getElement = () => $element;
 		$scope.$ctrl = this;
 		$scope.utilService = utilService;
@@ -60,6 +68,8 @@ export function Extension(){
 			textSubColor: '',
 			textHoverSubColor: ''
 		};
+
+		$scope.articleElement = $element.parents('article')[0];
 
 		$scope.isPrinting = qlikService.isPrinting();
 		$scope.isPublished = !$scope.isPrinting && _app.model.layout.published === true;
@@ -94,6 +104,7 @@ export function Extension(){
 		$scope.listItemsDub = [];
 		$scope.initReady = false;
 		$scope.wasEditMode = false;
+		$scope.menuOpen = false;
 		$scope.onSheet = qlikService.onSheet;
 		$scope.inEditMode = qlikService.inEditMode;
 		$scope.inStoryMode = qlikService.inStoryMode;
@@ -103,6 +114,9 @@ export function Extension(){
 		// do not evaluate button states for snapshots
 		$scope.evaluateStates = !qlikService.isSnapshotObject(_model) && !qlikService.isPrinting();
 		$scope.editComponentsRequired = true; // some components are only required in edit mode
+		$scope.afterPaintTimeout = 0;
+		$scope.afterPaintDelay = 1000;
+		$scope.uniqueId = UtilService.getUniqueMenuId();
 
 		$scope.getReady = getReady;
 		$scope.setReady = setReady;
@@ -114,9 +128,13 @@ export function Extension(){
 		$scope.applySelection = applySelection;
 		$scope.applyStyles = applyStyles;
 		$scope.applyColors = applyColors;
+		$scope.switchDynamicStyleSheet = switchDynamicStyleSheet;
 		$scope.toggleSenseBars = toggleSenseBars;
+		$scope.toggleNavBarButtons = toggleNavBarButtons;
 		$scope.updateSelectionLabels = updateSelectionLabels;
 		$scope.handleButtonStates = handleButtonStates;
+		$scope.checkListObjectsValid = checkListObjectsValid;
+		$scope.afterPaint = afterPaint;
 		$scope.updateListItemsProps = updateListItemsProps;
 		$scope.checkAndUpdateListObjects = checkAndUpdateListObjects;
 		$scope.checkExpressionCondition = utilService.checkExpressionCondition;
@@ -168,6 +186,17 @@ export function Extension(){
 			setSelectItems($scope, $scope.layout.listItems);
 			$scope.applyColors($scope.layout);
 			$scope.applyStyles($scope.layout.appearance);
+			$scope.switchDynamicStyleSheet($scope.layout.appearance);
+
+			// Trigger a repaint after variable change
+			qlikService.variableProvider.getValueObject().then(function(valObj){
+				_eventListener['variableListener'] = [qlikService.bindListener(valObj, 'Validated', function(){
+					if(!$scope.inEditMode()){
+						let _this = $scope._this;
+						_this && _this.paint && _this.paint.apply(_this, [$scope._$element, $scope.layout]);
+					}
+				})];
+			});
 
 			// after this step all listObjects should be used from $scope._listObjects
 			return Promise.all(objectIds.map(id => qlikService.getObjectLayout(id))).then(listObjects => initListObjects(listObjects)).then(() => {
@@ -329,6 +358,7 @@ export function Extension(){
 				removeListener(_eventListener, listObject.id);
 
 				listener.push(qlikService.bindListener(listObject, 'Invalidated', function(){
+					// setTimeout(() => qlikService.getLayout(this), 0);  //reduces engine errors but selection labels are not correctly updated
 					qlikService.getLayout(this);
 				}));
 
@@ -337,7 +367,7 @@ export function Extension(){
 					let listObj = this;
 					// Wait until extension layout is validated (required for correct expression evaluation of default select values)
 					getReady().then($scope =>{
-						const defaultSelection = ListItem.getDefaultSelection($scope.layout.listItems, dimId);
+						const defaultSelection = ListItem.getDefaultSelection($scope.layout.listItems, dimId, false, listObject.layout.qListObject);
 
 						if(defaultSelection !== null && activeSelects.some(item => utilService.checkExpressionCondition(item.showCondition))){
 							return applySelection(listObj, defaultSelection, false, true).catch(err => Logger.warn('could not apply default selection', err));
@@ -347,7 +377,7 @@ export function Extension(){
 
 				_eventListener[listObject.id] = listener;
 
-				const defaultSelection = ListItem.getDefaultSelection($scope.layout.listItems, dimId),
+				const defaultSelection = ListItem.getDefaultSelection($scope.layout.listItems, dimId, false, listObject.layout.qListObject),
 					selectionAllowed =  activeSelects.some(item => utilService.checkExpressionCondition(item.showCondition));
 
 				if(_selectionsInProgress === false && defaultSelection !== null && selectionAllowed){
@@ -425,6 +455,12 @@ export function Extension(){
 			activeSelects && Object.keys(activeSelects).forEach(key => {
 				activeSelects[key].forEach(selectItem =>{
 					const listObject = $scope._listObjects[selectItem.props.dimId];
+
+					if(!listObject){
+						Logger.warn("No dimension selected for tcMenu Element");
+						return;
+					}
+
 					selectItem.selectValues = listObject.layout.qListObject; // temporary
 					selectItem.listInfo = listObject.layout.qInfo;
 					selectItem.dimId = listObject.layout.dimId;
@@ -547,6 +583,65 @@ export function Extension(){
 			setColor("textHoverSubColor", "rgb(89,89,89)");
 		}
 
+		function switchDynamicStyleSheet(appearance){
+			if(
+				oldStyleInputBackground !== appearance.variableInputBackground
+				|| oldStyleInputText !== appearance.variableInputText
+				|| oldStyleInputPlaceholder !== appearance.variableInputPlaceholder
+				|| oldStyletextSelectionFamily !== appearance.textSelectionFamily
+				|| oldStyletextSelectionSize !== appearance.textSelectionSize
+				|| oldStyletextSelectionWeight !== appearance.textSelectionWeight
+				|| oldStyletextSelectionStyle !== appearance.textSelectionStyle
+			){
+				oldStyleInputPlaceholder = appearance.variableInputPlaceholder;
+				oldStyleInputText = appearance.variableInputText;
+				oldStyleInputBackground = appearance.variableInputBackground;
+				oldStyletextSelectionFamily = appearance.textSelectionFamily;
+				oldStyletextSelectionSize = appearance.textSelectionSize;
+				oldStyletextSelectionWeight = appearance.textSelectionWeight;
+				oldStyletextSelectionStyle = appearance.textSelectionStyle;
+
+				const scopeId = $scope.uniqueId,
+					dynamicCss = ''
+						+ '.hico-variable-input_' + scopeId + ':focus{'
+						+ 'background: ' + appearance.variableInputBackground + '!important;'
+						+ 'color: ' + appearance.variableInputText + '!important;'
+						+ 'box-shadow: 0 0 1px 1px' + appearance.variableInputFocus + '!important;'
+						+ '}'
+						+ createPlaceholderRule('::-ms-input-placeholder', scopeId)
+						+ createPlaceholderRule(':-ms-input-placeholder', scopeId)
+						+ createPlaceholderRule('::-webkit-input-placeholder', scopeId)
+						+ createPlaceholderRule('::placeholder', scopeId)
+						+ '.hico-selectionstyle_' + scopeId + '{'
+						+ 'font-family: ' + (appearance.textSelectionFamily || '"QlikView Sans", sans-serif') + '!important;'
+						+ 'font-size: ' + (Utils.getDynamicFontSize(appearance.textSelectionSize) || 11) + 'px!important;'
+						+ 'font-weight: ' + (appearance.textSelectionWeight || 'normal') + '!important;'
+						+ 'font-style: ' + (appearance.textSelectionStyle || 'normal') + '!important;'
+						+ '}',
+					oldStyle = document.getElementById('tcMenuStylesSheet_' + scopeId);
+
+				let newStyle = document.createElement('style');
+
+				newStyle.type = 'text/css';
+				newStyle.id = 'tcMenuStylesSheet_' + scopeId;
+				newStyle.appendChild(document.createTextNode(dynamicCss));
+
+				if(oldStyle){
+					document.head.replaceChild(newStyle, oldStyle);
+				}else{
+					document.head.appendChild(newStyle);
+				}
+			}
+
+			function createPlaceholderRule(pseudo, scopeId){
+				return ''
+					+ '.hico-variable-input_' + scopeId + pseudo +'{'
+					+ 'color: ' + appearance.variableInputPlaceholder + '!important;'
+					+ 'opacity: 1;'
+					+ '}'
+			}
+		}
+
 		function toggleSenseBars(layout, inEditMode){
 			var appearance = layout.appearance,
 				showMenuBar = appearance.displaySenseMenuBar,
@@ -606,6 +701,23 @@ export function Extension(){
 			return changed;
 		}
 
+		function toggleNavBarButtons(){
+			const {articleElement, layout} = $scope;
+
+			if(articleElement){
+				const {showSenseFullScreenButton, showSenseFullScreenButtonExpr, showSenseSnapshotButton, showSenseSnapshotButtonExpr} = layout.appearance,
+					classList = articleElement.classList;
+
+				showSenseFullScreenButton === '0' || showSenseFullScreenButton === '2' && !utilService.checkExpressionCondition(showSenseFullScreenButtonExpr)
+					? !classList.contains('hico-tcmenu-not-zoomable') && classList.add('hico-tcmenu-not-zoomable')
+					: classList.contains('hico-tcmenu-not-zoomable') && classList.remove('hico-tcmenu-not-zoomable');
+
+				showSenseSnapshotButton === '0' || showSenseSnapshotButton === '2' && !utilService.checkExpressionCondition(showSenseSnapshotButtonExpr)
+					? !classList.contains('hico-tcmenu-not-snapshotable') && classList.add('hico-tcmenu-not-snapshotable')
+					: classList.contains('hico-tcmenu-not-snapshotable') && classList.remove('hico-tcmenu-not-snapshotable');
+			}
+		}
+
 		function setColor(colorName, defaultColor){
 			let appearance = $scope.layout.appearance,
 				colors = $scope.colors;
@@ -635,10 +747,14 @@ export function Extension(){
 			let retValue = '';
 
 			(listItems || $scope.listItemsDub).forEach(function(item){
+				const isSelectItem = item.type === 'Single Select' || item.type === 'Sense Select',
+					isDatePicker = item.type === 'Date Picker',
+					isRangePicker = isDatePicker && item.props.date.type === 'range';
+
 				if(item.type === 'Group'){
 					let value = updateSelectionLabels(item.groupItems);
 					item.props.selectedValue = value.substring(0, value.length - 2);
-				}else if(item.type === 'Single Select' || item.type === 'Sense Select'){
+				}else if(isSelectItem || (isDatePicker && !isRangePicker)){
 					let selectedValue = '',
 						counter = 0;
 
@@ -673,6 +789,27 @@ export function Extension(){
 					}
 
 					item.props.selectedValue = selectedValue;
+				}if(isRangePicker){
+					let selectedItems = [];
+
+					if(!item.selectValues){
+						return;
+					}
+
+					item.selectValues.qDataPages[0].qMatrix.forEach((sItem) =>{
+						let qItem = sItem[0];
+						if(qItem && qItem.qState === "S"){
+							selectedItems.push(qItem);
+						}
+					});
+
+					if(selectedItems.length > 0){
+						item.props.startDate = selectedItems[0].qText;
+						item.props.endDate = selectedItems[selectedItems.length-1].qText;
+					}else{
+						item.props.startDate = '';
+						item.props.endDate = '';
+					}
 				}
 			});
 
@@ -764,6 +901,9 @@ export function Extension(){
 				return;
 			}
 
+			const styleElement = document.getElementById('tcMenuStylesSheet_' + $scope.uniqueId);
+			styleElement && styleElement.parentNode.removeChild(styleElement);
+
 			$scope.selState && $scope.selState.OnData.unbind(updateSelectionLabels);
 			// $scope.destroyListObjects(); // Reuse listObjects during sheet navigation
 
@@ -808,12 +948,82 @@ export function Extension(){
 			});
 		}
 
+		function checkListObjectsValid(){
+			const promises = [];
+
+			for(const key in $scope._listObjects){
+				const selectItems = $scope._selectItems[key];
+				if(!$scope._listObjects.hasOwnProperty(key) || !selectItems){
+					continue;
+				}
+
+				if(!$scope._listObjects[key].isValidating && !$scope._listObjects[key].isValid){
+					Logger.warn('revive dead object with key and id', key, $scope._listObjects[key].id);
+					promises.push(qlikService.getObjectLayout($scope._listObjects[key].id));
+				}
+			}
+
+			return Promise.all(promises)
+		}
+
+		function afterPaint(){
+			$scope.checkListObjectsValid().then(() => $scope.updateSelectionLabels());
+		}
+
 		function updateListItemsProps(listItemsDub, listItems, qDimensionInfo){
 			listItemsDub.forEach(function(listItem, index){
 				let dimTitle = getDimTitle(listItem.props.dimId, qDimensionInfo);
 
 				if(listItem.type === 'Group'){
 					updateListItemsProps(listItem.groupItems, listItems[index].groupItems, qDimensionInfo)
+				}
+
+				if(listItem.type === 'Variable Slider'){
+
+					qlikService.variableProvider.getReady().then(() => {
+						const sliderProps = listItem.props.variableSlider;
+
+						if(sliderProps.type === 'single'){
+							qlikService.getVariableValue(sliderProps.variable).then((value) =>{
+								listItem.variableValue = value;
+							});
+						}else if(sliderProps.type === 'range'){
+							qlikService.getVariableValue(sliderProps.variableStart).then((value) =>{
+								listItem.variableValueStart = value;
+							});
+
+							qlikService.getVariableValue(sliderProps.variableEnd).then((value) =>{
+								listItem.variableValueEnd = value;
+							});
+						}else if(sliderProps.type === 'multi'){
+							Promise.all(sliderProps.multiHandles.map((handle) => qlikService.getVariableValue(handle.variableName))).then((values) =>{
+								let multiVariables = [];
+								for(const value of values){
+									UtilService.isValidVariable(value) && multiVariables.push(value);
+								}
+								listItem.multiVariables = multiVariables;
+							});
+						}
+					});
+				}
+
+				if(listItem.type === 'Variable Input'){
+					qlikService.variableProvider.getReady().then(() =>{
+						const inputProps = listItem.props.variableInput;
+
+						if(inputProps.variable !== ''){
+							qlikService.getVariableValue(inputProps.variable).then((value) =>{
+								if(UtilService.isValidVariable(value)){
+									listItem.variableValue = value;
+								}else{
+									Logger.warn('Wrong Variable Name: ' + inputProps.variable);
+									listItem.variableValue = '';
+								}
+							});
+						}else{
+							listItem.variableValue = '';
+						}
+					});
 				}
 
 				listItem.props.itemLabel = listItems[index].props.itemLabel === '' ? dimTitle : listItems[index].props.itemLabel;
@@ -861,6 +1071,7 @@ export function Extension(){
 		// apply layout specific stuff like styles/colors as soon as possible
 		$scope.applyColors(layout);
 		$scope.applyStyles(layout.appearance);
+		$scope.switchDynamicStyleSheet(layout.appearance);
 
 		if($scope.getElement().parents(".qv-gridcell").length > 0 && layout.appearance){
 			$scope.calculateGaps(layout);
@@ -893,6 +1104,7 @@ export function Extension(){
 		}
 
 		$scope.onSheet() && $scope.toggleSenseBars(layout, $scope.inEditMode());
+		$scope.onSheet() && $scope.toggleNavBarButtons();
 
 		if($scope.wasEditMode && !$scope.inEditMode()){
 			$scope.wasEditMode = false;
@@ -913,11 +1125,11 @@ export function Extension(){
 			$scope.checkAndUpdateListObjects().then(proms => Promise.all(proms)).then(listObjects => $scope.initListObjects(listObjects))
 				.catch(err => err && Logger.error(err))
 				.then(() => $scope.updateSelectionLabels());
-
 		}
 
 		$scope.applyColors(layout);
 		$scope.applyStyles(layout.appearance);
+		$scope.switchDynamicStyleSheet(layout.appearance);
 
 		// load (dynamically) components which are required in edit mode only
 		if($scope.editComponentsRequired && $scope.inEditMode()){
@@ -929,6 +1141,9 @@ export function Extension(){
 		$scope.updateSelectionLabels();
 
 		if(!$scope.isPrinting){
+			$scope._this = this;
+			$scope._$element = $element;
+
 			layout.exportListItemsDub = $scope.listItemsDub.slice();
 			layout.exportListObjects = {};
 
@@ -938,13 +1153,14 @@ export function Extension(){
 				}
 			});
 
-
+			clearTimeout($scope.afterPaintTimeout);
+			$scope.afterPaintTimeout = setTimeout($scope.afterPaint, $scope.afterPaintDelay);
 		}
 
 		paintingPromise.resolve();
 
 		return $scope.apiService.getPromise().then(function(){
-			console.log('finished painting tcMenubar', layout.title);
+			// console.log('finished painting tcMenubar', layout.title);
 		});
 	}
 
@@ -995,7 +1211,7 @@ export function Extension(){
 	 * @return {Promise<boolean>} - returns true if selection was
 	 */
 	function applySelection(listObject, value, isElemNumber, optional){
-		if(!listObject || !listObject.layout){
+		if(!listObject || !listObject.layout || qlikService.inEditMode()){
 			return Promise.resolve();
 		}
 
@@ -1004,10 +1220,10 @@ export function Extension(){
 			return Promise.resolve(); // already selected, no selection required
 		}
 
-		const valIndex = isElemNumber ? value : getIndexByText(qList.qDataPages, value), // get element number (qElemNumber)
-			args = ['/qListObjectDef', [valIndex], false, false]; // path, values, toggle, softLock
+		const valIndex = isElemNumber || Array.isArray(value) ? value : UtilService.getIndexByText(qList.qDataPages, value), // get element number (qElemNumber)
+			args = ['/qListObjectDef', Array.isArray(valIndex) ? valIndex : [valIndex], false, false]; // path, values, toggle, softLock
 
-		if(typeof valIndex !== 'number'){
+		if(typeof valIndex !== 'number' && !Array.isArray(valIndex)){
 			Logger.warn('trying to select a value that does not exists in dimension', value);
 			return Promise.resolve();
 		}
@@ -1016,32 +1232,7 @@ export function Extension(){
 		return listObject.selectListObjectValues(...args).catch(qlikService.engineErrorHandler(listObject, 'selectListObjectValues', ...args));
 	}
 
-	/**
-	 * Get index from given qDataPages object by given text value
-	 *
-	 * @param qDataPages Qlik qDataPages object (from ListObject, or HyperCube)
-	 * @param text {string} Text value
-	 *
-	 * @return {*} Number if index was found, null otherwise
-	 */
-	function getIndexByText(qDataPages, text){
-		let i, j, entries, pages;
 
-		if(qDataPages.length === 0 || !text){
-			return null;
-		}
-
-		for(i = 0, pages = qDataPages.length; i < pages; i++){
-			let page = qDataPages[i];
-			for(j = 0, entries = page.qMatrix.length; j < entries; j++){
-				let entry = page.qMatrix[j][0];
-				if(entry.qText === text){
-					return entry.qElemNumber;
-				}
-			}
-		}
-		return null;
-	}
 
 	/**
 	 * Removes event listeners

@@ -34,12 +34,7 @@
 					<div class="hico-select-item"
 						 ng-repeat="selectItem in item.selectValues.qDataPages[0].qMatrix | filter:search:strict"
 						 qva-activate="handleSelect(selectItem)"
-						 ng-class="{'hico-select-background':selectItem[0].qState === 'S',
-					  'hico-text-white':selectItem[0].qState === 'S',
-					  'hico-select-state-s': selectItem[0].qState === 'S',
-					  'hico-select-state-a': selectItem[0].qState === 'A',
-					  'hico-select-state-o': selectItem[0].qState === 'O',
-					  'hico-select-state-x': selectItem[0].qState === 'X'}">
+						 select-background layout="layout" state="selectItem[0].qState">
 						<div class="hico-select-item hico-select-padding"
 							 ng-class="{'hico-flex-container-right':item.alignement,'hico-flex-container-left':!item.alignement}">
 							<div class="hico-flex-textwrap hico-font-s">{{selectItem[0].qText}}{{selectItem[0].active}}</div>
@@ -68,7 +63,7 @@
 		</button>
 
 		<div id="panel_container_{{itemId}}" class="hico-select-panel-horizontal-container" ng-if="type === 'Single Select'" ng-show="item.show"
-			 ng-style="{ 'transform' : 'translate( ' + panelDropdownOffset + 'px,-1px)'}">
+			 ng-style="{ 'top' : panelDropdownOffsetY + 'px', 'left':panelDropdownOffsetX + 'px'}">
 			<div class="hico-select-toolbar"
 				 ng-show="item.props.showToolbar || parentscope._listObjects[item.props.dimId].layout.qListObject.qDimensionInfo.qGroupFieldDefs.length > 1">
 				<div class="hico-select-item">
@@ -92,12 +87,7 @@
 					<div class="hico-select-item"
 						 ng-repeat="selectItem in item.selectValues.qDataPages[0].qMatrix | filter:search:strict"
 						 qva-activate="handleSelect(selectItem)"
-						 ng-class="{'hico-select-background':selectItem[0].qState === 'S',
-				  'hico-text-white':selectItem[0].qState === 'S',
-				  'hico-select-state-s': selectItem[0].qState === 'S',
-				  'hico-select-state-a': selectItem[0].qState === 'A',
-				  'hico-select-state-o': selectItem[0].qState === 'O',
-				  'hico-select-state-x': selectItem[0].qState === 'X'}">
+						 select-background layout="layout" state="selectItem[0].qState">
 						<div class="hico-select-item hico-select-padding" ng-class="{'hico-flex-container-right':item.alignement,'hico-flex-container-left':!item.alignement}">
 							<div class="hico-flex-textwrap hico-font-s">{{selectItem[0].qText}}{{selectItem[0].active}}</div>
 							<span class="hico-select-check-width" ng-class="{'hico-flex-alignRight': !item.alignement}">

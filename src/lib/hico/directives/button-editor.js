@@ -4,7 +4,7 @@ import '../services/action-service';
 
 import * as angular from 'angular';
 import * as qvangular from 'qvangular';
-import * as $timeout from 'ng!$timeout';
+import {AngularService} from '../services/AngularService';
 import * as template from './button-editor.html';
 import * as Button from './button';
 import * as MediaLibrary from './media-library';
@@ -98,6 +98,21 @@ define([], function(){
 			// Check if all required inputs are valid
 			if(this.check()){
 				const $scope = this.getScope();
+
+				// clear the old state
+				for(const key in $scope.state){
+					if($scope.state.hasOwnProperty(key)){
+						delete $scope.state[key];
+					}
+				}
+
+				// apply the new state
+				for(const key in this.state){
+					if(this.state.hasOwnProperty(key)){
+						($scope.state[key] = this.state[key]);
+					}
+				}
+
 				if(typeof $scope.onClose === 'function'){
 					$scope.onClose({type: 'apply', state: this.state});
 				}
@@ -129,7 +144,7 @@ define([], function(){
 			$scope.$destroy();
 		};
 
-		$timeout(function(){
+		AngularService.$timeout(function(){
 			// Apply leonardo ui tabset
 			$element.find('[data-tabset]').each(function(){
 				leonardoui.tabset({element: this});
@@ -147,7 +162,7 @@ define([], function(){
 		});
 
 		ctrl.getReady.then(() =>{
-			$timeout(function(){
+			AngularService.$timeout(function(){
 				ctrl.ready = true;
 				$element.removeClass('hidden');
 			});
@@ -486,7 +501,7 @@ define([], function(){
 			this.actions = this.getUsableActions(this.actionService.getActions());
 			this.triggers = this.actionService.getTriggers();
 			this.waitForParams = this.actionService.getParameters().then(params => new Promise(resolve =>{
-				$timeout(() => resolve(this.params = params));
+				AngularService.$timeout(() => resolve(this.params = params));
 			}));
 
 			this.parameters = getParameters();
@@ -550,7 +565,7 @@ define([], function(){
 				case 'general':
 				case 'actions':
 					// refresh codeMirror otherwise it would remain blank, until it becomes focused by clicking on it
-					this.getScope().$broadcast('CodeMirror', codeMirror => $timeout(() => codeMirror.refresh()));
+					this.getScope().$broadcast('CodeMirror', codeMirror => AngularService.$timeout(() => codeMirror.refresh()));
 
 					// load used parameters when switching to the action tab
 					tabId === 'actions' && this.waitForParams.then(() => this.loadUsedParameters());

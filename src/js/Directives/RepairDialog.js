@@ -1,5 +1,6 @@
 import * as qvangular from 'qvangular';
 import * as template from '../../templates/repairDialog.html';
+import {$compile} from '../Services/AngularService';
 import {translation} from '../../../resource/translations/translations';
 import {QlikService} from '../../lib/hico/services/qlik-service';
 import * as leonardoui from 'leonardo-ui';
@@ -22,14 +23,13 @@ export class RepairDialog {
 	 */
 	static show(options = {}){
 		const $scope = options.scope || qvangular.$rootScope.$new(),
-			compile = qvangular.getService('$compile'),
 			template = '<repairdialogdirective dialogdatas="dialogdatas" on-save="onSave(dialogdatas)" dimensions="dimensions"></repairdialogdirective>';
 
 		$scope.dialogdatas = options.dialogdatas || [];
 		$scope.dimensions = options.dimensions || [];
 		$scope.onSave = options.onSave;
 
-		const $dialog = compile(template)($scope);
+		const $dialog = $compile(template)($scope);
 		document.body.appendChild($dialog[0]);
 	}
 

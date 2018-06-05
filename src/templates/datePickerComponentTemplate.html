@@ -1,0 +1,24 @@
+<div class="bootstrap">
+    <div class="pp-component pp-string-component">
+        <div class="label">{{definition.label}}</div>
+
+        <div class="hico-property-flex">
+            <div class="right-extendable-group">
+                <div class="hico-property-nopadding-right hico-property-nopadding-top">
+                    <button id="datePicker_{{$id}}" class="lui-button hico-property-noborder-right hico-property-button-size-sm"
+                            qva-activate="showDatePicker()">
+                        <span id="datePickerIcon_{{$id}}" class="lui-button__icon lui-icon lui-icon--calendar"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex">
+                <div class=" hico-property-nopadding hico-property-nopadding-left hico-property-noborder-left hico-property-nopadding-top" include-pp-component
+                     x-component="qComponents.string"
+                     x-definition="text"
+                     x-data="data" x-args="args"></div>
+            </div>
+        </div>
+
+    </div>
+</div>

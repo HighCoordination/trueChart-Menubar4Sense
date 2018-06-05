@@ -13,6 +13,12 @@
 	background-color: attr(data-background color);
 }
 
+/*IE buttons dont pass click events to childs, so we have to design our own buttons*/
+.hico-button-html-fix{
+  display: block;
+  border: none;
+}
+
 .hico-logo{
   margin: auto;
   max-width: 200px;
@@ -94,10 +100,6 @@
   text-align: center!important;
 }
 
-.hico-text-white{
-  color: white;
-}
-
 .hico-alignBottom{
   height: auto;
   position: absolute;
@@ -153,6 +155,15 @@
   flex: 1 1 0px;
 }
 
+.hico-flex-column-100{
+  flex: 1 1 100%;
+}
+
+.hico-flex-container-column{
+  flex-direction: column;
+  display: flex;
+}
+
 .hico-flex-container-middle{
   align-items: center;
 }
@@ -203,6 +214,10 @@
   font-size: 12px!important;
 }
 
+.hico-font-bold {
+  font-weight: bold;
+}
+
 .hico-no-maxheight{
   max-height: none!important;
 }
@@ -220,7 +235,7 @@
   display: table-cell !important;
 }
 
-button.accordion > .hico-btn-container{
+button.accordion > .hico-btn-container, .hico-button-html-fix > .hico-btn-container{
   position: absolute;
   top: @button-padding-y;
   bottom: @button-padding-y;
@@ -247,6 +262,24 @@ button.accordion > .hico-btn-container{
 
 .hico-item-horizontal-default{
   height: 100%;
+  display: block;
+  position: relative;
+}
+
+.hico-item-vertical-left-element{
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 25px;
+  padding-top: 7px;
+}
+
+.hico-item-vertical-left-element-horizontal{
+  height: 85%;
+}
+
+.hico-item-vertical-left-element-vertical{
+  height: 88%;
 }
 
 .hico-icon{
@@ -514,26 +547,6 @@ button.action{
   font-weight: bold;
 }
 
-.hico-select-state-s{
-  background-color: #52CC52;
-  border-top: 1px solid white;
-}
-
-.hico-select-state-a{
-  background-color: #ddd;
-  border-top: 1px solid white;
-}
-
-.hico-select-state-o{
-  background-color: #fff;
-  border-top: 1px solid #ddd;
-}
-
-.hico-select-state-x{
-  background-color: #A9A9A9;
-  border-top: 1px solid white;
-}
-
 .hico-select-check{
   color: white;
   padding-left: 5px;
@@ -623,11 +636,6 @@ button.action{
   height: 30px;
   display: flex;
   padding-bottom: 5px;
-}
-
-.hico-property-color-tab-direction{
-  flex-direction: column;
-  display: flex;
 }
 
 .hico-property-color-tab-item{
@@ -752,6 +760,36 @@ button.action{
   -webkit-overflow-scrolling: touch;
 }
 
+.hico-variable-slider-horizontal{
+   flex: 0 1 60px;
+}
+
+.hico-variable-slider-container{
+  padding: 0 25px;
+  overflow: visible;
+}
+
+.hico-variable-slider-container-horizontal{
+  padding: 10px 0;
+  overflow: visible;
+}
+
+.hico-button-html-fix:hover .hico-variable-input:not(:focus){
+  background-color: #fff!important;
+}
+
+.hico-variable-input{
+  border: none!important;
+  background: transparent!important;
+  height: auto!important;
+  padding: 3px 0!important;
+  border-radius: 0!important;
+}
+
+.hico-variable-input:focus{
+  padding: 3px 6px!important;
+}
+
 /* workarounds for IE */
 .hico-property-select.lui-select:focus::-ms-value{
   color: rgba(255,255,255,0);
@@ -774,4 +812,68 @@ button.action{
   &:hover{
     border-color: @lui-border-disabled!important;
   }
+}
+
+.rc-slider-tooltip{
+  z-index: 50000;
+}
+
+.hico-tcmenu-not-zoomable > .qv-object-nav > .lui-icon--expand {
+  display: none!important;
+}
+
+.hico-tcmenu-not-snapshotable > .qv-object-nav > .lui-icon--camera {
+  display: none !important;
+}
+
+
+/**TOOLTIP*/
+/* Tooltip container */
+.hico-tooltip {
+  position: relative;
+}
+
+/* Tooltip text */
+.hico-tooltip .hico-tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 1px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* Tooltip arrow */
+.hico-tooltip .hico-tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border: 4px solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.hico-tooltip:hover .hico-tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.hico-fontstyle-inherit, .rc-slider, .rc-slider-mark, .rc-slider-mark-text{
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  font-style: inherit;
 }

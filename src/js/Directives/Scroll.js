@@ -1,8 +1,10 @@
-define(['jquery', 'qvangular', 'ng!$timeout'], function($, qvangular, $timeout){
+import {angular, $compile, $timeout} from '../Services/AngularService';
+
+define(['jquery', 'qvangular'], function($, qvangular){
 	return qvangular.directive('scrollable', function(){
 		return {
 			restrict: 'A',
-			controller: ['$scope','$element', '$compile' ,function(scope, element, compile){
+			controller: ['$scope','$element', function(scope, element){
 
 				if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
 					return;
@@ -46,7 +48,7 @@ define(['jquery', 'qvangular', 'ng!$timeout'], function($, qvangular, $timeout){
 				qvangular.$rootScope.tcmenuNoScroll = true;
 
 
-				scope.rail = compile(angular.element('<div class="hico-scroll-rail" ng-style="railStyle"><div class="hico-scroll-dragger"'
+				scope.rail = $compile(angular.element('<div class="hico-scroll-rail" ng-style="railStyle"><div class="hico-scroll-dragger"'
 													 + ' ng-style="draggableStyle"></div></div>'))(scope);
 
 				scope.draggable = scope.rail.find('.hico-scroll-dragger');
@@ -157,7 +159,9 @@ define(['jquery', 'qvangular', 'ng!$timeout'], function($, qvangular, $timeout){
 
 					}
 
-					return false;
+					if(scope.menuOpen || (scope.parentscope && scope.parentscope.menuOpen)){
+						return false;
+					}
 				});
 
 				element.parent().on('mouseover', function(){
@@ -167,7 +171,9 @@ define(['jquery', 'qvangular', 'ng!$timeout'], function($, qvangular, $timeout){
 						}
 					}
 
-					return false;
+					if(scope.menuOpen || (scope.parentscope && scope.parentscope.menuOpen)){
+						return false;
+					}
 				});
 
 				element.on('mouseenter', function(){
@@ -177,7 +183,9 @@ define(['jquery', 'qvangular', 'ng!$timeout'], function($, qvangular, $timeout){
 						}
 					}
 
-					return false;
+					if(scope.menuOpen || (scope.parentscope && scope.parentscope.menuOpen)){
+						return false;
+					}
 				});
 
 

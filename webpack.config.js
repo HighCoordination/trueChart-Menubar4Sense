@@ -1,4 +1,5 @@
 const webpack = require('webpack'),
+	UglifyJsPlugin = require('uglifyjs-webpack-plugin'),
 	ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin'),
 	BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin,
 
@@ -19,6 +20,12 @@ module.exports = {
 
 	optimization: {
 		minimize: _env.IS_PROD || _env.DO_UGLIFY,
+		minimizer: [
+			new UglifyJsPlugin({
+				cache: false, // it produces to long filenames for windows, jenkins do not like it :-(
+				parallel: true
+			})
+		],
 		splitChunks: {
 			name: _env.PKG_NAME,
 			minChunks: Infinity
@@ -119,10 +126,6 @@ module.exports = {
 	devtool: _env.IS_PROD ? undefined : 'cheap-module-eval-source-map',
 
 	externals: {
-		'ng!$q': 'ng!$q',
-		'ng!$http': 'ng!$http',
-		'ng!$compile': 'ng!$compile',
-		'ng!$timeout': 'ng!$timeout',
 		'client.property-panel/components/components': 'client.property-panel/components/components',
 		'client.property-panel/components/list/list': 'client.property-panel/components/list/list',
 		'client.property-panel/components/buttongroup/buttongroup': 'client.property-panel/components/buttongroup/buttongroup',

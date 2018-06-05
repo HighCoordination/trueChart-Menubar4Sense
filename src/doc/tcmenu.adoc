@@ -35,33 +35,52 @@ documents including current or changed selections to navigate between apps.
 
 image::tcmenu-intro.png[{tcmenu} intro, 550]
 
+=== Qlik Sense® Support
+trueChart-Menubar supports Qlik Sense® from version 3.0.0 up to currently latest version April 2018 including
+exporting and story mode capability.
+
+=== nPrinting Support
+The trueChart-Menubar does not yet fully support nPrinting. Expression updates are not performed due to technical
+restrictions. The general export (without expressions) was successfully tested with the nPrinting 2017 September version.
+
+=== Browser Support
+At present trueChart-Menubar supports the browsers listed below:
+
+* Microsoft Internet Explorer 11
+* Microsoft Edge (lastest version - v40, at the time of writing)
+* Mozilla Firefox (latest version – v59, at the time of writing)
+* Google Chrome (latest version – v66, at the time of writing)
+* iOS 10.3.2 or later
+** We recommend upgrading to iOS 11.2.2 or later.
+
 [#whats_new]
-=== What is new in {tcmenu} {appversion}?
+== What is new in {tcmenu} {appversion}?
 
-App sharing::
-With {tcmenu} {appversion} we offer great possibilities to give users uncomplicated access to the current
-analysis status of your app. With the new' Share app' button action, you can easily distribute a link
-to the current worksheet and selection via clipboard or email to interested users.
+New element _Date Picker_::
+The fully customizable new element <<Date Picker>> allows selecting single dates, multiple dates and date ranges for sense fields.
+With the support of dynamic date formats the Date Picker can select almost every possible date.
+Standardized and freely customizable date ranges allow a wide variety of date selections with just one click.
 
-Document chaining::
-As a professional add-on, the new' Go to app' button action can be used to create efficient navigation
-chains within the same or across different apps. Within this, existing selections can be simply
-"taken along" into the other app. In addition, new selections can be added or overwritten or bookmarks
-can be applied.
+image::datepicker-range.png[datepicker-range]
 
-Responsive font sizes::
-Text sizes are now automatically adjusted depending on the width of the browser for an optimal display
-of the menu bar. This is also advantageous when exporting the {tcmenu} as PDF.
+New element _Variable Slider_::
+The new element <<Variable Slider>> allows to modify the value of variables in different ways. Three different types are supported: single, range and multi
+slider.
 
-New element 'Group' (replaces multi and button dropdown)::
-With the new element' Group' different {tcmenu} elements can be combined in a space-saving way within
-one element. The following elements are possible within a group: Single & Sense Select, Variable Dropdown,
-Button & Button Container.
+image::variableslider-examples.png[variableslider-examples]
 
-Duplicate and copy/paste elements::
-To further simplify the configuration of the  {tcmenu}, the new element functions' Duplicate and
-Copy/Paste' offer a quick way to create new elements based on already existing elements. Furthermore,
-a previously copied element can now be transferred to another {tcmenu} object.
+New element _Variable Input_::
+The new <<Variable Input>> allows you to modify the value of variables with an input field. _Variable Inputs_  blend in with the menu and are only visible when
+the input is clicked.
+
+.Variable Inputs in a menu.
+image::variableinput-display.png[variableinput-example]
+
+Options to disable sense snapshot and maximize object buttons::
+Two new properties in the Sense property panel allow conditional hiding of the snapshot and maximize button.
+
+.Sense navbar buttons.
+image::sense-navbarbuttons.png[sense-navbarbuttons]
 
 *For more information about the changes in this version, refer to the chapter <<release_notes_latest_version>>*
 
@@ -142,7 +161,8 @@ After installing {tcmenu} you can add a new menu bar to your sheet in _Edit mode
 .A new empty menu bar
 image::new-menu.png[new-menu,200]
 
-{tcmenu} features three panes in the properties panel -- _Dimensions_, _Items_, and _Appearance_ -- which are covered in the following sections.
+{tcmenu} features six panes in the properties panel -- _Dimensions_, _Sorting_, _Items_, _Add-ons_, _Appearance_ and _Info_ -- which are covered in the
+following sections.
 
 <<<
 == Defining dimensions in the _Dimensions_ pane
@@ -184,9 +204,12 @@ image::dimensions-sorting.png[dimensions-sorting,200]
 
  * <<Button>>
  * <<button_container>>
+ * <<Date Picker>>
  * <<Single Select>>
  * <<Sense Select>>
  * <<Variable Dropdown>>
+ * <<Variable Slider>>
+ * <<Variable Input>>
  * <<Group>>
 
 To create a new item, open _Items_ in the properties panel and click on _Add Items_. This will create a new _Button Container_ including a new button called _My Button_ by default. The item type can be changed by clicking on the _Type_ drop-down list, which gives you the selection between the different types mentioned above.
@@ -207,7 +230,7 @@ There are some properties that {tcmenu}'s items have in common. These are:
 | Duplicate, Copy/Paste | Actions to duplicate, copy and paste current element. Please read for further explanations
 in the following chapter <<Copy/Paste and duplicating Items>>.
 | Type | Specifies the item type for current element. Available types are:
-_Button_, _Button Container_, _Single Select_, _Sense Select_, _Variable Dropdown_, _Group_.
+_Button_, _Button Container_, _Date Picker_, _Single Select_, _Sense Select_, _Variable Dropdown_, _Variable Slider_, _Variable Input_, _Group_.
 | Name (only Property Panel) | This is the name of the item used in the property panel.
 | Show condition | This element will only be shown if this condition evaluates to true.
 | Use Custom Size | By default,  the item spans over the entire available area. Set this to _Custom_ to define a custom height or width depending on the menu's orientation.
@@ -404,9 +427,68 @@ The _Button Container_ is an item to group multiple buttons together while inver
 .A vertically and horizontally arranged menu bar, each featuring two plain buttons and another two buttons in a Button Container in between.
 image::ver-hor-menu.png[ver-hor-menu,800]
 
+=== Date Picker
+
+The _Date Picker_ allows selecting single dates, multiple dates and date ranges for sense fields. With the support of dynamic date formats the _Date Picker_
+can select almost every possible date.
+
+.Date Picker Element in Property Panel.
+image::datepicker-config.png[datepicker-config]
+
+The _Date Picker_ uses the default general settings. The only difference is that the selection label positioning is only available for single and multi _Date Picker_. In the appearance section you can customize the colors used in the _Date Picker_.
+
+<<<
+
+Specific settings for the _Date Picker_ are at the bottom of the properties for the element.
+
+The _Date Picker_ supports three different types:
+
+ * Single only allows one selected date.
+ * Multi allows multiple dates to be selected.
+ * Range selects a range of dates after picking a start and end date.
+
+Defining a date format is required and the format needs to match the selected dimension. The standard format uses the format from the app settings.
+When Setting the format to custom it is possible to define other formats. Valid formats include MM/YYYY, DD/YYYY, D/M/YYYY.
+
+Depending on the format the _Date Picker_ will only show certain Elements. When defining the format DD/MM/YYYY the datepicker will show a Daypicker. The format
+MM/YYYY only uses months and years therefore the _Date Picker_ will only show months and years.
+
+The default value is the value that is always selected if nothing else is selected. With the calendar symbol you can open a _Date Picker_ and choose a date
+there or you can enter a Sense expression.
+
+Predefines are specific date ranges. There are several default ranges but you can also define custom ranges.
+
+.Predefines Options.
+image::datepicker-predefines.png[datepicker-predefines]
+
+Range Date Picker::
+The range _Date Picker_ allows selecting a start and end date. The start date is on the left and the end date is on the right. On the far right are
+the predefines. On a mobile device the predefines are located in in the header instead. The header also has inputs for the start and end date.
+
+.Range Date Picker.
+image::datepicker-range.png[datepicker-range]
+
+Single and Multi Date Picker::
+The single _Date Picker_ consists of just one date element and the close and ok button.
+It only allows one selection and will remove all other selections beside the clicked date.
+Multi _Date Picker_ allows multiple selected dates.
+
+.Single Date Picker.
+image::datepicker-single.png[datepicker-single]
+
+Colors::
+To show different states of the dates the _Date Picker_ uses several default colors.
+
+ * Dark grey: out of allowed range
+ * Green: currently selected in Sense
+ * Orange: start or end date
+ * Light orange: date between start and end date
+
+All date picker related colors can be configured in general for all date picker elements in the <<Colors>> section.
+
 === Selects
 
-_Selects_ are drop-down lists that can be prefilled with existing data from previously defined dimensions. {tcmenu} offers three different types of selects, explained in the following sections.
+_Selects_ are drop-down lists that can be prefilled with existing data from previously defined dimensions. {tcmenu} offers two different types of selects, explained in the following sections.
 
 ==== Single Select
 
@@ -468,6 +550,68 @@ In the properties panel of the _Variable Dropdown_ element, define the variable 
 .A bar chart that uses a variable as the number of displayed results.
 image::bar-chart-variable.png[bar-chart-variable]
 
+=== Variable Slider
+
+The _Variable Slider_ allows to modify the value of variables. Currently the _Variable Slider_ has three different types of variable values.
+
+The three types are single, range and multi slider.
+
+ * Single allows to set one variable in a specific range.
+ * Range sets a start and end value to two different variables.
+ * Multi slider allows setting multiple variables in a specific range.
+
+.Variable Slider example.
+image::variableslider-examples.png[variableslider-examples]
+
+Each slider type has unique settings and some general settings.
+General settings include the type, orientation, min and max value, step frequency, visibility of min/max and step values and the date settings. Date
+settings allow the slider to not only modify number values but also dates. When using dates it's important to change the date toggle to true and then define
+the correct date format. Furthermore all general settings need to be in the specified date format or else it will not work.
+
+*Single slider* requires a variable and its default value.
+
+.Variable Slider Single.
+image::variableslider-single.png[variableslider-single]
+
+*Range slider* requires a start and end variable and a default value for both.
+
+.Variable Slider Range.
+image::variableslider-range.png[variableslider-range]
+
+*Multi slider* support a list of variables. Each entry consists of the name of the variable to me modified and its default value.
+It's important to note that multi sliders will always be in the defined order. E.g. the third variable in the list will always be the third handle on the
+ slider.
+
+.Variable Slider Multi.
+image::variableslider-multi.png[variableslider-multi]
+
+Colors::
+All slider related colors can be configured in general for all date picker elements in the <<Colors>> section.
+
+=== Variable Input
+
+The _Variable Input_ allows to modify the value of variables. _Variable Inputs_  blend in with the menu and are only visible when
+the input is clicked.
+
+.Variable Inputs in a menu.
+image::variableinput-display.png[variableinput-example]
+
+The _Variable Input_ can be restricted by a type, so that users can only enter certain values.
+
+The restriction types are:
+
+ * No type: no restriction, all inputs are allowed
+ * Numeric: only numeric values are allowed
+ * Decimal: only decimal values are allowed
+ * Date: only dates that follow a specified format are allowed
+
+The property panel for the _Variable Input_ has the standard general settings and a unique section at the bottom.
+In the _Variable Input_ section you can define the type, variable name, default value, vertical alignment and horizontal alignment.
+When defining a date type it's also required to define a date format.
+
+.Variable Input options.
+image::variableinput-options.png[variableinput-options]
+
 === Group
 
 The _Group Element_ is a dropdown list that allows to combine different  {tcmenu} elements into a single dropdown.
@@ -492,9 +636,12 @@ Currently the _Group Element_ supports
 
  * <<Button>>
  * <<button_container>>
+ * <<Date Picker>>
  * <<Single Select>>
  * <<Sense Select>>
  * <<Variable Dropdown>>
+ * <<Variable Slider>>
+ * <<Variable Input>>
 
 <<<
 == The _Add-ons_ pane
@@ -506,6 +653,9 @@ Use the _Calculation condition_ input box to define a Sense variable that is che
 
 .Calculation condition variable
 The _Calculation condition variable_ is the opposite of the _Calculation condition_: It is do define a variable that is set to `true` as soon as {tcmenu} initialized all the default selections you may have set in _Single Selects_ and to be used by other extensions supporting this _Data handling_ feature.
+
+[CAUTION]
+To set the calculation condition variable automatically to `true`, at least one defined default selection is required in a single select. Button actions are currently not supported in connection with this function. A implementation will take place in one of the next versions.
 
 .Dimension calculation
 The _Dimension calculation_ switch toggles the calculation for dimensions used in trueChart-Menubar.
@@ -561,7 +711,20 @@ image::appearance-position.png[appearance-position,200]
 
 === Colors
 
-The _Colors_ section is to define the default colors of the menu to be inherited by its items. These can be configured by entering color expressions, setting predefined colors or choosing with the color picker. For a detailed list of accepted color expressions, refer to Appendix A.1.
+The _Colors_ section is to define the default colors of the menu to be inherited by its items.
+These can be configured by entering color expressions, setting predefined colors or choosing with the color picker.
+
+In this area, numerous color definitions can be made for the following elements:
+
+* Main elements (generic), with area and text colors for background, hover and active states, borders and separators
+* Subelements (generic), with area and text colors for background, hover and active states, borders and separators
+* Selections (generic - currently only for <<Date Picker>> and <<Variable Slider>>), with colors for normal, alternative and
+excluded selections areas and texts
+* <<Date Picker>> elements, with colors for buttons, selections, active or not allowed fields, texts, normal
+and hover states
+* Slider elements (<<Variable Slider>>), with colors for background, slider track and handle, normal and active steps
+
+For a detailed list of accepted color expressions, refer to Appendix A.1.
 
 .Part of the _Colors_ section in the _Appearance_ pane showing preselected colors and the color picker.
 image::appearance-colors.png[appearance-colors,200]
@@ -582,7 +745,9 @@ image::appearance-text.png[appearance-text,200]
 
 === Display
 
-In the _Display_ section, you can set the visibility of the Sense menu, selection, and title bar. The bars can be permanently hidden (_Hide_), displayed (_Show_ = default setting) or (not) displayed depending on an expression.
+In the _Display_ section, you can set the visibility of the Sense menu, selection, title bar, snapshot button and maximize button. The elements can be
+permanently hidden (_Hide_), shown (_Show_ = default setting) or displayed depending on an expression.
+Snapshot button and maximize button options are only applied to the current menu extension.
 
 [TIP]
 If the Sense menu is not visible and the Edit mode is not available for this reason, it can be simply activated by Ctrl + E.
@@ -706,6 +871,7 @@ Target clipboard adds the generated link to the clipboard and shows a message to
 | Clear all | Set the _Locked also_ option to also clear locked selections.
 | Lock field | Select the field in the _Field name_ input box.
 | Lock all | Set the _Locked also_ option to also clear locked selections.
+| Unlock field |Select the field in the _Field name_ input box.
 | Unlock all | _No parameters._
 | Apply bookmark | _Bookmark id_ which can be entered manually or automatically by using the drop-down list.
 | Reload data | Set the desired mode in the _Mode_ list. Set the _Partial_ option to do only a partial reload.
@@ -733,6 +899,88 @@ Additionally, in the case of publicated apps, it is neccessary to create a corre
 === {tcmenu} v{appversion}
 
 {docdate}
+
+* Features and Improvements
+** New element item: Date Range Picker (single, multi, range) [HICO-2562]
+** New element item: Variable slider (single, multi, range) [HICO-2460]
+** New element item: Inputbox [HICO-2561]
+** Options to disable sense snapshot and maximize object buttons [HICO-2931]
+** New button action "Unlock field" [HICO-40891]
+** Selection based color configuration for single select elements [HICO-40931]
+
+* Bugs
+** Button Action "Select Value(s)" not working for all field types (numeric vs. text) [HICO-40918]
+
+=== {tcmenu} v1.2.6
+
+2018-05-22
+
+* Bugs
+** Pop up windows at bottom opens down, so they not usable [HICO-40732]
+** Filters in app chaining break the URL if the dimension values contain backslashes [HICO-40852]
+** Incorrect behavior in connection with the sense engine with opened sense selections that are hidden by a dynamic display condition [HICO-41017]
+** Menubar dropdowns are overlapped by trueChart comment cells [HICO-41033]
+
+=== {tcmenu} v1.2.5
+
+2018-05-08
+
+* Bugs
+** Menubar selections not showing in any cases [HICO-40903]
+** SelectValues action in button do not select, when field already has selections [HICO-40944]
+** Trigger action "clear Field" is not executed [HICO-40950]
+** onSelection trigger of a button skips the first onSelection event [HICO-40967]
+
+=== {tcmenu} v1.2.4
+
+2018-04-09
+
+* Bugs
+** Select items remain "unselected" even if corresponding fields have selections [HICO-40884]
+** Button does not perform any further actions if a previous action was defined incorrectly and cannot be executed [HICO-40885]
+** Full screen action do not toggle after the toggle condition was edited [HICO-40888]
+** Failed upgrade (to 1.1.0) leads to repetitive update tries [HICO-40890]
+
+=== {tcmenu} v1.2.3
+
+2018-04-03
+
+* Bugs
+** Pop up windows at bottom opens down, so they not usable [HICO-40732]
+** Filters in app chaining break the URL if the dimension values contain backslashes [HICO-40852]
+** Incorrect behavior in connection with the sense engine with opened sense selections that are hidden by a dynamic display condition [HICO-41017]
+** Menubar dropdowns are overlapped by trueChart comment cells [HICO-41033]
+
+=== {tcmenu} v1.2.5
+
+2018-05-08
+
+* Bugs
+** Menubar selections not showing in any cases [HICO-40903]
+** SelectValues action in button do not select, when field already has selections [HICO-40944]
+** Trigger action "clear Field" is not executed and Sense-Select is "empty" when opened [HICO-40950]
+** onSelection trigger of a button skips the first onSelection event [HICO-40967]
+
+=== {tcmenu} v1.2.4
+
+2018-04-09
+
+* Bugs
+** Select items remain "unselected" even if corresponding fields have selections [HICO-40884]
+** Button does not perform any further actions if a previous action was defined incorrectly and cannot be executed [HICO-40885]
+** Full screen action do not toggle after the toggle condition was edited [HICO-40888]
+** Failed upgrade (to 1.1.0) leads to repetitive update tries [HICO-40890]
+
+=== {tcmenu} v1.2.3
+
+2018-04-03
+
+* Bugs
+** Changes in button-editor are not applied [HICO-40881]
+
+=== {tcmenu} v1.2.2
+
+2018-02-27
 
 * Features and Improvements
 ** Disable calculations in tcmenus HyperCube [HICO-40853]

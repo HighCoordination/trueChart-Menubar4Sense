@@ -42,8 +42,9 @@
 			</div>
 		</button>
 
-		<div id="panel_{{itemId}}" class="hico-panel-scrollcontainer" ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')"
-			 ng-show="item.show" ng-style="{'transform' : 'translate( ' + panelDropdownOffset + 'px,-1px)', 'background-color' : colors.backgroundColor}">
+		<div id="panel_{{itemId}}" class="hico-panel-scrollcontainer hico-select-panel-horizontal-container" ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')"
+			 ng-show="item.show"
+			 ng-style="{ 'top' : panelDropdownOffsetY + 'px', 'left':panelDropdownOffsetX + 'px', 'background-color' : colors.backgroundColor}">
 			<div class="hico-panel-horizontal" ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')" scrollable
 				 ng-style="{'background-color': colors.subItemBackgroundColor}">
 				<div class="" ng-repeat="dropdownItem in item.variableItems" title="{{dropdownItem.props.tooltip}}"

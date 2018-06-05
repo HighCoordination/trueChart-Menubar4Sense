@@ -13,7 +13,7 @@
 					</div>
 				</div>
 
-				<div class="flex">
+				<div class="flex hico-flex-row">
 					<div class=" hico-property-nopadding hico-property-nopadding-left hico-property-noborder-left hico-property-nopadding-top" include-pp-component
 						 x-component="qComponents.string"
 						 x-definition="text"
@@ -24,11 +24,11 @@
 
 		<div class="hico-property-color-Container" ng-show="showColorPicker">
 			<div class="hico-property-color-tab-Container">
-				<div class="hico-property-color-tab-item hico-property-color-tab-direction hico-property-tab-border-left" qva-activate="activeState = 'swatches'">
+				<div class="hico-property-color-tab-item hico-flex-container-column hico-property-tab-border-left" qva-activate="activeState = 'swatches'">
 					<div class="hico-property-color-tab-subItem hico-property-color-tab-itemtext" ng-class="{'active': activeState === 'swatches'}">Swatches</div>
 					<div class="hico-property-color-tab-subItem hico-property-color-tab-itemcolor" ng-class="{'active': activeState === 'swatches'}"></div>
 				</div>
-				<div class="hico-property-color-tab-item hico-property-color-tab-direction hico-property-tab-border-right" qva-activate="activeState = 'picker'">
+				<div class="hico-property-color-tab-item hico-flex-container-column hico-property-tab-border-right" qva-activate="activeState = 'picker'">
 					<div class="hico-property-color-tab-subItem hico-property-color-tab-itemtext" ng-class="{'active': activeState === 'picker'}">Picker</div>
 					<div class="hico-property-color-tab-subItem hico-property-color-tab-itemcolor" ng-class="{'active': activeState === 'picker'}"></div>
 				</div>

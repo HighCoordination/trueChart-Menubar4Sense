@@ -4,11 +4,14 @@ import {prefix} from '../prefix';
 import {Toastr} from '../common/toastr';
 import {Logger} from '../logger';
 import {getTranslation} from '../translations/translation';
+import {Deferred} from '../common/global';
 
 const _instances = {}, // holds QlikService instances with appId as key
 	_appsTimeouts = {}, // app dependent timers which are used to close the delayed
 	_appClosingDelay = 5000, // wait a specific amount of time, before closing the app
-	_apps = {}; // app collection with appId as key
+	_apps = {}, // app collection with appId as key
+	_debounceTime = 50, // delay before request is repeated
+	_maxTries = 5; // maximum requests before giving up
 
 export class QlikService {
 
@@ -29,6 +32,30 @@ export class QlikService {
 		const app = qlik.currApp(),
 			isOnline = app && app.global && app.global.session && app.global.session.options !== undefined; // assume that we are "inApp"
 		return !isOnline && typeof window.qlikPrintingService !== 'undefined';
+	}
+
+	/**
+	 * Checks if the given condition is truthy
+	 *
+	 * @param {string} value - Condition to be checked
+	 *
+	 * @return {boolean} - true if condition is interpreted as truthy, false otherwise
+	 */
+	static isTrueCondition(value){
+		const condition = value && value.toString().toLowerCase() || '';
+		return condition === ''
+			|| condition === 'true'
+			|| condition === '1'
+			|| condition === '-1';
+	}
+
+	/**
+	 * Checks if current environment corresponds to inClient mode
+	 *
+	 * @return {boolean}
+	 */
+	static inClient(){
+		return qlik.navigation.inClient === true;
 	}
 
 	/**
@@ -151,6 +178,7 @@ export class QlikService {
 	 * @constructor
 	 */
 	constructor(/*appId*/){
+		window.qlikService = this;
 
 		const _service = this,
 			_app = qlik.currApp(), // here we should get the real app instead of using currApp()
@@ -158,6 +186,8 @@ export class QlikService {
 			_enigma = !QlikService.isPrinting() ? _app.model.enigmaModel : {};
 
 		this._app = _app;
+		this._enigma = _enigma;
+		this._fieldCache = {};
 
 		/* Public/privileged functions definition */
 		this.bindListener = bindListener;
@@ -181,6 +211,7 @@ export class QlikService {
 		this.getChildItems = getChildItems;
 		this.createChild = createChild;
 		this.removeChild = removeChild;
+		this.sendEngineRequest = sendEngineRequest;
 		this.engineErrorHandler = engineErrorHandler;
 
 		this.getUserInfo = getUserInfo;
@@ -189,7 +220,7 @@ export class QlikService {
 		this.inStoryMode = inStoryMode;
 		this.inPlayMode = inPlayMode;
 		this.inEditMode = inEditMode;
-		this.inClient = inClient;
+		this.inClient = QlikService.inClient;
 		this.isPersonalMode = isPersonalMode;
 		this.isPrinting = QlikService.isPrinting;
 		this.isPublished = isPublished;
@@ -281,7 +312,7 @@ export class QlikService {
 		 * @return {*}
 		 */
 		function getObjectLayout(qId){
-			return sendEngineRequest(_app, 'getObject', [qId], 'id');
+			return sendEngineRequest(_app, 'getObject', [qId], 'isValid');
 		}
 
 		/**
@@ -512,12 +543,13 @@ export class QlikService {
 		 * @param {string} [method] - Callback method which will be executed if response is invalid cases (must exist in source object)
 		 * @param {Array} [args] - Arguments of the callback
 		 * @param {string} [validProperty] - property, which the response MUST have to be treated as valid response
+		 * @param {int} [tries] - Re-try counter (used as internal counter)
 		 *
 		 * @return {Promise<*>} - Engine response
 		 */
-		function sendEngineRequest(source, method, args, validProperty){
+		function sendEngineRequest(source, method, args, validProperty, tries = 1){
 			return source[method].apply(source, args || [])
-				.then(engineResponseHandler(source, method, args, validProperty))
+				.then(engineResponseHandler(source, method, args, validProperty, tries))
 				.catch(engineErrorHandler(source, method, args));
 		}
 
@@ -528,14 +560,20 @@ export class QlikService {
 		 * @param {string} [method] - Callback method which will be executed if response is invalid cases (must exist in source object)
 		 * @param {Array} [args] - Arguments of the callback
 		 * @param {string} [validProperty] - property, which the response MUST have to be treated as valid response
+		 * @param {int} [tries] - Re-try counter (used as internal counter)
 		 *
 		 * @return {Function}
 		 */
-		function engineResponseHandler(source, method, args, validProperty){
+		function engineResponseHandler(source, method, args, validProperty, tries = 1){
 			return function(reply){
 				if(!reply || validProperty && !reply[validProperty]){
-					// repeat the request in case of "invalid" reply
-					return Promise.resolve(source[method].apply(source, args || []));
+					if(tries < _maxTries){
+						// repeat the request in case of "invalid" reply
+						return new Promise((resolve) =>{
+							setTimeout(() => resolve(sendEngineRequest(source, method, args, validProperty, tries + 1)), _debounceTime);
+						});
+					}
+					return Promise.reject('Request aborted after ' + tries + ' tries');
 				}
 				return Promise.resolve(reply);
 			};
@@ -551,8 +589,7 @@ export class QlikService {
 		 *
 		 * @return {Function}
 		 */
-		function engineErrorHandler(source, method, args, tries){
-			var maxTries = 5, tries = (tries || 0) + 1;
+		function engineErrorHandler(source, method, args, tries = 1){
 
 			return function(reply){
 				let rejectReason,
@@ -562,9 +599,10 @@ export class QlikService {
 					reportError = err.code !== 2 || args[0] !== 'tcMediaStore' || !isPublished();
 
 				if(reportError){
+					console.warn(err, args);
 					method
-						? Logger.info('HICO: Error occurred during: ' + method, (err.code !== 15 ? err : args))
-						: Logger.error('HICO: Error occurred', reply);
+						? Logger.warn('Error occurred during: ' + method, (err.code !== 15 ? err : args))
+						: Logger.error('Error occurred', reply);
 				}
 
 				switch(err.code){
@@ -573,12 +611,16 @@ export class QlikService {
 						rejectReason.code = 2;
 						break;
 					case 15: // request abborted try again
-						if('function' === typeof source[method] && tries < maxTries){
+						if('function' === typeof source[method] && tries < _maxTries){
 							console.info('try again');
-							return Promise.resolve(source[method].apply(source, args || [])).catch(engineErrorHandler(source, method, args, tries));
+							return new Promise((resolve) =>{
+								setTimeout(() =>{
+									resolve(Promise.resolve(source[method].apply(source, args || [])).catch(engineErrorHandler(source, method, args, tries + 1)));
+								}, _debounceTime);
+							});
 						}else{
 							console.info(source, args);
-							rejectReason = new Error('HICO: Give up after ' + maxTries + ' tries to ' + method);
+							rejectReason = new Error('HICO: Give up after ' + _maxTries + ' tries to ' + method);
 							rejectReason.code = 15;
 						}
 				}
@@ -662,15 +704,6 @@ export class QlikService {
 		 */
 		function inEditMode(){
 			return qlik.navigation.getMode() === "edit";
-		}
-
-		/**
-		 * Checks if current environment corresponds to inClient mode
-		 *
-		 * @return {boolean}
-		 */
-		function inClient(){
-			return qlik.navigation.inClient === true;
 		}
 
 		/**
@@ -835,6 +868,25 @@ export class QlikService {
 	}
 
 	/**
+	 * Returns the enigma instance used by this QlickService instance
+	 * @return {AppAPI.IEnigma | *}
+	 */
+	get enigma(){
+		return this._enigma;
+	}
+
+	/**
+	 * Applies a bookmark.
+	 *
+	 * @param {string} id - Bookmark id.
+	 *
+	 * @return {Promise<*>}
+	 */
+	applyBookmark(id){
+		return this.app.bookmark.apply(id);
+	}
+
+	/**
 	 * Returns all available apps in a Promise
 	 *
 	 * @param {Function} callback - Callback method
@@ -916,6 +968,87 @@ export class QlikService {
 				return this.app.doSave();
 			}
 		});
+	}
+
+	/**
+	 * Create a new visualization on the fly based on a session object and will not be persisted in the app.
+	 *
+	 * @param {string} type - Visualization type
+	 * @param {*} [cols] - Column definitions, dimensions and measures
+	 * @param {*} [options] - Options to set
+	 *
+	 * @return {Promise<*>}
+	 */
+	createVisualization(type, cols, options){
+		return this.sendEngineRequest(this.app.visualization, 'create', [type, cols, options], 'show');
+	}
+
+	/**
+	 * Returns the field object by given fieldName or null, if field do not exist
+	 *
+	 * @param {string} fieldName - Field name
+	 *
+	 * @return {Promise<*>} - Returns a field object in a promise if its valid
+	 */
+	getField(fieldName){
+		if(!this._fieldCache[fieldName]){
+			this._fieldCache[fieldName] = this.sendEngineRequest(this.enigma, 'getField', [fieldName], 'handle')
+				.catch((err) =>{
+					// in case of errors clear the internal fieldCache (to give it one more try...)
+					delete this._fieldCache[fieldName];
+
+					// no special error handling here
+					throw err;
+				});
+		}
+
+		// use enigma to check if field exists and capability API for the response
+		return this._fieldCache[fieldName].then(() => this.app.field(fieldName));
+	}
+
+	/**
+	 * Unlocks a field which was previously locked
+	 *
+	 * @param {string} fieldName - Name of the field to be unlocked
+	 *
+	 * @return {Promise<*>}
+	 */
+	unlockField(fieldName){
+		return this.getField(fieldName).then((field) => field.unlock());
+	}
+
+	/**
+	 * Clears all selections in all fields of the current Qlik Sense app.
+	 *
+	 * @param {boolean} [lockedAlso]
+	 * @param {string} [state] - Alternate state name. (default: $)
+	 *
+	 * @return {{field: Object}|*|Promise<any>}
+	 */
+	clearAll(lockedAlso, state){
+		return this.app.clearAll(lockedAlso, state);
+	}
+
+	/**
+	 * Locks all selections.
+	 *
+	 * @param {string} [state] - Alternate state name. (default: $)
+	 *
+	 * @return {{field: Object}|*|Promise<any>}
+	 */
+	lockAll(state){
+		return this.app.lockAll(state);
+	}
+
+	/**
+	 * Unlocks all selections that has previously been locked.
+	 *
+	 * @param {string} [state] - Alternate state name. (default: $)
+	 *
+	 * @return {{field: Object}|*|Promise<any>}
+	 */
+	unlockAll(state){
+		return this.app.unlockAll(state);
 	}
 }
 
@@ -1284,6 +1417,9 @@ class VariableProvider {
 		var _this = this,
 			_variableValueList,
 			_usedVariables = [],
+			_setValueRequests = [],
+			_setValueTimeout,
+			_setValueDelay = 20,
 			_updateTimeout,
 			_updateDelay = 20,
 			_updatePromise = qlik.Promise.defer(),
@@ -1438,7 +1574,7 @@ class VariableProvider {
 			}
 			return Promise.resolve(promise).then(function(){
 				var variable = _variableValueList.layout.varValueList['v' + slashInNameEscaper(name)];
-				return variable !== undefined ? variable.str : variable;
+				return variable !== undefined ? variable.str : getValue(name); // retry if something went wrong
 			});
 		}
 
@@ -1446,9 +1582,28 @@ class VariableProvider {
 		 * Sets variable string value.
 		 * @param {string} name Variable name
 		 * @param {string} value Variable value
+		 *
+		 * @returns {Promise<*>}
 		 */
 		function setStringValue(name, value){
-			return app.variable.setStringValue(name, value).catch(qlikService.engineErrorHandler(app.variable, 'setStringValue', [name, value]));
+			const request = new Deferred();
+
+			clearTimeout(_setValueTimeout);
+
+			_setValueRequests.push(() => {
+				app.variable.setStringValue(name, value)
+					.catch(qlikService.engineErrorHandler(app.variable, 'setStringValue', [name, value]))
+					.then(request.resolve);
+			});
+
+			_setValueTimeout = setTimeout(() =>{
+				for(const callback of _setValueRequests){
+					callback();
+				}
+				_setValueRequests = [];
+			}, _setValueDelay);
+
+			return request.promise;
 		}
 
 		/**
@@ -1486,12 +1641,12 @@ class VariableProvider {
 		}
 
 		function onValidated(){
-			_ready.startTime && console.info('Variables validated after: ' + (Date.now() - _ready.startTime) / 1000 + 's');
+			_ready.startTime && Logger.info('Variables validated after: ' + (Date.now() - _ready.startTime) / 1000 + 's');
 			setReady();
 		}
 
 		function onInvalidated(){
-			_ready.resolved !== undefined && console.info('Variables invalidated');
+			_ready.resolved !== undefined && Logger.info('Variables invalidated');
 			setReady(false);
 		}
 
@@ -1567,6 +1722,7 @@ class SelectionProvider {
 			_fieldCache = {},
 			_selectedFields = [];
 
+		this.getField = qlikService.getField.bind(qlikService);
 		this.select = select;
 		this._getSelections = () => _selections;
 
@@ -1659,6 +1815,114 @@ class SelectionProvider {
 			selectedValues: sel.selectedValues.map(val => val.qName)
 		}));
 	}
+
+	/**
+	 * Clear the selections of a specific field.
+	 *
+	 * @param {string} fieldName
+	 *
+	 * @return {{field: Object}|*|Promise<any>}
+	 */
+	clearField(fieldName){
+		return this.getField(fieldName).then((field) => field.clear());
+	}
+
+	/**
+	 * Clear the selections in all fields except the current field.
+	 *
+	 * @param {string} fieldName
+	 * @param {boolean} [softLock]
+	 *
+	 * @return {{field: Object}|*|Promise<any>}
+	 */
+	clearOther(fieldName, softLock){
+		return this.getField(fieldName).then((field) => field.clearOther(softLock));
+	}
+
+	/**
+	 * Locks all selected values of a specific field.
+	 *
+	 * @param {string} fieldName
+	 *
+	 * @return {{field: Object}|*|Promise<any>}
+	 */
+	lockField(fieldName){
+		return this.getField(fieldName).then((field) => field.lock());
+	}
+
+	/**
+	 * Selects all values of a field. Excluded values are also selected.
+	 * @param {string} fieldName
+	 * @param {boolean} [softLock]
+	 *
+	 * @return {{field: Object}|*|Promise<any>}
+	 */
+	selectAll(fieldName, softLock){
+		return this.getField(fieldName).then((field) => field.selectAll(softLock));
+	}
+
+	/**
+	 * Selects all alternatives values in a specific field.
+	 *
+	 * @param {string} fieldName
+	 * @param {boolean} [softLock]
+	 *
+	 * @return {{field: Object}|*|Promise<any>}
+	 */
+	selectAlternative(fieldName, softLock){
+		return this.getField(fieldName).then((field) => field.selectAlternative(softLock));
+	}
+
+	/**
+	 * Inverts the current selections.
+	 *
+	 * @param {string} fieldName
+	 * @param {boolean} [softLock]
+	 *
+	 * @return {{field: Object}|*|Promise<any>}
+	 */
+	selectExcluded(fieldName, softLock){
+		return this.getField(fieldName).then((field) => field.selectExcluded(softLock));
+	}
+
+	/**
+	 * Selects matching field values.
+	 *
+	 * @param {string} fieldName
+	 * @param {string} value
+	 * @param {boolean} [softLock]
+	 *
+	 * @return {{field: Object}|*|Promise<any>|Promise<never>}
+	 */
+	selectMatch(fieldName, value, softLock){
+		return this.getField(fieldName).then((field) => field.selectMatch(value, softLock));
+	}
+
+	/**
+	 * Selects all possible values in a specific field.
+	 *
+	 * @param {string} fieldName
+	 * @param {boolean} [softLock]
+	 *
+	 * @return {{field: Object}|*|Promise<any>}
+	 */
+	selectPossible(fieldName, softLock){
+		return this.getField(fieldName).then((field) => field.selectAll(softLock));
+	}
+
+	/**
+	 * Selects some values in a field, by entering the values to select.
+	 *
+	 * @param {string} fieldName
+	 * @param {string[] | number[]} values
+	 * @param {boolean} [toggle]
+	 * @param {boolean} [softLock]
+	 *
+	 * @return {{field: Object}|*|Promise<any>}
+	 */
+	selectValues(fieldName, values, toggle, softLock){
+		return this.getField(fieldName).then((field) => field.selectValues(values, toggle, softLock));
+	}
 }
 
 function arraysDiffers(arrA, arrB){
@@ -1677,4 +1941,4 @@ export {
 };
 
 // DEPRECATED: QlikService as the angular service is available for support reason only (some users are using it in buttons custom actions)
-qvangular.service(prefix + 'QlikService', QlikService);
+qvangular.service(prefix + 'QlikService', () => QlikService.getInstance());

@@ -1,6 +1,7 @@
 import * as qvangular from 'qvangular';
 import * as template from '../../templates/group.html';
 import {QlikService} from '../../lib/hico/services/qlik-service';
+import {UtilService} from '../Services/UtilService';
 
 function Group(utilService){
 	return {
@@ -10,7 +11,7 @@ function Group(utilService){
 			firstItem: '<',
 			itemindex: '<',
 			listitems: '<',
-			parentscope: '<',
+			parentscope: '=',
 		},
 		replace: true,
 		template: template,
@@ -23,7 +24,6 @@ function Group(utilService){
 			$scope.utilService = utilService;
 			// do not evaluate button states for snapshots
 			$scope.evaluateStates = $scope.layout.qInfo.qType !== 'embeddedsnapshot' && !qlikService.isPrinting();
-			$scope.panelDropdownOffset = 0;
 
 			$scope.$watch('item.cId', function() {
 				$scope.itemId = $scope.layout.qInfo.qId + '-' + $scope.item.cId;
@@ -68,10 +68,13 @@ function Group(utilService){
 					utilService.closeMenus($scope.item.groupItems, $scope.item.cId);
 
 					item.show = !item.show;
+					$scope.parentscope.menuOpen = true;
 
 					if($scope.layout.appearance.orientation === 'btn-inline' && utilService.screenWidth > 767){
-						$scope.panelDropdownOffset = utilService.getDropdownOffset($element);
-						$element.find('#panel_' + $scope.itemId).width($element[0].clientWidth);
+						const panel = $element.find('#panel_' + $scope.itemId);
+						UtilService.setPanelOffsets($scope, $element, panel);
+
+						panel.width($element[0].clientWidth);
 
 						if(item.show){
 							$element.parents("article").css("z-index", 2);
@@ -87,6 +90,7 @@ function Group(utilService){
 
 			function closeDropdown(item){
 				item.show = false;
+				$scope.parentscope.menuOpen = false;
 			}
 		}]
 	}

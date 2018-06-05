@@ -123,7 +123,7 @@ export default class MigrationService {
 				uniqueDims = extensions.map(obj => (obj.properties.dimensions || []).map(dimension => dimension.dim && dimension.dim.qStringExpression
 					? dimension.dim.qStringExpression.qExpr
 					: dimension.dim || dimension.dimTitle))
-					.reduce((acc, dims) => acc.concat(dims.filter(dim => acc.indexOf(dim) === -1)), []),
+					.reduce((acc, dims) => acc.concat(dims.filter(dim => dim && acc.indexOf(dim) === -1)), []),
 
 				// get dimensions, which are not in the available dimensions list and must be checked therefore
 				expressionMap = this._updates[version].expressionMap,

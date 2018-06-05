@@ -24,21 +24,37 @@ from version 3.0.0 up to currently latest version April 2018 including exporting
   - created individual actions based on your own JS code,
 * Comprehensive **Button Editor** for button styling,
 * Create _Select_ widgets to make **selections** from (drill-down) dimensions.
-* Create _Variable_ widgets to set **variable values** just by a click.
-* **Maximum space gain** by optionally hiding the Qlik Sense® menus 
+* Create _Date Picker_ widgets to **select single, multi, range dates** and **custom ranges** by one click
+* Create _Variable_ widgets to set **variable values** just by a click, with **variable sliders** or by a **variable input** boxes
+* **Maximum space gain** by optionally hiding the Qlik Sense® menus
 (menu, selection and title bar) and _Toggle fullscreen_ action
+* **Reduction of visual noise** by optional _hiding of snapshot and maximizing buttons_
 
 ## Update
 
-### trueChart-Menubar v1.2.x
+### What is new in trueChart-Menubar v1.3.x
 
-> **Features and Improvements**
-* **New action "Go to app" (document chaining)** [HICO-2564]
-* **New action "Share app" (email | clipboard)** [HICO-40703]
-* **Responsive font sizes** (menubar and buttons) [HICO-2901]
-* **Grouping of elements**: Single & Sense Select, Variable Dropdown, Button & Button Container [HICO-40496]
-* **Option to duplicate and copy/paste existing elements and sub elements** [HICO-2233]
-* Trigger default selection when showing single select again [HICO-40576]
+**New element Date Picker**
+
+The fully customizable new element Date Picker allows selecting single dates, multiple dates and date ranges for sense fields. With the support of dynamic date formats the Date Picker can select almost every possible date. Standardized and freely customizable date ranges allow a wide variety of date selections with just one click.
+
+![Date Picker Types](./assets/DatePicker_01.gif)
+
+**New element Variable Slider**
+
+The new element Variable Slider allows to modify the value of variables in different ways. Three different types are supported: single, range and multi slider.
+
+![Variable Slider Types](./assets/VariableSlider_03.gif)
+
+**New element Variable Input**
+
+The new Variable Input allows you to modify the value of variables with an input field. Variable Inputs blend in with the menu and are only visible when the input is clicked.
+
+![Variable Input Types](./assets/VariableInput_03.gif)
+
+**Options to disable sense snapshot and maximize object buttons**
+
+Two new properties in the Sense property panel allow conditional hiding of the snapshot and maximize button.
 
 ## Showcase
 
@@ -59,16 +75,17 @@ latest version April 2018 including exporting and story mode capability.
 #### nPrinting Support
 The trueChart-Menubar does not yet fully support nPrinting. Expression updates are not 
 performed due to technical restrictions. The general export (without expressions) was 
-successfully tested with the nPrinting 2017 September version.
+successfully tested with the nPrinting September 2017, April 2018 and June 2018 version.
 
 ### Browser Support
 At present trueChart-Menubar supports the browsers listed below:
 
 * Microsoft Internet Explorer 11
-* Microsoft Edge
-* Mozilla Firefox (latest version – v54, at the time of writing)
-* Google Chrome (latest version – v59, at the time of writing)
-* Safari for iOS 9
+* Microsoft Edge (lastest version - v40, at the time of writing)
+* Mozilla Firefox (latest version – v59, at the time of writing)
+* Google Chrome (latest version – v66, at the time of writing)
+* iOS 10.3.2 or later
+  * We recommend upgrading to iOS 11.2.2 or later.
 
 The indicated versions are the minimum conditions. In each case, the latest 
 version is to be preferred. 

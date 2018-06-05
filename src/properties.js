@@ -1,6 +1,5 @@
-import * as angular from 'angular';
+import {angular, $compile} from './js/Services/AngularService';
 import * as qvangular from 'qvangular';
-import * as $timeout from 'ng!$timeout';
 import * as tinycolor from 'tinycolor2';
 import './lib/colorsliders/bootstrap.colorpickersliders';
 
@@ -9,14 +8,22 @@ import {UtilService} from './js/Services/UtilService';
 import UpdateService from './js/Services/UpdateService';
 import {RepairService} from './js/Services/RepairService';
 import * as informationTemplate from './templates/informationComponent.html';
-import * as colorPickerInputTemplate from './templates/colorPickerInputComponent.html';
 import * as multiOptionsTemplate from './templates/multiOptionsComponent.html';
 import * as selectComponentTemplate from './templates/selectComponent.html';
 import * as buttonGroupComponentTemplate from './templates/buttonGroupComponentTemplate.html';
-import * as seperatorLabelTemplate from './templates/seperatorLabelComponent.html';
+import * as datePickerComponentTemplate from './templates/datePickerComponentTemplate.html';
 
 import * as faIcons from './lib/general/icons-fa';
 import {translation} from '../resource/translations/translations';
+import * as Datepicker from '../src/js/Components/datepicker/bundle';
+import {
+	createColorPickerComponent,
+	createDisplayExpression,
+	createLabelSeparator,
+	createSeparator,
+	createStringInput,
+	createCheckbox
+} from './js/Components/Factories/PropertiesFactory';
 
 // make tinycolor available for bootstraps colorpickersliders
 window.tinycolor = tinycolor;
@@ -42,6 +49,8 @@ function Properties(){
 
 		// Customize components for properties panel
 		customCmp = customizePPComponents();
+
+	const labelTrans = translation.label;
 
 	function _getRefs(data, refName) {
 		let ref = data,
@@ -92,25 +101,6 @@ function Properties(){
 		};
 	}
 
-	function createDisplayExpression(ref, label, show){
-		return {
-			ref: ref,
-			label: label,
-			type: "string",
-			expression: "optional",
-			defaultValue: "true",
-			show: show || false
-		};
-	}
-
-	let seperatorComponent = {
-		template: "<div class='hico-property-seperator'></div>"
-	};
-
-	let seperatorLabelComponent = {
-		template: seperatorLabelTemplate
-	};
-
 	let informationComponent = {
 		template: informationTemplate,
 		controller: ['$scope', '$element', function(scope){
@@ -118,102 +108,72 @@ function Properties(){
 		}]
 	};
 
-	const colorPickerComponent = !qlikService.inClient() ? 'string' : {
-		template: colorPickerInputTemplate,
-		controller: ['$scope', '$element', function(scope, $element){
+	const DatePickerComponent = {
+		template: datePickerComponentTemplate,
+		controller: ['$scope', function(scope){
+			scope.refValue = getRefValue(scope.data, scope.definition.ref);
 			scope.showColorPicker = false;
 			scope.qComponents = {
 				string: requirejs('client.property-panel/components/string/string')
 			};
 			scope.text = {type: 'string', ref: scope.definition.ref, expression: 'optional'};
-			scope.obj = _getRefs(scope.data, scope.definition.ref);
-			scope.activeState = 'swatches';
-			scope.colors = ['#FFFFFF', '#D9D9D9', '#B3B3B3', '#808080', '#4D4D4D', '#333333', '#000000', '#a8d7f0', '#52a2cc', '#214152', '#c0dca9', '#61a729',
-							'#274310', '#fcd6a5', '#f8981d', '#633d0c', '#db94ca', '#cc66b3', '#522948', '#ffb0b0', '#f05555', '#522121', '#ffdd68', '#ffce26',
-							'#66520f'
-			];
 
-			scope.isData = true;
+			scope.show = true;
 
-			scope.$on("datachanged", function () {
-				scope.isData = true;
-				let refValue = getRefValue(scope.args.layout, scope.definition.ref);
+			if(typeof scope.definition.show === 'function'){
+				scope.show = scope.definition.show(scope.data);
+			}
 
-				refValue = convertIfSense(refValue);
+			scope.showDatePicker = function(){
+				let clientRec = document.getElementById('datePicker_' + scope.$id).getBoundingClientRect(),
+					data = scope.data,
+					format = data.format ? data.format : (data.props.date.format === 'custom' ? data.props.date.customFormat : data.props.date.format);
+				scope.refValue = getRefValue(scope.data, scope.definition.ref);
 
-				$element.find("#hsvflat_" + scope.$id).trigger("colorpickersliders.updateColor", refValue);
-				$element.find("#colorPalette_" + scope.$id).css("background-color", refValue);
-				setPaletteIconColor(refValue);
+				const datePickerConfig = {
+					format: format,
+				};
 
-			});
+				const configuration = {
+					config: datePickerConfig,
+					displayStartDate: scope.refValue,
+					displayEndDate: '',
+					type: 'single',
+					left: clientRec.left + 'px',
+					top: clientRec.top + 'px',
+					selectedDates: [scope.refValue],
+					onConfirm: scope.onDatePickerConfirm,
+				};
 
-			scope.setColor = function(color){
-				let tinColor = tinycolor(color);
-				setRefValue(scope.data, scope.definition.ref, tinColor.toRgbString());
-				$element.find("#colorPalette_" + scope.$id).css("background-color", tinColor.toRgbString());
-				$element.find("#colorPaletteIcon_" + scope.$id).css("color", tinycolor.mostReadable( tinColor , ['#595959', '#fff']).toHexString());
-				scope.$emit("saveProperties");
+				Datepicker.DatePicker.show(configuration);
 			};
 
-			$timeout(function() {
-				$element.find("#hsvflat_" + scope.$id).ColorPickerSliders(
-					{
-						color: convertIfSense(getRefValue(scope.args.layout, scope.definition.ref)),
-						flat: true,
-						sliders: false,
-						swatches: false,
-						hsvpanel: true,
-						grouping: false,
-						onchange: function(container, color){
-							$timeout(function() {
-								if(!scope.isData){
-									setRefValue(scope.data, scope.definition.ref, color.tiny.toRgbString());
-								}
-								scope.isData = false;
+			scope.onDatePickerConfirm = function(startDate){
+				let date = startDate instanceof Array ? startDate[0] : startDate;
+				setRefValue(scope.data, scope.definition.ref, date);
 
-								$element.find("#colorPalette_" + scope.$id).css("background-color",color.tiny.toRgbString());
-								setPaletteIconColor(color);
-
-								scope.$emit("saveProperties");
-
-							});
-						}
-					});
-			});
-
-			function convertIfSense(colorString){
-				if(colorString.indexOf("ARGB") > -1){
-					let opcaityLength = colorString.indexOf(',') - colorString.indexOf('(') - 1;
-					let opacity = Number(colorString.substr(colorString.indexOf('(') + 1,opcaityLength)) / 255;
-
-					return'rgba(' + colorString.substr(colorString.indexOf(',') + 1, colorString.length - colorString.indexOf(',') - 2) + ',' +opacity + ')';
-				}else{
-					return colorString
-				}
-			}
-
-			function setPaletteIconColor(color){
-				let colorObj = {};
-
-				if(!color.tiny){
-					colorObj.tiny = tinycolor(color);
-				}else{
-					colorObj = color;
+				if(typeof scope.definition.change === 'function'){
+					scope.definition.change(scope.data);
 				}
 
-				if(colorObj.tiny.getAlpha() < 0.5){
-					$element.find("#colorPaletteIcon_" + scope.$id).css("color", '#595959');
-				}else{
-					$element.find("#colorPaletteIcon_" + scope.$id).css("color", tinycolor.mostReadable( colorObj.tiny , ['#595959', '#fff']).toHexString());
-				}
-			}
+				scope.update();
+			};
 
+			scope.update = function(){
+				scope.$emit("saveProperties");
+			};
 		}]
 	};
 
 	const ButtonGroupComponent = {
 		template: buttonGroupComponentTemplate,
 		controller: ['$scope', function(scope){
+
+			scope.show = true;
+
+			if(typeof scope.definition.show === 'function'){
+				scope.show = scope.definition.show(scope.data);
+			}
 
 			scope.updateButtons = function(){
 				scope.definition.buttons.forEach(button =>{
@@ -245,12 +205,23 @@ function Properties(){
 			scope.text = {type: 'string', ref: scope.definition.ref, expression: 'optional'};
 			scope.options = [];
 
-			scope.definition.options.some(function(option){
-				if(option.value === scope.refValue){
-					scope.refValue = option;
-					return true;
-				}
-			});
+			if(typeof scope.definition.defaultValue === 'function'){
+				scope.refValue = scope.definition.defaultValue(scope.data, scope.args.handler, scope.args);
+			}else{
+				scope.refValue = scope.options[getRefValue(scope.data, scope.definition.ref) || scope.definition.defaultValue];
+			}
+
+			if(typeof scope.definition.options === 'function'){
+				scope.options = scope.definition.options(scope.data, scope.args.handler, scope.args);
+			}else{
+				scope.options = scope.definition.options;
+				scope.definition.options.some(function(option){
+					if(option.value === scope.refValue){
+						scope.refValue = option;
+						return true;
+					}
+				});
+			}
 
 			scope.update = function(){
 				setRefValue(scope.data, scope.definition.ref, scope.refValue.value);
@@ -270,19 +241,24 @@ function Properties(){
 			scope.show = scope.definition.show && scope.definition.show(scope.data, scope.args.handler);
 			scope.options = [];
 
-			if(typeof scope.definition.options === 'function'){
-				scope.options = scope.definition.options(scope.data, scope.args.handler);
+			if(typeof scope.definition.defaultValue === 'function'){
+				scope.refValue = getRefValue(scope.data, scope.definition.ref) || scope.definition.defaultValue(scope.data, scope.args.handler, scope.args);
 			}else{
-				scope.options = scope.definition.options;
-				scope.definition.options.some(function(option){
-					if(option.value === scope.refValue){
-						scope.refValue = option;
-						return true;
-					}
-				});
+				scope.refValue = getRefValue(scope.data, scope.definition.ref) || scope.definition.defaultValue;
 			}
 
-			scope.refValue = scope.options[getRefValue(scope.data, scope.definition.ref) || scope.definition.defaultValue];
+			if(typeof scope.definition.options === 'function'){
+				scope.options = scope.definition.options(scope.data, scope.args.handler, scope.args);
+			}else{
+				scope.options = scope.definition.options;
+			}
+
+			scope.options.some(function(option){
+				if(option.value === scope.refValue){
+					scope.refValue = option;
+					return true;
+				}
+			});
 
 			scope.update = function(){
 				setRefValue(scope.data, scope.definition.ref, scope.refValue.value);
@@ -293,6 +269,10 @@ function Properties(){
 
 				scope.$emit("saveProperties");
 			};
+
+			if(!getRefValue(scope.data, scope.definition.ref)){
+				scope.update();
+			}
 		}]
 	};
 
@@ -319,9 +299,8 @@ function Properties(){
 				data.type === 'apply' ? resolve() : reject();
 			};
 
-			const compile = qvangular.getService('$compile'),
-				template = '<div data-tcmenu-button-editor on-close="onClose" condition="condition" state="state" trans="trans" is-true="isTrue"></div>',
-				$editor = compile(template)(scope);
+			const template = '<div data-tcmenu-button-editor on-close="onClose" condition="condition" state="state" trans="trans" is-true="isTrue"></div>',
+				$editor = $compile(template)(scope);
 
 			if(document.body.childNodes.length > 0){
 				document.body.insertBefore($editor[0], document.body.childNodes[0]);
@@ -333,16 +312,10 @@ function Properties(){
 
 	function State(){
 		this.version = 1;
-
 		this.type = 'buttonState'; // only for tcmenu (cpy/paste/duplicate)
 		this.text = 'My Button';
-		this.tooltip = undefined;
-		this.icon = undefined;
 		this.buttonType = 'simple';
-		this.buttonState = undefined;
-
 		this.condition = conditionInput.defaultValue;
-
 		this.triggers = [
 			{
 				type: 'click',
@@ -351,59 +324,23 @@ function Properties(){
 						name: 'none',
 						params: {},
 						paramsExpr: {},
-						optionalParams: undefined, // optional parameter of type []
-						optionalParamsExpr: undefined // optional parameter (definition/expression) of type []
 					}
 				]
 			}
 		];
-
 		this.style = {
-			custom: undefined, // custom css string
-			icon: {
-				color: undefined,
-				hoverColor: undefined,
-				size: undefined,
-				position: undefined
-			},
-			font: {
-				color: undefined, // font color
-				hoverColor: undefined,
-				size: undefined,
-				weight: undefined,
-				family: undefined
-			},
+			icon: {},
+			font: {},
 			background: {
-				color: undefined,
-				hoverColor: undefined,
-				image: undefined,
-				position: {x: undefined, y: undefined},
+				position: {},
 				repeat: 'no-repeat',
-				size: undefined
 			},
-			border: {
-				color: undefined,
-				hoverColor: undefined,
-				enabled: undefined,
-				width: undefined,
-				radius: undefined,
-				style: undefined
-			},
-			boxShadow: undefined
+			border: {},
 		};
-
 		this.layout = {
-			vAlign: undefined,  // {string} vertical alignment of the button inside its container -> 'middle'
-			hAlign: undefined,  // {string} horizontal alignment of the button inside its container -> 'center'
-			vTextAlign: undefined,  // {string} vertical alignment of the button inside its container -> 'middle'
-			hTextAlign: undefined,  // {string} horizontal alignment of the button inside its container -> 'center'
-			vContentAlign: undefined,
-			hContentAlign: undefined,
 			width: '100%',   // {string} width of the button -> 'auto'
 			height: '100%',  // {string} height of the button -> 'default style'
-			icon: {
-				position: undefined // {string} left|right|top|bottom -> undefined -> left as default
-			}
+			icon: {}
 		};
 	}
 
@@ -419,6 +356,9 @@ function Properties(){
 
 	const repairButton = {
 		component: ButtonGroupComponent,
+		show: function(){
+			return window.localStorage.getItem('__tcmenu_hidden_features__') === 'true';
+		},
 		buttons: [
 			{
 				label: translation.label.repairBtn,
@@ -433,6 +373,9 @@ function Properties(){
 
 	const updateButton = {
 		component: ButtonGroupComponent,
+		show: function(){
+			return window.localStorage.getItem('__tcmenu_hidden_features__') === 'true';
+		},
 		buttons: [
 			{
 				label: translation.label.repeatUpdateBtn,
@@ -442,45 +385,6 @@ function Properties(){
 				}
 			}
 		]
-	};
-
-	const seperator = {
-		type: "string",
-		component: seperatorComponent,
-		ref: ""
-	};
-
-	const seperatorSort = {
-		type: "string",
-		component: seperatorComponent,
-		ref: "",
-		show: function (item) {
-			return !item.qDef.autoSort;
-		}
-	};
-
-	let seperatorLabelColorMain = {
-		type: "string",
-		component: seperatorLabelComponent,
-		label: translation.label.menuMain
-	};
-
-	let seperatorLabelColorSub = {
-		type: "string",
-		component: seperatorLabelComponent,
-		label: translation.label.menuSub
-	};
-
-	let seperatorLabelTextLabel = {
-		type: "string",
-		component: seperatorLabelComponent,
-		label: translation.label.label
-	};
-
-	let seperatorLabelTextSub = {
-		type: "string",
-		component: seperatorLabelComponent,
-		label: translation.label.selectionLabel
 	};
 
 	let copyPaste = {
@@ -806,20 +710,6 @@ function Properties(){
 		expression: "optional"
 	};
 
-	let buttonNameInput = {
-		ref: "props.buttonName",
-		label: translation.label.buttonNameInput,
-		type: "string",
-		expression: ""
-	};
-
-	let conditionNameInput = {
-		ref: "props.conditionName",
-		label: translation.label.conditionNameInput,
-		type: "string",
-		expression: "optional"
-	};
-
 	let calcCondVar = {
 		type: 'string',
 			label: translation.label.calcCondVar,
@@ -852,7 +742,7 @@ function Properties(){
 		}],
 		defaultValue: false,
 		show: function( data){
-			return data.type !== 'Button Container' && data.type !== 'Button';
+			return data.type !== 'Button Container' && data.type !== 'Button' && data.type !== 'Variable Input';
 		}
 	};
 
@@ -878,7 +768,7 @@ function Properties(){
 		expression: "optional",
 		defaultValue: "",
 		show: function ( data ) {
-			return data.props.isCustomSelection;
+			return data.props.isCustomSelection && data.type !== 'Variable Input';
 		}
 	};
 
@@ -1042,96 +932,6 @@ function Properties(){
 		}
 	};
 
-	let colorPickerBackground = {
-		type: "items",
-		component: colorPickerComponent,
-		label: translation.label.backgroundColor,
-		ref: "appearance.backgroundColor",
-		expression: "optional",
-		defaultValue: "rgb(245,245,245)"
-	};
-
-	let colorPickerSubItemBackground = {
-		type: "items",
-		component: colorPickerComponent,
-		label: translation.label.backgroundColor,
-		ref: "appearance.subItemBackgroundColor",
-		expression: "optional",
-		defaultValue: "rgb(217,217,217)"
-	};
-
-	let colorPickerHoverActive = {
-		type: "items",
-		component: colorPickerComponent,
-		label: translation.label.hoverActiveColor,
-		ref: "appearance.hoverActiveColor",
-		expression: "optional",
-		defaultValue: "rgb(159,159,159)"
-	};
-
-	let colorPickerHoverSubItem = {
-		type: "items",
-		component: colorPickerComponent,
-		label: translation.label.hoverActiveColor,
-		ref: "appearance.hoverSubItemColor",
-		expression: "optional",
-		defaultValue: "rgb(165,165,165)"
-	};
-
-	let colorPickerBorderSeparator = {
-		type: "items",
-		component: colorPickerComponent,
-		label: translation.label.borderSeperatorColor,
-		ref: "appearance.borderSeparatorColor",
-		expression: "optional",
-		defaultValue: "rgb(179,179,179)"
-	};
-
-	let colorPickerSubBorderSeparator = {
-		type: "items",
-		component: colorPickerComponent,
-		label: translation.label.borderSeperatorColor,
-		ref: "appearance.subItemSeparatorColor",
-		expression: "optional",
-		defaultValue: "rgb(150,150,150)"
-	};
-
-	let colorPickerText = {
-		type: "items",
-		component: colorPickerComponent,
-		label: translation.label.textColor,
-		ref: "appearance.textColor",
-		expression: "optional",
-		defaultValue: "rgb(89,89,89)"
-	};
-
-	let colorPickerHoverText = {
-		type: "items",
-		component: colorPickerComponent,
-		label: translation.label.textHoverColor,
-		ref: "appearance.textHoverColor",
-		expression: "optional",
-		defaultValue: "rgb(89,89,89)"
-	};
-
-	let colorPickerSubText = {
-		type: "items",
-		component: colorPickerComponent,
-		label: translation.label.textColor,
-		ref: "appearance.textSubColor",
-		expression: "optional",
-		defaultValue: "rgb(89,89,89)"
-	};
-
-	let colorPickerHoverSubText = {
-		type: "items",
-		component: colorPickerComponent,
-		label: translation.label.textHoverColor,
-		ref: "appearance.textHoverSubColor",
-		expression: "optional",
-		defaultValue: "rgb(89,89,89)"
-	};
-
 	let selectValueCheckbox = {
 		type: "boolean",
 		label: translation.label.selectDimension,
@@ -1147,7 +947,7 @@ function Properties(){
 		type: "string",
 		expression: "optional",
 		show: function ( data ) {
-			return data.props.alwaysSelectValue;
+			return data.props.alwaysSelectValue && data.type !== 'Date Picker';
 		}
 	};
 
@@ -1518,7 +1318,7 @@ function Properties(){
 		],
 		defaultValue: "single",
 		show: function ( data ) {
-			return  data.type !== 'Button' && data.type !== 'Button Container';
+			return  data.type !== 'Button' && data.type !== 'Button Container' && data.type !== 'Variable Input' && data.type !== 'Date Picker' || (data.type === 'Date Picker' && data.props.date && data.props.date.type !== 'range');
 		}
 	};
 
@@ -1596,7 +1396,7 @@ function Properties(){
 		],
 		defaultValue: "center",
 		show: function ( data ) {
-			return  data.props.textLayout === 'multi';
+			return  (data.props.textLayout === 'multi' || (data.type === 'Date Picker' && data.props.date && data.props.date.type === 'range')) && data.type !== 'Variable Input';
 		}
 	};
 
@@ -1622,14 +1422,14 @@ function Properties(){
 		],
 		defaultValue: "center",
 		show: function ( data ) {
-			return  data.props.textLayout === 'multi';
+			return  (data.props.textLayout === 'multi' || (data.type === 'Date Picker' && data.props.date && data.props.date.type === 'range')) && data.type !== 'Variable Input';
 		}
 	};
 
 	let selectDimensions = {
 		type: "items",
 		show: function ( data ) {
-			return data.type === "Sense Select" || data.type === "Single Select" ;
+			return data.type === "Sense Select" || data.type === "Single Select" || data.type === 'Date Picker';
 		},
 		items: {
 			MyDropdownProp: {
@@ -1645,6 +1445,684 @@ function Properties(){
 				},
 				defaultValue: ""
 			}
+		}
+	};
+
+	const dateFormat = {
+		type: "items",
+		component: selectComponent,
+		label: translation.label.format,
+		ref: "props.date.format",
+		options: function(data, handler, objModel){
+			return [
+				{
+					value: objModel.localeInfo.qDateFmt,
+					label: 'Default'
+				}, {
+					value: "DD/MM/YYYY",
+					label: "DD/MM/YYYY",
+				}, {
+					value: "MM/DD/YYYY",
+					label: "MM/DD/YYYY",
+				}, {
+					value: "MM/YYYY",
+					label: "MM/YYYY",
+				}, {
+					value: "custom",
+					label: translation.label.custom,
+				}
+			];
+		},
+		defaultValue: function(data, handler, objModel){
+			if(objModel){
+				return objModel.localeInfo.qDateFmt;
+			}
+		},
+		change: function(data){
+			data.props.date.predefines.forEach( (predefine) => {
+				if(data.props.date.format === 'custom'){
+					predefine.date = data.props.date.customFormat;
+				}else{
+					predefine.date = data.props.date.format;
+				}
+			});
+		}
+	};
+
+	const dateCustomFormat = {
+		ref: "props.date.customFormat",
+		show: function (data) {
+			return data.props.date && data.props.date.format === 'custom';
+		},
+		label: translation.label.formatCustom,
+		type: "string",
+		expression: "optional",
+		defaultValue: "DD/MM/YYYY",
+		change: function(data){
+			data.props.date.predefines.forEach( (predefine) => {
+				predefine.date = data.props.date.customFormat;
+			});
+		}
+	};
+
+	const dateUseDefaultRange = {
+		type: "boolean",
+		label: translation.label.selectDimension,
+		ref: "props.alwaysSelectValue",
+		defaultValue: false
+	};
+
+	const dateDefaultStartRange = {
+		component: DatePickerComponent,
+		ref: "props.date.defaultStartDate",
+		show: function (data) {
+			return data.props.date && data.props.alwaysSelectValue && data.props.date.type === 'range';
+		},
+		label: translation.label.start,
+		expression: "optional",
+		defaultValue: "",
+		change: function(data){
+			if(data.props.date && (data.props.date.type === 'single' || data.props.date.type === 'multi')){
+				data.props.date.defaultEndDate = data.props.date.defaultStartDate;
+			}
+		}
+	};
+
+	const dateDefaultStartSingle = {
+		component: DatePickerComponent,
+		ref: "props.date.defaultStartDate",
+		show: function (data) {
+			return data.props.date && data.props.alwaysSelectValue && data.props.date.type !== 'range';
+		},
+		label: translation.label.date,
+		expression: "optional",
+		defaultValue: "",
+		change: function(data){
+			if(data.props.date && (data.props.date.type === 'single' || data.props.date.type === 'multi')){
+				data.props.date.defaultEndDate = data.props.date.defaultStartDate;
+			}
+		}
+	};
+
+	const dateDefaultEnd = {
+		component: DatePickerComponent,
+		ref: "props.date.defaultEndDate",
+		show: function (data) {
+			return data.props.date && data.props.alwaysSelectValue && data.props.date.type === 'range';
+		},
+		label: translation.label.end,
+		expression: "optional",
+		defaultValue: "",
+	};
+
+	const dateType = {
+		type: "string",
+		component: "buttongroup",
+		label: translation.label.type,
+		ref: "props.date.type",
+		options: [{
+			value: "single",
+			label: translation.label.single,
+			tooltip: translation.tooltip.single
+		}, {
+			value: "multi",
+			label: translation.label.multi,
+			tooltip: translation.tooltip.multi
+		}, {
+			value: "range",
+			label: translation.label.range,
+			tooltip: translation.tooltip.range
+		}],
+		defaultValue: "single"
+	};
+
+	const dateWeekDayOrder = {
+		type: "string",
+		component: "buttongroup",
+		label: translation.label.dateFirstDayOfWeek,
+		ref: "props.date.weekdayOrder",
+		options: [{
+			value: "Mon",
+			label: translation.label.monday,
+			tooltip: translation.tooltip.firstWeekdayMon
+		}, {
+			value: "Sun",
+			label: translation.label.sunday,
+			tooltip: translation.tooltip.firstWeekdaySun
+		}],
+		defaultValue: "Mon"
+	};
+
+	const dateUsePredefines = {
+		type: "boolean",
+		component: "switch",
+		show: function (data) {
+			return data.props.date.type === 'range';
+		},
+		label: translation.label.dateUsePredefines,
+		ref: "props.date.usePredefines",
+		options: [{
+			value: true,
+			label: translation.label.custom
+		}, {
+			value: false,
+			label: translation.label.auto
+		}],
+		defaultValue: false
+	};
+
+	const useDefaultPredefines = {
+		type: "boolean",
+		show: function (data) {
+			return data.props.date && data.props.date.usePredefines && data.props.date.type === 'range';
+		},
+		label: translation.label.defaultPredefines,
+		ref: "props.date.useDefaultPredefines",
+		defaultValue: true
+	};
+
+	const useCustomPredefines = {
+		type: "boolean",
+		show: function (data) {
+			return data.props.date && data.props.date.usePredefines && data.props.date.type === 'range';
+		},
+		label: translation.label.customPredefines,
+		ref: "props.date.useCustomPredefines",
+		defaultValue: false
+	};
+
+	const datePredfineLabel = {
+		ref: "label",
+		label: translation.label.label,
+		type: "string",
+		expression: "optional",
+		defaultValue: ""
+	};
+
+	const datePredfineStart = {
+		component: DatePickerComponent,
+		ref: "start",
+		label: translation.label.start,
+		expression: "optional",
+		defaultValue: ""
+	};
+
+	const datePredfineEnd = {
+		component: DatePickerComponent,
+		ref: "end",
+		label:translation.label.end,
+		expression: "optional",
+		defaultValue: ""
+	};
+
+	const customPredefinesList = {
+		type: "array",
+		show: function (data) {
+			return data.props.date && data.props.date.usePredefines && data.props.date.useCustomPredefines && data.props.date.type === 'range';
+		},
+		ref: "props.date.predefines",
+		label: translation.label.customPredefines,
+		itemTitleRef: "label",
+		allowAdd: true,
+		allowRemove: false,
+		addTranslation: translation.label.addPredefines,
+		items: {
+			datePredfineLabel: datePredfineLabel,
+			datePredfineStart: datePredfineStart,
+			datePredfineEnd: datePredfineEnd,
+		},
+		add: function(data, parentData){
+			const parentProps = parentData.props.date;
+			data.format = parentProps.format === 'custom' ? parentProps.customFormat : parentProps.format
+		}
+	};
+
+	const datePickerProperties = {
+		type: 'items',
+		show: function (data) {
+			return data.type === 'Date Picker';
+		},
+		items: {
+			seperatorDateOptions: createLabelSeparator(labelTrans.dateOptions),
+			dateType: dateType,
+			dateWeekDayOrder: dateWeekDayOrder,
+			dateFormat: dateFormat,
+			dateCustomFormat: dateCustomFormat,
+			dateUseDefaultRange: dateUseDefaultRange,
+			dateDefaultStartRange: dateDefaultStartRange,
+			dateDefaultStartSingle: dateDefaultStartSingle,
+			dateDefaultEnd: dateDefaultEnd,
+			dateUsePredefines: dateUsePredefines,
+			useDefaultPredefines: useDefaultPredefines,
+			useCustomPredefines: useCustomPredefines,
+			customPredefinesList: customPredefinesList,
+		}
+	};
+
+	const variableSliderType = {
+		type: "string",
+		component: "dropdown",
+		label: translation.label.type,
+		ref: "props.variableSlider.type",
+		options: [{
+			value: "single",
+			label: translation.label.single,
+			tooltip: translation.tooltip.single
+		}, {
+			value: "range",
+			label: translation.label.range,
+			tooltip: translation.tooltip.range
+		}, {
+			value: "multi",
+			label: translation.label.multi,
+			tooltip: translation.tooltip.multi
+		}],
+		defaultValue: "single"
+	};
+
+	const variableSliderOrientation = {
+		type: "string",
+		component: customCmp.buttongroup,
+		label: translation.label.orientation,
+		ref: "props.variableSlider.orientation",
+		options: [
+			{
+				value: "vertical",
+				label: translation.label.vertical
+			}, {
+				value: "horizontal",
+				label: translation.label.horizontal
+			}
+		],
+		defaultValue: "horizontal"
+	};
+
+	const variableSliderValueType = {
+		type: "string",
+		component: "dropdown",
+		label: translation.label.dataType,
+		ref: "props.variableSlider.valueType",
+		options: [{
+			value: "numeric",
+			label: translation.label.numeric,
+			tooltip: translation.tooltip.numeric
+		}, {
+			value: "date",
+			label: translation.label.date,
+			tooltip: translation.tooltip.date
+		}, {
+			value: "string",
+			label: translation.label.string,
+			tooltip: translation.tooltip.string
+		}],
+		defaultValue: "numeric",
+	};
+
+	const variableSliderDateFormat = {
+		ref: "props.variableSlider.dateformat",
+		show: function (data) {
+			return data.props.variableSlider && data.props.variableSlider.valueType === 'date';
+		},
+		label: translation.label.format,
+		type: "string",
+		expression: "optional",
+		defaultValue: "dd/mm/yyyy",
+	};
+
+	const variableSliderVariableName = {
+		ref: "props.variableSlider.variable",
+		show: function (data) {
+			const variableSlider = data.props.variableSlider;
+			return variableSlider && variableSlider.type === 'single';
+		},
+		label: translation.label.variableName,
+		type: "string",
+		expression: "optional",
+		defaultValue: "",
+	};
+
+	const variableSliderVariableDefault = {
+		ref: "props.variableSlider.variableDefault",
+		show: function (data) {
+			const variableSlider = data.props.variableSlider;
+			return variableSlider && variableSlider.type === 'single';
+		},
+		label: translation.label.selectDimension,
+		type: "string",
+		expression: "optional",
+		defaultValue: "",
+	};
+
+	const variableSliderStartVariableName = {
+		ref: "props.variableSlider.variableStart",
+		show: function (data) {
+			return data.props.variableSlider && data.props.variableSlider.type === 'range';
+		},
+		label: translation.label.variableNameStart,
+		type: "string",
+		expression: "optional",
+		defaultValue: "",
+	};
+
+	const variableSliderStartVariableDefault = {
+		ref: "props.variableSlider.variableStartDefault",
+		show: function (data) {
+			return data.props.variableSlider && data.props.variableSlider.type === 'range';
+		},
+		label: translation.label.defaultStartValue,
+		type: "string",
+		expression: "optional",
+		defaultValue: "0",
+	};
+
+	const variableSliderEndVariableName = {
+		ref: "props.variableSlider.variableEnd",
+		show: function (data) {
+			return data.props.variableSlider && data.props.variableSlider.type === 'range';
+		},
+		label: translation.label.variableNameEnd,
+		type: "string",
+		expression: "optional",
+		defaultValue: "",
+	};
+
+	const variableSliderEndVariableDefault = {
+		ref: "props.variableSlider.variableEndDefault",
+		show: function (data) {
+			return data.props.variableSlider && data.props.variableSlider.type === 'range';
+		},
+		label: translation.label.defaultEndValue,
+		type: "string",
+		expression: "optional",
+		defaultValue: "0",
+	};
+
+	const variableSliderMinValue = {
+		ref: "props.variableSlider.minValue",
+		label: translation.label.minValue,
+		type: "string",
+		expression: "optional",
+		defaultValue: "0",
+		change: function(data){
+			data.props.variableSlider = data.props.variableSlider || {}; //intellij is unhappy when we dont check if the object exists
+			const sliderProps = data.props.variableSlider,
+				minValue = parseInt(sliderProps.minValue),
+				maxValue = parseInt(sliderProps.maxValue),
+				steps = parseInt(sliderProps.steps);
+
+			if(minValue + steps > maxValue){
+				data.props.variableSlider.maxValue = (minValue + steps).toString();
+			}
+		},
+		show: function(data){
+			return data.props.variableSlider && data.props.variableSlider.valueType !== 'string';
+		}
+	};
+
+	const variableSliderMaxValue = {
+		ref: "props.variableSlider.maxValue",
+		label: translation.label.maxValue,
+		type: "string",
+		expression: "optional",
+		defaultValue: "100",
+		change: function(data){
+			data.props.variableSlider = data.props.variableSlider || {}; //intellij is unhappy when we dont check if the object exists
+			const sliderProps = data.props.variableSlider,
+				minValue = parseInt(sliderProps.minValue),
+				maxValue = parseInt(sliderProps.maxValue),
+				steps = parseInt(sliderProps.steps);
+
+			if(minValue + steps > maxValue){
+				data.props.variableSlider.minValue = (maxValue - steps).toString();
+			}
+		},
+		show: function(data){
+			return data.props.variableSlider && data.props.variableSlider.valueType !== 'string';
+		}
+	};
+
+	const variableSliderShowMinMax = {
+		type: "boolean",
+		component: "switch",
+		label: translation.label.showMinMax,
+		ref: "props.variableSlider.showMinMax",
+		options: [{
+			value: true,
+			label: translation.label.on
+		}, {
+			value: false,
+			label: translation.label.off
+		}],
+		defaultValue: false
+	};
+
+	const variableSliderShowValues = {
+		type: "boolean",
+		component: "switch",
+		label: translation.label.showValues,
+		ref: "props.variableSlider.showValues",
+		options: [{
+			value: true,
+			label: translation.label.on
+		}, {
+			value: false,
+			label: translation.label.off
+		}],
+		defaultValue: false
+	};
+
+	const variableSliderSteps = {
+		ref: "props.variableSlider.steps",
+		label: translation.label.frequency,
+		type: "string",
+		expression: "optional",
+		defaultValue: "1",
+		show: function(data){
+			return data.props.variableSlider && data.props.variableSlider.valueType !== 'string';
+		},
+		change: function(data){
+			if(data.props.variableSlider.steps < 0){
+				data.props.variableSlider.steps = Math.abs(data.props.variableSlider.steps).toString();
+			}else if(isNaN(data.props.variableSlider.steps)){
+				data.props.variableSlider.steps = '1';
+			}
+		}
+	};
+
+	const variableSliderVariableNameMulti = {
+		ref: "variableName",
+		label: translation.label.variableName,
+		type: "string",
+		expression: "optional",
+		defaultValue: "",
+	};
+
+	const variableSliderVariableMultiDefault = {
+		ref: "variableDefault",
+		label: translation.label.selectDimension,
+		type: "string",
+		expression: "optional",
+		defaultValue: "0",
+	};
+
+	const variableSliderMultiHandles= {
+		type: "array",
+		show: function (data) {
+			return data.props.variableSlider && data.props.variableSlider.type === 'multi';
+		},
+		ref: "props.variableSlider.multiHandles",
+		label: translation.label.variableList,
+		itemTitleRef: "variableName",
+		allowAdd: true,
+		allowRemove: false,
+		addTranslation: translation.label.addVariable,
+		items: {
+			variableSliderVariableNameMulti: variableSliderVariableNameMulti,
+			variableSliderVariableMultiDefault: variableSliderVariableMultiDefault,
+		},
+	};
+
+	const variableSliderStrings = {
+		type: 'array',
+		show: function(data){
+			return data.props.variableSlider && data.props.variableSlider.valueType === 'string';
+		},
+		ref: 'props.variableSlider.strings',
+		label: translation.label.stringList,
+		itemTitleRef: 'value',
+		allowAdd: true,
+		allowRemove: false,
+		addTranslation: translation.label.addString,
+		items: {
+			variableSliderStringValue: createStringInput(labelTrans.variableValue, 'value', ''),
+			variableSliderStringLabel: createStringInput(labelTrans.label, 'label', ''),
+		},
+	};
+
+	const variableSliderProperties = {
+		type: 'items',
+		show: function (data) {
+			return data.type === 'Variable Slider';
+		},
+		items: {
+			seperatorVarSliderOptions: createLabelSeparator(labelTrans.variableSliderOptions),
+			variableSliderType: variableSliderType,
+			variableSliderValueType: variableSliderValueType,
+			variableSliderOrientation: variableSliderOrientation,
+			variableSliderDateFormat: variableSliderDateFormat,
+			variableSliderVariableName: variableSliderVariableName,
+			variableSliderVariableDefault: variableSliderVariableDefault,
+			variableSliderStartVariableName: variableSliderStartVariableName,
+			variableSliderStartVariableDefault: variableSliderStartVariableDefault,
+			variableSliderEndVariableName: variableSliderEndVariableName,
+			variableSliderEndVariableDefault: variableSliderEndVariableDefault,
+			variableSliderMinValue: variableSliderMinValue,
+			variableSliderMaxValue: variableSliderMaxValue,
+			variableSliderShowMinMax: variableSliderShowMinMax,
+			variableSliderShowValues: variableSliderShowValues,
+			variableSliderSteps: variableSliderSteps,
+			variableSliderMultiHandles: variableSliderMultiHandles,
+			variableSliderStrings: variableSliderStrings,
+		}
+	};
+
+	const variableInputType = {
+		type: 'string',
+		component: 'dropdown',
+		label: translation.label.type,
+		ref: 'props.variableInput.type',
+		options: [
+			{
+				value: 'Text',
+				label: translation.label.Text
+			}, {
+				value: 'Number',
+				label: translation.label.numeric
+			}, {
+				value: 'Decimal',
+				label: translation.label.decimal
+			}, {
+				value: 'Date',
+				label: translation.label.date
+			}
+		],
+		defaultValue: 'Text',
+		change: function(data, handler, layout, objModel){
+			if(data.props.variableInput.type === 'Decimal'){
+				data.props.variableInput.decimalSep = objModel.localeInfo.qDecimalSep || ',';
+			}
+		}
+
+	};
+
+	const variableInputDateFormat = {
+		ref: "props.variableInput.dateformat",
+		show: function (data) {
+			return data.props.variableInput && data.props.variableInput.type === 'Date';
+		},
+		label: translation.label.format,
+		type: "string",
+		expression: "optional",
+		defaultValue: "dd/mm/yyyy",
+	};
+
+	const variableInputVariableName = {
+		ref: "props.variableInput.variable",
+		label: translation.label.variableName,
+		type: "string",
+		expression: "optional",
+		defaultValue: "",
+	};
+
+	const variableInputVariableDefault = {
+		ref: "props.variableInput.variableDefault",
+		label: translation.label.selectDimension,
+		type: "string",
+		expression: "optional",
+		defaultValue: "0",
+	};
+
+	const variableInputOrientation = {
+		type: "string",
+		component: customCmp.buttongroup,
+		label: translation.label.labelAlignementVertical,
+		ref: "props.variableInput.verAlignLabel",
+		options: [
+			{
+				value: "flex-start",
+				label: translation.label.top,
+				tooltip: translation.tooltip.top
+			}, {
+				value: "center",
+				label: translation.label.center,
+				tooltip: translation.tooltip.center
+			}, {
+				value: "flex-end",
+				label: translation.label.bottom,
+				tooltip: translation.tooltip.bottom
+			}
+		],
+		defaultValue: "center"
+	};
+
+	const variableInputOrientationHorizontal = {
+		type: "string",
+		component: customCmp.buttongroup,
+		label: translation.label.labelAlignementHorizontal,
+		ref: "props.variableInput.horAlignLabel",
+		options: [
+			{
+				value: "left",
+				label: translation.label.left,
+				tooltip: translation.tooltip.left
+			}, {
+				value: "center",
+				label: translation.label.center,
+				tooltip: translation.tooltip.center
+			}, {
+				value: "right",
+				label: translation.label.right,
+				tooltip: translation.tooltip.right
+			}
+		],
+		defaultValue: "center"
+	};
+
+	const variableInputProperties = {
+		type: 'items',
+		show: function (data) {
+			return data.type === 'Variable Input';
+		},
+		items: {
+			seperatorInputOptions: createLabelSeparator(labelTrans.variableInputOptions),
+			variableInputType: variableInputType,
+			variableInputDateFormat: variableInputDateFormat,
+			variableInputVariableName: variableInputVariableName,
+			variableInputVariableDefault: variableInputVariableDefault,
+			variableInputPlaceholder: createStringInput(labelTrans.placeholder, 'props.variableInput.placeholder', ''),
+			variableInputRequired: createCheckbox(labelTrans.required, 'props.variableInput.isRequired', true),
+			variableInputOrientation: variableInputOrientation,
+			variableInputOrientationHorizontal: variableInputOrientationHorizontal,
 		}
 	};
 
@@ -1674,6 +2152,9 @@ function Properties(){
 						value: 'Button Container',
 						label: translation.label.buttonContainer
 					}, {
+						value: 'Date Picker',
+						label: translation.label.datePicker
+					}, {
 						value: 'Single Select',
 						label: translation.label.singleSelect
 					}, {
@@ -1682,6 +2163,12 @@ function Properties(){
 					}, {
 						value: 'Variable Dropdown',
 						label: translation.label.variableDropdown
+					}, {
+						value: 'Variable Slider',
+						label: translation.label.variableSlider
+					}, {
+						value: 'Variable Input',
+						label: translation.label.variableInput
 					}, {
 						value: 'Group',
 						label: translation.label.group
@@ -1708,6 +2195,9 @@ function Properties(){
 						value: 'Button Container',
 						label: translation.label.buttonContainer
 					}, {
+						value: 'Date Picker',
+						label: translation.label.datePicker
+					}, {
 						value: 'Single Select',
 						label: translation.label.singleSelect
 					}, {
@@ -1716,6 +2206,12 @@ function Properties(){
 					}, {
 						value: 'Variable Dropdown',
 						label: translation.label.variableDropdown
+					}, {
+						value: 'Variable Slider',
+						label: translation.label.variableSlider
+					}, {
+						value: 'Variable Input',
+						label: translation.label.variableInput
 					}
 				],
 				defaultValue: "Button Container"
@@ -1761,7 +2257,7 @@ function Properties(){
 			copyPaste: copyPaste,
 			openEditModal: openeEditModal,
 			conditionInput: conditionInput,
-			conditionNameInput: conditionNameInput,
+			conditionNameInput: createStringInput(labelTrans.conditionNameInput, 'props.conditionName', ''),
 			state: stateItem
 		},
 		defaultValue: [stateItem.defaultValue]
@@ -1907,7 +2403,7 @@ function Properties(){
 				items: {
 					copyPaste: copyPaste,
 					groupTypeDropdown: groupTypeDropdown,
-					buttonNameInput: buttonNameInput,
+					buttonNameInput: createStringInput(labelTrans.buttonNameInput, 'props.buttonName', ''),
 					showCondition: showConditionInput,
 					variableName: variableInput,
 					selectDimension: selectDimensions,
@@ -1926,6 +2422,9 @@ function Properties(){
 					alignmentHorizontalSelectionLabel: alignmentHorizontalSelectionLabel,
 					alignmentVerticalSelectionValue: alignmentVerticalSelectionValue,
 					tooltipInput: tooltipInput,
+					datePickerProperties: datePickerProperties,
+					variableSliderProperties: variableSliderProperties,
+					variableInputProperties: variableInputProperties,
 					variableArray: variableDropdown,
 					stateItems: singleButton,
 					itemsArray: buttonContainer,
@@ -1968,7 +2467,7 @@ function Properties(){
 		items: {
 			copyPaste: copyPaste,
 			typedropwdown: typeDropdown,
-			buttonNameInput: buttonNameInput,
+			buttonNameInput: createStringInput(labelTrans.buttonNameInput, 'props.buttonName', ''),
 			showCondition: showConditionInput,
 			variableName: variableInput,
 			selectDimension: selectDimensions,
@@ -1989,6 +2488,9 @@ function Properties(){
 			alignmentHorizontalSelectionLabel: alignmentHorizontalSelectionLabel,
 			alignmentVerticalSelectionValue: alignmentVerticalSelectionValue,
 			tooltipInput: tooltipInput,
+			datePickerProperties: datePickerProperties,
+			variableSliderProperties: variableSliderProperties,
+			variableInputProperties: variableInputProperties,
 			variableArray: variableDropdown,
 			stateItems: singleButton,
 			itemsArray: buttonContainer,
@@ -2019,22 +2521,22 @@ function Properties(){
 		items: {
 			customSortOrder:customSortOrder,
 			drilldownDims: drilldownDims,
-			seperator1: seperator,
+			seperator1: createSeparator(),
 			qSortByLoadOrderCheckbox: qSortByLoadOrderCheckbox,
 			qSortByLoadOrder: qSortByLoadOrder,
-			seperator2: seperatorSort,
+			seperator2: createSeparator(function (item) {return !item.qDef.autoSort;}),
 			qSortByStateCheckbox: qSortByStateCheckbox,
 			qSortByState: qSortByState,
-			seperator3: seperatorSort,
+			seperator3: createSeparator(function (item) {return !item.qDef.autoSort;}),
 			qSortByFrequencyCheckbox: qSortByFrequencyCheckbox,
 			qSortByFrequency: qSortByFrequency,
-			seperator4: seperatorSort,
+			seperator4: createSeparator(function (item) {return !item.qDef.autoSort;}),
 			qSortByNumericCheckbox: qSortByNumericCheckbox,
 			qSortByNumeric: qSortByNumeric,
-			seperator5: seperatorSort,
+			seperator5: createSeparator(function (item) {return !item.qDef.autoSort;}),
 			qSortByAsciiCheckbox: qSortByAsciiCheckbox,
 			qSortByAscii: qSortByAscii,
-			seperator6: seperatorSort,
+			seperator6: createSeparator(function (item) {return !item.qDef.autoSort;}),
 			qSortByExpressionCheckbox: qSortByExpressionCheckbox,
 			sortExpression: sortExpression,
 			qSortByExpression: qSortByExpression,
@@ -2154,13 +2656,13 @@ function Properties(){
 						items: {
 							gapTop: gapTop,
 							gapTopSize: gapTopSize,
-							seperator: seperator,
+							seperator: createSeparator(),
 							gapBottom: gapBottom,
 							gapBottomSize: gapBottomSize,
-							seperator1: seperator,
+							seperator1: createSeparator(),
 							gapLeft: gapLeft,
 							gapLeftSize: gapLeftSize,
-							seperator2: seperator,
+							seperator2: createSeparator(),
 							gapRight: gapRight,
 							gapRighttSize: gapRightSize
 						}
@@ -2169,32 +2671,78 @@ function Properties(){
 						type: "items",
 						label: translation.label.colors,
 						items: {
-							seperatorLabelColorMain: seperatorLabelColorMain,
-							backgroundColorPicker: colorPickerBackground,
-							hoverActiveColorPicker: colorPickerHoverActive,
-							textColorPicker: colorPickerText,
-							colorPickerHoverText: colorPickerHoverText,
-							borderSeparatorColorPicker: colorPickerBorderSeparator,
+							seperatorLabelColorMain: createLabelSeparator(labelTrans.menuMain),
+							backgroundColorPicker: createColorPickerComponent(labelTrans.backgroundColor,'appearance.backgroundColor','rgb(245,245,245)'),
+							hoverActiveColorPicker: createColorPickerComponent(labelTrans.hoverActiveColor,'appearance.hoverActiveColor','rgb(159,159,159)'),
+							textColorPicker: createColorPickerComponent(labelTrans.textColor,'appearance.textColor','rgb(89,89,89)'),
+							colorPickerHoverText: createColorPickerComponent(labelTrans.textHoverColor,'appearance.textHoverColor','rgb(89,89,89)'),
+							borderSeparatorColorPicker: createColorPickerComponent(labelTrans.borderSeperatorColor,'appearance.borderSeparatorColor','rgb(179,179,179)'),
 
-							seperatorLabelColorSub: seperatorLabelColorSub,
-							subItemBackgroundColorPicker: colorPickerSubItemBackground,
-							hoverSubItemColorPicker: colorPickerHoverSubItem,
-							colorPickerSubText: colorPickerSubText,
-							colorPickerHoverSubText: colorPickerHoverSubText,
-							subItemSeparatorColorPicker: colorPickerSubBorderSeparator
+							seperatorLabelColorSub: createLabelSeparator(labelTrans.menuSub),
+							subItemBackgroundColorPicker: createColorPickerComponent(labelTrans.backgroundColor,'appearance.subItemBackgroundColor','rgb(217,217,217)'),
+							hoverSubItemColorPicker: createColorPickerComponent(labelTrans.hoverActiveColor,'appearance.hoverSubItemColor','rgb(165,165,165)'),
+							colorPickerSubText: createColorPickerComponent(labelTrans.textColor,'appearance.textSubColor','rgb(89,89,89)'),
+							colorPickerHoverSubText: createColorPickerComponent(labelTrans.textHoverColor,'appearance.textHoverSubColor','rgb(89,89,89)'),
+							subItemSeparatorColorPicker: createColorPickerComponent(labelTrans.borderSeperatorColor,'appearance.subItemSeparatorColor','rgb(150,150,150)'),
+
+							seperatorLabelColorSelection: createLabelSeparator(labelTrans.selections),
+							colorPickerSelectionSelected: createColorPickerComponent(labelTrans.selections,'appearance.selectionSelected','rgb(82, 204, 82)'),
+							colorPickerSelectionNormal: createColorPickerComponent(labelTrans.normal,'appearance.selectionNormal','rgb(255, 255, 255)'),
+							colorPickerSelectionAlternative: createColorPickerComponent(labelTrans.alternative,'appearance.selectionAlternative','rgb(221, 221, 221)'),
+							colorPickerSelectionExcluded: createColorPickerComponent(labelTrans.excluded,'appearance.selectionExcluded','rgb(169, 169, 169)'),
+							colorPickerSelectionSelectedBorder: createColorPickerComponent(labelTrans.selectionsBorder,'appearance.selectionSelectedBorder','rgb(255, 255, 255)'),
+							colorPickerSelectionNormalBorder: createColorPickerComponent(labelTrans.normalBorder,'appearance.selectionNormalBorder', 'rgb(221,221,221)'),
+							colorPickerSelectionAlternativeBorder: createColorPickerComponent(labelTrans.alternativeBorder,'appearance.selectionAlternativBorder','rgb(255, 255, 255)'),
+							colorPickerSelectionExcludedBorder: createColorPickerComponent(labelTrans.excludedBorder,'appearance.selectionExcludedBorder','rgb(255, 255, 255)'),
+							colorPickerSelectionSelectedText: createColorPickerComponent(labelTrans.selectionsText,'appearance.selectionSelectedText','rgb(255, 255, 255)'),
+							colorPickerSelectionNormalText: createColorPickerComponent(labelTrans.normalText,'appearance.selectionNormalText','rgb(89, 89, 89)'),
+							colorPickerSelectionAlternativeText: createColorPickerComponent(labelTrans.alternativeText,'appearance.selectionAlternativeText','rgb(89, 89, 89)'),
+							colorPickerSelectionExcludedText: createColorPickerComponent(labelTrans.excludedText,'appearance.selectionExcludedText','rgb(89, 89, 89)'),
+
+							seperatorLabelColorDatePicker: createLabelSeparator(labelTrans.datePicker),
+							colorPickerDatePickerButtonsColor: createColorPickerComponent(labelTrans.buttons,'appearance.datePickerButtonsColor','rgb(255, 192, 96)'),
+							colorPickerDatePickerSelectedStartColor: createColorPickerComponent(labelTrans.selectionStart,'appearance.datePickerSelectedStartColor','rgb(255, 65, 24)'),
+							colorPickerDatePickerSelectedEndColor: createColorPickerComponent(labelTrans.selectionEnd,'appearance.datePickerSelectedEndColor','rgb(255, 5, 5)'),
+							colorPickerDatePickerActiveColor: createColorPickerComponent(labelTrans.active,'appearance.datePickerActiveColor','rgb(255, 215, 140)'),
+							colorPickerDatePickerNotAllowedColor: createColorPickerComponent(labelTrans.notAllowed,'appearance.datePickerNotAllowedColor','rgb(152, 152, 152)'),
+							colorPickerDatePickerButtonHoverColor: createColorPickerComponent(labelTrans.buttonsHover,'appearance.datePickerButtonHoverColor','rgb(255, 133, 3)'),
+							colorPickerDatePickerPickerHoverColer: createColorPickerComponent(labelTrans.datePickerHover,'appearance.datePickerPickerHoverColer','rgb(255, 133, 3)'),
+							colorPickerDatePickerButtonsText: createColorPickerComponent(labelTrans.buttonsText,'appearance.datePickerButtonsText','rgb(0, 0, 0)'),
+							colorPickerDatePickerElementText: createColorPickerComponent(labelTrans.elementText,'appearance.datePickerElementText','rgb(0, 0, 0)'),
+							colorPickerDatePickerActiveText: createColorPickerComponent(labelTrans.activeText,'appearance.datePickerActiveText','rgb(0, 0, 0)'),
+							colorPickerDatePickerSelectedStartText: createColorPickerComponent(labelTrans.selectionStartText,'appearance.datePickerSelectedStartText','rgb(0, 0, 0)'),
+							colorPickerDatePickerSelectedEndText: createColorPickerComponent(labelTrans.selectionEndText,'appearance.datePickerSelectedEndText','rgb(0, 0, 0)'),
+							colorPickerDatePickerInactiveText: createColorPickerComponent(labelTrans.inactiveText,'appearance.datePickerInactiveText','rgb(208, 207, 207)'),
+							colorPickerDatePickerNotAllowedText: createColorPickerComponent(labelTrans.notAllowedText,'appearance.datePickerNotAllowedText','rgb(255, 255, 255)'),
+							colorPickerDatePickerButtonHoverText: createColorPickerComponent(labelTrans.buttonsHoverText,'appearance.datePickerButtonHoverText','rgb(0, 0, 0)'),
+							colorPickerDatePickerPickerHoverText: createColorPickerComponent(labelTrans.datePickerHoverText,'appearance.datePickerPickerHoverText','rgb(0, 0, 0)'),
+
+							seperatorLabelSlider: createLabelSeparator(labelTrans.slider),
+							colorPickerVariableSliderBackground: createColorPickerComponent(labelTrans.backgroundColor,'appearance.variableSliderBackground','rgb(233, 233, 233)'),
+							colorPickerVariableSliderTrack: createColorPickerComponent(labelTrans.track,'appearance.variableSliderTrack','rgb(248, 152, 29)'),
+							colorPickerVariableSliderHandle: createColorPickerComponent(labelTrans.handle,'appearance.variableSliderHandle','rgb(248, 152, 29)'),
+							colorPickerVariableSliderSteps: createColorPickerComponent(labelTrans.steps,'appearance.variableSliderSteps','rgb(217, 217, 217)'),
+							colorPickerVariableSliderActiveSteps: createColorPickerComponent(labelTrans.activeSteps,'appearance.variableSliderActiveSteps','rgb(248, 152, 29)'),
+
+							seperatorVariableInput: createLabelSeparator(labelTrans.variableInput),
+							colorPickerVariableInputBackground: createColorPickerComponent(labelTrans.backgroundColor,'appearance.variableInputBackground','rgb(255, 255, 255)'),
+							colorPickerVariableInputText: createColorPickerComponent(labelTrans.text,'appearance.variableInputText','rgb(0, 0, 0)'),
+							colorPickerVariableInputPlaceholder: createColorPickerComponent(labelTrans.placeholder,'appearance.variableInputPlaceholder','rgb(151, 151, 151)'),
+							colorPickerVariableInputFocus: createColorPickerComponent(labelTrans.focus,'appearance.variableInputFocus','rgba(82, 162, 204, 0.7)'),
+							colorPickerVariableInputInvalid: createColorPickerComponent(labelTrans.invalid,'appearance.variableInputInvalid','rgba(224,58,58,.7)'),
 						}
 					},
 					text: {
 						type: "items",
 						label: translation.label.text,
 						items: {
-							seperatorLabelTextLabel: seperatorLabelTextLabel,
+							seperatorLabelTextLabel: createLabelSeparator(labelTrans.label),
 							textFamily: textFamily,
 							textWeight: textWeight,
 							textStyle: textStyle,
 							textSize: textSize,
 
-							seperatorLabelTextSub: seperatorLabelTextSub,
+							seperatorLabelTextSub: createLabelSeparator(labelTrans.selectionLabel),
 							textSelectionFamily: textSelectionFamily,
 							textSelectionWeight: textSelectionWeight,
 							textSelectionStyle: textSelectionStyle,
@@ -2209,15 +2757,25 @@ function Properties(){
 							menuBarExpr: createDisplayExpression('appearance.displaySenseMenuBarExpr', '', function(data){
 								return data.appearance && data.appearance.displaySenseMenuBar === '2';
 							}),
-							seperator: seperator,
+							seperator: createSeparator(),
 							selectionBar: createDisplayBtnGrp('appearance.displaySenseSelectionBar', translation.label.senseSelectionBar),
 							selectionBarExpr: createDisplayExpression('appearance.displaySenseSelectionBarExpr', '', function(data){
 								return data.appearance && data.appearance.displaySenseSelectionBar === '2';
 							}),
-							seperator1: seperator,
+							seperator1: createSeparator(),
 							titleBar: createDisplayBtnGrp('appearance.displaySenseTitleBar', translation.label.senseTitleBar),
 							titleBarExpr: createDisplayExpression('appearance.displaySenseTitleBarExpr', '', function(data){
 								return data.appearance && data.appearance.displaySenseTitleBar === '2';
+							}),
+							seperator2: createSeparator(),
+							showSenseSnapshotButton: createDisplayBtnGrp('appearance.showSenseSnapshotButton', translation.label.senseSnapshotButton),
+							showSenseSnapshotButtonExpr: createDisplayExpression('appearance.showSenseSnapshotButtonExpr', '', (data) =>{
+								return data.appearance && data.appearance.showSenseSnapshotButton === '2';
+							}),
+							seperator3: createSeparator(),
+							showSenseFullScreenButton: createDisplayBtnGrp('appearance.showSenseFullScreenButton', translation.label.senseFullScreenButton),
+							showSenseFullScreenButtonExpr: createDisplayExpression('appearance.showSenseFullScreenButtonExpr', '', (data) =>{
+								return data.appearance && data.appearance.showSenseFullScreenButton === '2';
 							})
 						}
 					}
@@ -2227,17 +2785,11 @@ function Properties(){
 				type: "items",
 				label: translation.label.information,
 				items: {
-					information: information
+					information: information,
+					updateButton: updateButton,
+					repairButton: repairButton,
 				}
-			}
-//			repair: {
-//				type: "items",
-//				label: translation.label.repair,
-//				items:{
-//					repairButton: repairButton,
-//					updateButton: updateButton,
-//				}
-//			}
+			},
 		}
 	};
 

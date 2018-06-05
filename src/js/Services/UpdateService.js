@@ -61,7 +61,7 @@ export default class UpdateService {
 					// trigger update for all tcMenu extensions when not already in progress
 					if(!updatesInProgress){
 						updatesInProgress = true;
-						!_qlikService.isPublished() &&  this.updateAllExtensions(); // update all extensions only in NOT published apps
+						!_qlikService.isPublished() &&  this.updateAllExtensions(force); // update all extensions only in NOT published apps
 					}
 
 					Logger.info('update is running');
@@ -134,11 +134,12 @@ export default class UpdateService {
 			needsUpdate(1, 1, 0) && updates.push(migrate110) && updates.push(update110);
 			needsUpdate(1, 2, 0) && updates.push(update120);
 			needsUpdate(1, 2, 2) && updates.push(update122);
+			needsUpdate(1, 3, 0) && updates.push(update130);
 
 			//!!!Important allways push the latest update when adding a new one
 			//Make sure that the update can be applied multiple times!!!
 			if(force && !updates.length){
-				updates.push(update122);
+				updates.push(update130);
 			}
 
 			return updates;
@@ -267,6 +268,9 @@ export default class UpdateService {
 				updateObject.listObjects = [];
 				return Promise.resolve(updateObject);
 			}
+
+			// remove "invalid" dimensions from dimension list (they are not convertable)
+			properties.dimensions = properties.dimensions.filter((dimension) => dimension.dropdownDim !== 'no dimension');
 
 			// ensure correct mapping between dimensions and listItems by using dimensions cId as unique key
 			updateDimensions(properties);
@@ -436,6 +440,62 @@ export default class UpdateService {
 		}
 
 		/**
+		 * Updates for all extensions created before release 1.3.2
+		 *
+		 * @param {UpdateService_updateObject} updateObject - Update object containing all update related data
+		 *
+		 * @return {Promise<UpdateService_updateObject>} - Updated extension properties in a Promise
+		 */
+		function update130(updateObject){
+			updateObject.properties.appearance.selectionSelected = 'rgb(82, 204, 82)';
+			updateObject.properties.appearance.selectionNormal = 'rgb(255, 255, 255)';
+			updateObject.properties.appearance.selectionAlternative = 'rgb(221, 221, 221)';
+			updateObject.properties.appearance.selectionExcluded = 'rgb(169, 169, 169)';
+			updateObject.properties.appearance.selectionSelectedBorder = 'rgb(255, 255, 255)';
+			updateObject.properties.appearance.selectionNormalBorder = 'rgb(221,221,221)';
+			updateObject.properties.appearance.selectionAlternativBorder = 'rgb(255, 255, 255)';
+			updateObject.properties.appearance.selectionExcludedBorder = 'rgb(255, 255, 255)';
+			updateObject.properties.appearance.selectionSelectedText = 'rgb(255, 255, 255)';
+			updateObject.properties.appearance.selectionNormalText = 'rgb(89, 89, 89)';
+			updateObject.properties.appearance.selectionAlternativeText = 'rgb(89, 89, 89)';
+			updateObject.properties.appearance.selectionExcludedText = 'rgb(89, 89, 89)';
+
+			updateObject.properties.appearance.datePickerButtonsColor = 'rgb(255, 192, 96)';
+			updateObject.properties.appearance.datePickerActiveColor = 'rgb(255, 215, 140)';
+			updateObject.properties.appearance.datePickerSelectedStartColor = 'rgb(255, 65, 24)';
+			updateObject.properties.appearance.datePickerSelectedEndColor = 'rgb(255, 5, 5)';
+			updateObject.properties.appearance.datePickerNotAllowedColor = 'rgb(152, 152, 152)';
+
+			updateObject.properties.appearance.datePickerButtonHoverColor = 'rgb(255, 133, 3)';
+			updateObject.properties.appearance.datePickerPickerHoverColer = 'rgb(255, 133, 3)';
+
+			updateObject.properties.appearance.datePickerButtonsText = 'rgb(0, 0, 0)';
+			updateObject.properties.appearance.datePickerElementText = 'rgb(0, 0, 0)';
+			updateObject.properties.appearance.datePickerActiveText = 'rgb(0, 0, 0)';
+			updateObject.properties.appearance.datePickerSelectedStartText = 'rgb(0, 0, 0)';
+			updateObject.properties.appearance.datePickerSelectedEndText = 'rgb(0, 0, 0)';
+			updateObject.properties.appearance.datePickerInactiveText = 'rgb(208, 207, 207)';
+			updateObject.properties.appearance.datePickerNotAllowedText = 'rgb(255, 255, 255)';
+
+			updateObject.properties.appearance.datePickerButtonHoverText = 'rgb(0, 0, 0)';
+			updateObject.properties.appearance.datePickerPickerHoverText = 'rgb(0, 0, 0)';
+
+			updateObject.properties.appearance.variableSliderBackground = 'rgb(233, 233, 233)';
+			updateObject.properties.appearance.variableSliderTrack = 'rgb(248, 152, 29)';
+			updateObject.properties.appearance.variableSliderHandle = 'rgb(248, 152, 29)';
+			updateObject.properties.appearance.variableSliderSteps = 'rgb(217, 217, 217)';
+			updateObject.properties.appearance.variableSliderActiveSteps = 'rgb(248, 152, 29)';
+
+			updateObject.properties.appearance.variableInputBackground = 'rgb(255, 255, 255)';
+			updateObject.properties.appearance.variableInputText = 'rgb(0, 0, 0)';
+			updateObject.properties.appearance.variableInputPlaceholder = 'rgb(151, 151, 151)';
+			updateObject.properties.appearance.variableInputFocus = 'rgba(82, 162, 204, 0.7)';
+			updateObject.properties.appearance.variableInputInvalid = 'rgba(224,58,58,.7)';
+
+			return Promise.resolve(updateObject);
+		}
+
+		/**
 		 * Creates a ListObject
 		 *
 		 * @param {Object} model - srcObject
@@ -530,7 +590,7 @@ export default class UpdateService {
 	/**
 	 * trigger the update for all tcMenu-extensions in the current app
 	 */
-	updateAllExtensions(){
+	updateAllExtensions(force){
 		_migrationService.getList('extension').then(extensionList =>{
 			// run updates sequentially to minimize engine load
 			extensionList.reduce((promise, extension) => promise.then(() =>{
@@ -542,12 +602,12 @@ export default class UpdateService {
 					// in case we have a master item, we need to get the sourceObject before we trigger the update
 					if(qExtendsId){
 						return _qlikService.getMasterObjectProperties(extension)
-							.then(sourceObject => this.checkUpdates(sourceObject))
+							.then(sourceObject => this.checkUpdates(sourceObject, force))
 							.catch(err => Logger.warn('Update failed', err));
 					}
 
 					// update normal extension
-					return this.checkUpdates(extension).catch(err => Logger.warn('Update failed', err));
+					return this.checkUpdates(extension, force).catch(err => Logger.warn('Update failed', err));
 				}
 			}), Promise.resolve());
 		})

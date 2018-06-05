@@ -458,10 +458,9 @@ define([
 			var ctrl = this;
 
 			this.onSelection = onSelection;
-			this.registerOnSelectionHandler = registerOnSelectionHandler;
 
 			// Register the onSelection handler, for onSelection trigger handling
-			!this.qlikService.isPrinting() && this.qlikService.app.selectionState().OnData.bind(registerOnSelectionHandler);
+			!this.qlikService.isPrinting() && this.qlikService.app.selectionState().OnData.bind(onSelection);
 
 			// update image path, when app was duplicated|copied|exported etc
 			//this.states.forEach(function(state){
@@ -500,15 +499,6 @@ define([
 						console.warn(e);
 					}
 				});
-			}
-
-			/**
-			 * Registers the onSelection handler
-			 */
-			function registerOnSelectionHandler(){
-				// REVIEW: Is it ok to skip first OnData event in onSelection?
-				this.OnData.unbind(registerOnSelectionHandler);
-				this.OnData.bind(onSelection);
 			}
 		},
 
@@ -563,7 +553,6 @@ define([
 			// Unbind the onSelection handler
 			if(!ctrl.qlikService.isPrinting() && app){ // in some cases app can be "null" (i.e. when app was closed because of conection problems)
 				var selectionState = app.selectionState();
-				selectionState.OnData.unbind(ctrl.registerOnSelectionHandler); // when no selection was applied
 				selectionState.OnData.unbind(ctrl.onSelection);
 			}
 

@@ -1,10 +1,12 @@
 import {QlikService} from '../../lib/hico/services/qlik-service';
+import {UtilService} from '../Services/UtilService';
+import {$timeout} from '../Services/AngularService';
 
 const qlikService = QlikService.getInstance();
 
 define([
-	'jquery', 'qlik', 'qvangular', 'ng!$timeout', '../../templates/senseSelect.html'
-], function($, qlik, qvangular, $timeout, template){
+	'jquery', 'qlik', 'qvangular', '../../templates/senseSelect.html'
+], function($, qlik, qvangular, template){
 
 	qvangular.directive('senseselect', ['utilService', SenseSelect]);
 
@@ -14,7 +16,7 @@ define([
 			scope: {
 				item: '=',
 				listitems: '<',
-				parentscope: '<',
+				parentscope: '=',
 				groupitem: '<',
 			},
 			replace: true,
@@ -24,7 +26,6 @@ define([
 					$scope.layout = $scope.parentscope.layout;
 					$scope.colors = $scope.parentscope.colors;
 					$scope.itemId = $scope.layout.qInfo.qId + '-' + $scope.item.cId;
-					$scope.panelDropdownOffset = 0;
 					$scope.listBox = undefined;
 					let watchers = [];
 
@@ -49,11 +50,13 @@ define([
 
 							item.show = !item.show;
 							item.isOpen = !item.isOpen;
+							$scope.parentscope.menuOpen = true;
 
 							$scope.layout.isOpen = item.show;
 
 							if($scope.layout.appearance.orientation === 'btn-inline' && $scope.utilService.screenWidth > 767 && !$scope.groupitem){
-								$scope.panelDropdownOffset = utilService.getDropdownOffset($element);
+								UtilService.setPanelOffsets($scope, $element, $element.find('#panel_container_' + $scope.itemId));
+
 								$element.find('#panel_' + $scope.itemId).width($element[0].clientWidth);
 
 								if(item.show){
@@ -74,6 +77,7 @@ define([
 					$scope.closeDropdown = function(item){
 						item.show = false;
 						item.isOpen = false;
+						$scope.parentscope.menuOpen = false;
 						qvangular.$rootScope.tcmenuNoScroll = true;
 					};
 
@@ -88,10 +92,8 @@ define([
 								let listObjLibId = listObj.layout.listLibId;
 								let listObjListDef = listObjLibId ? [] : listObj.layout.listDef.qFieldDefs;
 
-								qlik.currApp().visualization.create('listbox', listObjListDef, {
-									"qInfo": {
-										"qId": ($scope.layout.qExtendsId || $scope.layout.qInfo.qId) + '##' + item.cId + '##listBox'
-									}, "qListObjectDef": {
+								qlikService.createVisualization('listbox', listObjListDef, {
+									"qListObjectDef": {
 										"qLibraryId": listObjLibId,
 										"qDef": listObjDef
 									}
@@ -151,10 +153,19 @@ define([
 								$element.find('#panel_' + $scope.itemId)[0].style.height = 244 + 'px';
 								$element.find('#QV05_' + $scope.itemId)[0].firstChild.style.top = 44 + 'px';
 
+								if($scope.layout.appearance.orientation === 'btn-inline' && $scope.utilService.screenWidth > 767 && !$scope.groupitem){
+									UtilService.setPanelOffsets($scope, $element, $element.find('#panel_container_' + $scope.itemId));
+								}
+
+
 								$scope.utilService.handleMenuScroll($scope.itemId);
 							}else{
 								$element.find('#panel_' + $scope.itemId)[0].style.height = 200 + 'px';
 								$element.find('#QV05_' + $scope.itemId)[0].firstChild.style.top = 0 + 'px';
+
+								if($scope.layout.appearance.orientation === 'btn-inline' && $scope.utilService.screenWidth > 767 && !$scope.groupitem){
+									UtilService.setPanelOffsets($scope, $element, $element.find('#panel_container_' + $scope.itemId));
+								}
 							}
 						}
 					}));
@@ -169,10 +180,11 @@ define([
 
 					function destroyListObject($scope){
 						if($scope.listBox){
-							$scope.listBox.close();
-							qlikService.destroySessionObject($scope.listBox.id);
+							const id = $scope.listBox.id;
+							$timeout(() => qlikService.destroySessionObject(id));
 							delete $scope.listBox;
 						}
+						$scope.item.show = $scope.item.isOpen = false;
 					}
 
 					function clickevent(e){

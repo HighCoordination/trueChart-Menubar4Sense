@@ -1,3 +1,5 @@
+import {Logger} from '../../lib/hico/logger';
+
 define(['jquery', 'qlik', 'qvangular'], function($, qlik, qvangular){
 	return qvangular.service("apiService", function(){
 
@@ -58,7 +60,7 @@ define(['jquery', 'qlik', 'qvangular'], function($, qlik, qvangular){
 		}
 
 		function resolvePromises(){
-			console.log('finish painting tcMenu');
+			Logger.info('finish painting');
 			let divTcMenuPainted = document.getElementById(_tcPaintedEventName);
 			if(!divTcMenuPainted){
 				divTcMenuPainted = document.createElement('div');
