@@ -7,7 +7,7 @@ In addition, you can share apps with the current selection with a single click, 
 documents including current or changed selections to navigate between apps.
  
 This visualization extension supports [Qlik Sense®](http://www.qlik.com/us/products/qlik-sense) 
-from version 3.0.0 up to currently latest version April 2018 including exporting and story mode capability. 
+from version 3.0.0 up to currently latest version June 2018 including exporting and story mode capability. 
 
 [Get trueChart-Menubar!](https://www.highcoordination.com/downloads/truechart-menubar/) 
 
@@ -70,7 +70,7 @@ Two new properties in the Sense property panel allow conditional hiding of the s
 
 ### Qlik Sense® Support
 trueChart-Menubar supports Qlik Sense® from version 3.0.0 up to currently
-latest version April 2018 including exporting and story mode capability.
+latest version June 2018 including exporting and story mode capability.
 
 #### nPrinting Support
 The trueChart-Menubar does not yet fully support nPrinting. Expression updates are not 
@@ -81,11 +81,10 @@ successfully tested with the nPrinting September 2017, April 2018 and June 2018 
 At present trueChart-Menubar supports the browsers listed below:
 
 * Microsoft Internet Explorer 11
-* Microsoft Edge (lastest version - v40, at the time of writing)
-* Mozilla Firefox (latest version – v59, at the time of writing)
-* Google Chrome (latest version – v66, at the time of writing)
-* iOS 10.3.2 or later
-  * We recommend upgrading to iOS 11.2.2 or later.
+* Microsoft Edge (lastest version - v41, at the time of writing)
+* Mozilla Firefox (latest version – v61, at the time of writing)
+* Google Chrome (latest version – v67, at the time of writing)
+* iOS 11.2 or later
 
 The indicated versions are the minimum conditions. In each case, the latest 
 version is to be preferred. 
@@ -125,6 +124,7 @@ The documentation can be accessed through properties panel **Display** → **Inf
 via link **Online Manual** or directly here [User Manual](https://www.highcoordination.com/guides/truechart-menubar/current/).
 
 ## Contacts
+* Product [trueChart](http://www.truechart.com)
 * Web: [HighCoordination GmbH](https://www.highcoordination.com/en)
 * Email: [info@highcoordination.de](mailto:info@highcoordination.de)
 * Twitter: [Hi_Coordination](https://twitter.com/Hi_Coordination)
@@ -133,6 +133,7 @@ via link **Online Manual** or directly here [User Manual](https://www.highcoordi
 * Xing: [highcoordinationgmbh](https://www.xing.com/companies/highcoordinationgmbh)
 
 ## Links
+* [trueChart Website](http://www.truechart.com)
 * [trueChart-Menubar Website](https://www.highcoordination.com/en/products/truechart-menubar)
 * [Buy trueChart-Menubar support](https://www.highcoordination.com/en/learn-more/contact/?formular=kontaktformular-vertrieb#section-kontaktformular-vertrieb)
 * [trueChart-Menubar Support](https://www.highcoordination.com/en/support)
