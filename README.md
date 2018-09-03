@@ -7,7 +7,7 @@ In addition, you can share apps with the current selection with a single click, 
 documents including current or changed selections to navigate between apps.
  
 This visualization extension supports [Qlik Sense®](http://www.qlik.com/us/products/qlik-sense) 
-from version 3.0.0 up to currently latest version June 2018 including exporting and story mode capability. 
+from version 3.0.0 up to currently latest version June and upcoming version September 2018 including exporting and story mode capability. 
 
 [Get trueChart-Menubar!](https://www.highcoordination.com/downloads/truechart-menubar/) 
 
@@ -70,12 +70,10 @@ Two new properties in the Sense property panel allow conditional hiding of the s
 
 ### Qlik Sense® Support
 trueChart-Menubar supports Qlik Sense® from version 3.0.0 up to currently
-latest version June 2018 including exporting and story mode capability.
+latest version June and upcoming version September 2018 including exporting and story mode capability.
 
 #### nPrinting Support
-The trueChart-Menubar does not yet fully support nPrinting. Expression updates are not 
-performed due to technical restrictions. The general export (without expressions) was 
-successfully tested with the nPrinting September 2017, April 2018 and June 2018 version.
+The trueChart-Menubar does support nPrinting from version June 2018.
 
 ### Browser Support
 At present trueChart-Menubar supports the browsers listed below:
