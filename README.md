@@ -132,9 +132,8 @@ via link **Online Manual** or directly here [User Manual](https://www.highcoordi
 
 ## Links
 * [trueChart Website](http://www.truechart.com)
-* [trueChart-Menubar Website](https://www.highcoordination.com/en/products/truechart-menubar)
 * [Buy trueChart-Menubar support](https://www.highcoordination.com/en/learn-more/contact/?formular=kontaktformular-vertrieb#section-kontaktformular-vertrieb)
-* [trueChart-Menubar Support](https://www.highcoordination.com/en/support)
+* [trueChart-Menubar Support](mailto:support@truechart.com)
 * [trueChart-Menubar Demo](https://sense.highcoordination.de/demo/extensions/HiCoDemo/HiCoDemo.html)
 
 ## License
