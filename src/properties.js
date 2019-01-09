@@ -15,7 +15,7 @@ import * as datePickerComponentTemplate from './templates/datePickerComponentTem
 
 import * as faIcons from './lib/general/icons-fa';
 import {translation} from '../resource/translations/translations';
-import * as Datepicker from '../src/js/Components/datepicker/bundle';
+import * as Datepicker from '../src/js/Components/DatePicker/bundle';
 import {
 	createColorPickerComponent,
 	createDisplayExpression,
