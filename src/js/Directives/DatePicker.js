@@ -1,5 +1,5 @@
 import {Logger} from "../../lib/hico/logger";
-import * as Datepicker from '../Components/datepicker/bundle';
+import * as Datepicker from '../Components/DatePicker/bundle';
 import {translation} from '../../../resource/translations/translations';
 import {UtilService} from "../Services/UtilService";
 import {QlikService} from '../../lib/hico/services/qlik-service';
