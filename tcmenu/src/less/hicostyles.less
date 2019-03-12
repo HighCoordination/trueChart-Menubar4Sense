@@ -1,0 +1,901 @@
+@button-padding-x: 10px;
+@button-padding-y: 6px;
+@lui-border-disabled: #b3b3b3;
+@panel-minwidth: 200px;
+
+.hico {
+  overflow: auto;
+  height: 100%;
+}
+
+.accordion{
+	text-align: center;
+	background-color: attr(data-background color);
+}
+
+/*IE buttons dont pass click events to childs, so we have to design our own buttons*/
+.hico-button-html-fix{
+  display: block;
+  border: none;
+}
+
+.hico-logo{
+  margin: auto;
+  max-width: 200px;
+  background: url('../../resource/images/menubar_logo.png') no-repeat center;
+  background-size: contain;
+}
+
+.hico-updatedialog-fix{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1021;
+}
+
+.hico-menu-vertical{
+  overflow: hidden!important;
+}
+
+.hico-container-horizontal {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  display: flex;
+
+}
+
+.hico-container-vertical {
+  width: 100%;
+  height: initial;
+}
+
+.hico-height-auto{
+  height: auto;
+}
+
+.hico-width-auto{
+  width: auto!important;
+}
+
+.hico-width-90{
+  width: 90%;
+}
+
+.hico-height-50{
+  height: 50%;
+}
+
+.hico-icon-position-fix{
+  position: relative;
+  top: -6px;
+}
+
+.hico-horizontal-items{
+  height: 100%;
+  float :left;
+  flex: 1 0 0px;
+}
+
+.hico-fullWidth{
+  width: 100%!important;
+  height: 100%;
+}
+
+.hico-fullHeight{
+  height: 100%!important;
+}
+
+.hico-border-bottom-default {
+  border-bottom: 1px solid grey;
+}
+
+.hico-relative{
+  position: relative;
+}
+
+.hico-text-center{
+  text-align: center!important;
+}
+
+.hico-text-red {
+  color: red;
+}
+
+.hico-alignBottom{
+  height: auto;
+  position: absolute;
+  bottom: 0;
+}
+
+.hico-alignRight{
+  float: right;
+}
+
+.hico-alignLeft{
+  float: left;
+}
+
+.hico-alignCenter{
+  margin: auto;
+}
+
+.hico-rightspace{
+  padding-right: 4px;
+}
+
+.hico-rightspace-xl{
+  padding-right: 12px;
+}
+
+.hico-leftspace-xl{
+  padding-left: 12px;
+}
+
+.hico-overflow-hidden {
+	overflow: hidden;
+}
+
+.hico-block{
+  display: block;
+}
+
+.hico-flex-container{
+  display: flex;
+  align-items: center;
+}
+
+.hico-flex{
+  display: flex!important;
+}
+
+.hico-flex-row{
+  flex: 1 0 0px;
+}
+
+.hico-flex-column{
+  flex: 1 1 0px;
+}
+
+.hico-flex-column-100{
+  flex: 1 1 100%;
+}
+
+.hico-flex-container-column{
+  flex-direction: column;
+  display: flex;
+}
+
+.hico-flex-container-middle{
+  align-items: center;
+}
+
+.hico-flex-container-center{
+	justify-content: center;
+}
+
+.hico-flex-container-right{
+  justify-content: flex-end;
+}
+
+.hico-flex-container-left{
+	justify-content: flex-start;
+}
+
+.hico-flex-container-bottom{
+  align-items: flex-end;
+}
+
+.hico-flex-alignRight{
+  margin-left: auto;
+}
+
+.hico-flex-textwrap{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hico-flex-text-padding{
+  padding-right: 3px;
+}
+
+.hico-flex-direction-column{
+  flex-direction: column;
+}
+
+.hico-maxwidth-90{
+  max-width: 90%;
+}
+
+.hico-font-xs{
+  font-size: 8px!important;
+}
+
+.hico-font-s{
+  font-size: 12px!important;
+}
+
+.hico-font-bold {
+  font-weight: bold;
+}
+
+.hico-no-maxheight{
+  max-height: none!important;
+}
+
+.hico-rotate-180{
+  -moz-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  -webkit-transform: rotate(180deg);
+
+  transform: rotate(180deg);
+}
+
+.hico-absolute-overlay{
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.hico-btn {
+  display: table-cell !important;
+}
+
+button.accordion > .hico-btn-container, .hico-button-html-fix > .hico-btn-container{
+  position: absolute;
+  top: @button-padding-y;
+  bottom: @button-padding-y;
+  left: @button-padding-x;
+  right: @button-padding-x;
+  height: auto!important;
+}
+
+.hico-btn-container-padding{
+  padding: 0!important;
+}
+
+.hico-item-vertical-default{
+  height: 56px;
+}
+
+.hico-horizontal-default{
+  height: 56px!important;
+}
+
+.hico-item-horizontal{
+  height: 100%;
+}
+
+.hico-item-horizontal-default{
+  height: 100%;
+  display: block;
+  position: relative;
+}
+
+.hico-item-vertical-left-element{
+  position: absolute;
+  left: 0;
+  top: 15px;
+  bottom: 15px;
+  width: 25px;
+}
+
+.hico-icon{
+  padding-right: 4px;
+}
+
+.hico-item {
+  width: 100px;
+  height: 100%;
+}
+
+.hico-fixed{
+  position: fixed;
+  width: inherit;
+}
+
+.hico-border-fix {
+  border-radius: 0 !important;
+}
+
+.hico-margin-fix {
+  margin: 0 !important;
+}
+
+.hico-container-element {
+  margin-bottom: 10px;
+}
+
+.hico-container-button-panel {
+  display: flex;
+  justify-content: space-between;
+}
+
+.hico-containers-flex{
+  display: flex!important;
+  padding: 0!important;
+}
+
+.hico-containers-padding-zero{
+	padding: 0!important;
+}
+
+.hico-bottom-seperator{
+  border-bottom: 1px solid #ddd;
+}
+
+.hico-last-item{
+  border-bottom: none!important;
+}
+
+.hico-table-horizontal{
+  display: table-cell;
+}
+
+.hico-table-vertical{
+  display: table-row;
+}
+
+.hico-horizontalmenu-left{
+  float: left;
+}
+
+.hico-subItem-vertical{
+  height: inherit;
+  flex: 1 0 0px;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+  outline: none;
+  font-size: 15px;
+}
+
+.hico-subItem-horizontal{
+  display: table-row;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+  outline: none;
+  font-size: 15px;
+  padding: 18px 0;
+}
+
+.hico-container-fix{
+  width: 101%!important;
+}
+
+button.accordion, button.action, .hico-containers{
+  cursor: pointer;
+  padding: @button-padding-y @button-padding-x;
+  position: relative;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+  display: run-in;
+}
+
+button.action{
+  padding: @button-padding-y @button-padding-x;
+  height: 56px;
+}
+
+.hico-containers-horizontal{
+  display: table;
+}
+
+.hico-panel {
+  padding: 0 0 0 0;
+  margin: 0 !important;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  z-index: 1000;
+}
+
+.hico-panel-horizontal {
+  position: relative;
+  height: auto;
+  max-height: 400px;
+  width: inherit;
+  min-width: @panel-minwidth;
+}
+
+.hico-panel-scrollcontainer{
+  position: fixed;
+  height: auto;
+  max-height: 400px;
+  width: inherit;
+  min-width: @panel-minwidth;
+}
+
+.hico-select-toolbar-listitem{
+  background: white;
+}
+
+.hico-select-toolbar-listitem:hover{
+  background: cornflowerblue;
+}
+
+.hico-select-toolbar{
+  color: #595959;
+  background: white;
+  height: 50px;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  cursor: default;
+}
+
+.hico-select-toolbar-input{
+  margin-right: 12px;
+  min-width: 0;
+}
+
+.hico-select-toolbar-popover {
+  position: absolute !important;
+  left: 55px;
+  line-height: normal;
+  min-width: @panel-minwidth;
+}
+
+.hico-select-toolbar-popover-multi {
+  position: fixed !important;
+}
+
+.hico-selectdropdownitem{
+  display: inherit;
+}
+
+.hico-select-panel {
+  max-height: 200px;
+  background-color: white;
+  transition: max-height 0.2s ease-out;
+  color: black;
+  overflow:hidden;
+  position: relative;
+}
+
+.hico-select-panel-container{
+  max-height: 200px;
+  background-color: white;
+  transition: max-height 0.2s ease-out;
+  color: black;
+  position: relative;
+
+}
+
+.hico-senseselect-panel{
+  background-color: white;
+  transition: max-height 0.2s ease-out;
+  height:200px;
+}
+
+.hico-senseselect-panel{
+  height: 100%;
+  position: relative;
+}
+
+.hico-select-panel-horizontal{
+  max-height: 200px;
+}
+
+.hico-select-panel-horizontal-container{
+  position: fixed;
+  min-width: @panel-minwidth;
+  box-shadow: 0 3px 15px 1px black;
+}
+
+.hico-select-panel-multi-shadow{
+  box-shadow: -1px 0px 20px 1px black
+}
+
+.hico-senseselect-panel-horizontal,  .hico-select-panel-horizontal{
+  width: inherit;
+  min-width: @panel-minwidth;
+  transition: max-height 0.2s ease-out;
+}
+
+.hico-senseselect-content {
+  position: relative;
+  width: 100%;
+  height: 200px;
+}
+
+.hico-senseselect-content > .qv-object-wrapper {
+  position: relative;
+}
+
+.hico-select-content{
+  position: relative;
+  width: 100%;
+  max-height: 200px;
+}
+
+.hico-senseselect-content:hover > .parent{
+  overflow: hidden;
+}
+
+.hico-senseselect-content .qv-inner-object{
+  width: 100%;
+  height: 200px;
+}
+
+.hico-senseselect-content .qv-object-header{
+  padding: 0;
+}
+
+.hico-select-background{
+  background-color: #52CC52;
+}
+
+.hico-select-item{
+	height: 30px;
+	display: flex;
+  width: 100%;
+	align-items: center;
+  cursor: default;
+  line-height: 1;
+}
+
+.hico-select-padding{
+  padding: 0 12px;
+}
+
+.hico-select-text{
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.hico-select-check{
+  color: white;
+  padding-left: 5px;
+}
+
+.hico-select-check-width{
+  width: 13px;
+}
+
+.hico-calendar{
+	position: relative;
+	width: 100%;
+	height: 200px;
+}
+
+.hico-lineheight-fix{
+  line-height: 0;
+}
+
+.hico-lineheight-1{
+  line-height: 1;
+}
+
+.hico-labeldirective{
+  font-size: 13px;
+  overflow: hidden;
+  line-height: normal;
+  & > div {
+    justify-content: center;
+  }
+}
+
+.hico-list-dialog-padding {
+  padding-left: 15px;
+}
+
+.hico-dialog-button-left {
+  left: 8px;
+  position: absolute !important;
+}
+
+
+
+.hico-property-flex{
+  display: flex!important;
+}
+
+.hico-property-button-size-sm{
+  min-width: 5px;
+  padding: 0 14px;
+}
+
+.hico-property-nopadding-left{
+  padding-left: 0;
+}
+
+.hico-property-nopadding-right{
+  padding-right: 0;
+}
+
+.hico-property-nopadding-bottom{
+  padding-bottom: 0;
+}
+
+.hico-property-nopadding-top{
+  padding-top: 0;
+}
+
+.hico-property-noborder-right{
+  border-radius: 3px 0 0 3px;
+}
+
+.hico-property-nopadding > div{
+  padding: 0;
+}
+
+.hico-property-nopadding-left > div{
+  padding-left: 0;
+}
+
+.hico-property-nopadding-top > div{
+  padding-top: 0;
+}
+
+.hico-property-noborder-left  input, .hico-property-noborder-left  input:focus{
+  border-radius: 0!important;
+  border-left: 0;
+}
+
+.hico-property-color-Container{
+  min-height: 125px;
+}
+
+.hico-property-color-tab-Container{
+  width: 100%;
+  height: 30px;
+  display: flex;
+  padding-bottom: 5px;
+}
+
+.hico-property-color-tab-item{
+  flex: 1 0 0px;
+  cursor: hand;
+}
+
+.hico-property-color-tab-item:hover{
+  background: rgba(45,45,45,0.1);
+}
+
+.hico-property-tab-border-left{
+  border-left: 1px solid #aaa;
+  border-top: 1px solid #aaa;
+  border-bottom: 1px solid #aaa;
+  border-radius: 3px 0 0 0;
+}
+
+.hico-property-tab-border-right{
+  border: 1px solid #aaa;
+  border-radius: 0 3px 0 0;
+}
+
+
+.hico-property-color-tab-subItem, .hico-flex-centered{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hico-property-color-tab-itemtext{
+  flex: 1 0 88%;
+  cursor: hand;
+}
+
+.hico-property-color-tab-itemtext.active{
+  background: rgba(45,45,45,0.1);
+}
+
+.hico-property-color-tab-itemcolor{
+  flex: 1 0 12%;
+}
+
+.hico-property-color-tab-itemcolor.active{
+  background-color: orange;
+}
+
+.hico-property-color-swatch-list{
+  display: flex;
+  flex-wrap: wrap;
+  overflow: auto;
+  max-height: 120px;
+}
+
+.hico-property-color-swatch-item{
+  display: flex;
+  margin: 0.10em;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.hicoActiveInput{
+  box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+  margin: 5px 1px 3px 0px;
+  border: 1px solid rgba(81, 203, 238, 1);
+  border-radius: 3px;
+}
+
+.hico-property-seperator{
+  border-bottom: 1px solid #ddd;
+}
+
+.hico-property-information-img{
+  display: block;
+  max-width: 140px;
+  max-height: 140px;
+  margin: 10px auto 0 auto;
+}
+
+.hico-roperty-image-container{
+  margin-bottom: 20px;
+}
+
+.hico-property-text-container{
+  margin-bottom: 10px;
+}
+
+.hico-property-titel{
+  margin-top: 0px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  text-overflow: ellipsis;
+}
+
+.hico-property-subtitel{
+  text-align: center;
+}
+
+.hico-property-line{
+  height: 2px;
+  width: 100%;
+  border-radius: 3px;
+  background-color: #ddd;
+}
+
+.hico-property-textcontainer{
+  padding-left: 7px;
+  padding-right: 7px;
+  font-weight: bold;
+}
+
+.hico-property-select.lui-select, .hico-property-select.lui-select:focus{
+  color: rgba(255,255,255,0);
+  width: 28px;
+  min-width: 0;
+  border-radius: 2px 0 0 2px;
+}
+
+.hico-menu-vertical-mobile, .hico-select-panel-mobile, .hico-panel-mobile{
+  overflow: auto!important;
+  -webkit-overflow-scrolling: touch;
+  z-index: 1000;
+}
+
+.hico-variable-slider-horizontal{
+   flex: 0 1 60px;
+}
+
+.hico-variable-slider-container{
+  padding: 0 25px;
+  overflow: visible;
+}
+
+.hico-variable-slider-container-horizontal{
+  padding: 10px 0;
+  overflow: visible;
+}
+
+.hico-button-html-fix:hover .hico-variable-input:not(:focus){
+  background-color: #fff!important;
+}
+
+.hico-variable-input{
+  border: none!important;
+  background: transparent!important;
+  height: auto!important;
+  padding: 0px 0 !important;
+  border-radius: 0!important;
+}
+
+.hico-variable-input-container {
+  padding: 2px;
+}
+
+/* workarounds for IE */
+.hico-property-select.lui-select:focus::-ms-value{
+  color: rgba(255,255,255,0);
+}
+
+.pp-buttongroup-component .lui-buttongroup .hico-button.lui-button {
+  text-overflow: clip;
+  padding: 0 8px; // this should be enough padding while preventing most spans from building ellipsis
+
+  & > .lui-button__text {
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
+
+.hico-button-inactive.lui-disabled{
+  pointer-events: auto!important;
+
+  &:hover{
+    border-color: @lui-border-disabled!important;
+  }
+}
+
+.rc-slider-tooltip{
+  z-index: 50000;
+}
+
+.hico-tcmenu-not-zoomable > .qv-object-nav > .lui-icon--expand {
+  display: none!important;
+}
+
+.hico-tcmenu-not-snapshotable > .qv-object-nav > .lui-icon--camera {
+  display: none !important;
+}
+
+.hico-trial-image {
+  height: 70%;
+  background: url('../../resource/images/menubar_logo.png') no-repeat center;
+  background-size: contain;
+}
+
+/**TOOLTIP*/
+/* Tooltip container */
+.hico-tooltip {
+  position: relative;
+}
+
+/* Tooltip text */
+.hico-tooltip .hico-tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 1px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* Tooltip arrow */
+.hico-tooltip .hico-tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border: 4px solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.hico-tooltip:hover .hico-tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.hico-fontstyle-inherit, .rc-slider, .rc-slider-mark, .rc-slider-mark-text{
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  font-style: inherit;
+}

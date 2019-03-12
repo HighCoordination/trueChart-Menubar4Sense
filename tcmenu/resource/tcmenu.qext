@@ -1,0 +1,14 @@
+{
+	"name" : "Menubar",
+	"description" : "The Menubar allows for vertical and horizontal buttons and selections (fields, master dimensions and variables) as well as unlimited
+	trigger based Actions.",
+	"icon" : "list",
+	"type" : "visualization",
+	"version" : "##VERSION##",
+	"author" : "HighCoordination GmbH",
+	"preview": "img/menubar_logo.png",
+	"homepage" : "https://www.truechart.com/menubar",
+	"keywords" : "qlik-sense, visualization, trueChart, menu bar, navigation, actions, trigger, selection",
+	"license" : "HighCoordination GmbH © 2017",
+    "dependencies" : { "qlik-sense" : ">=3.0.x" }
+}

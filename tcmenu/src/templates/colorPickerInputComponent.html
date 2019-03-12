@@ -1,0 +1,44 @@
+<div class="bootstrap" ng-if="show">
+	<div class="pp-component pp-string-component">
+		<div class="label">{{definition.label}}</div>
+
+		<div class="">
+			<div class="hico-property-flex" ng-class="{'hicoActiveInput': showColorPicker}">
+				<div class="right-extendable-group">
+					<div class="hico-property-nopadding-right hico-property-nopadding-top" >
+						<button class="colorPalette lui-button hico-property-noborder-right hico-property-button-size-sm"
+								qva-activate="showColorPicker = !showColorPicker">
+							<span class="colorPaletteIcon lui-button__icon lui-icon lui-icon--palette" ng-class="{'active': showColorPicker}"></span>
+						</button>
+					</div>
+				</div>
+
+				<div class="flex hico-flex-row">
+					<div class=" hico-property-nopadding hico-property-nopadding-left hico-property-noborder-left hico-property-nopadding-top" include-pp-component
+						 x-component="qComponents.string"
+						 x-definition="text"
+						 x-data="data" x-args="args"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="hico-property-color-Container" ng-show="showColorPicker">
+			<div class="hico-property-color-tab-Container">
+				<div class="hico-property-color-tab-item hico-flex-container-column hico-property-tab-border-left" qva-activate="activeState = 'swatches'">
+					<div class="hico-property-color-tab-subItem hico-property-color-tab-itemtext" ng-class="{'active': activeState === 'swatches'}">Swatches</div>
+					<div class="hico-property-color-tab-subItem hico-property-color-tab-itemcolor" ng-class="{'active': activeState === 'swatches'}"></div>
+				</div>
+				<div class="hico-property-color-tab-item hico-flex-container-column hico-property-tab-border-right" qva-activate="activeState = 'picker'">
+					<div class="hico-property-color-tab-subItem hico-property-color-tab-itemtext" ng-class="{'active': activeState === 'picker'}">Picker</div>
+					<div class="hico-property-color-tab-subItem hico-property-color-tab-itemcolor" ng-class="{'active': activeState === 'picker'}"></div>
+				</div>
+			</div>
+			<div ng-show="activeState === 'picker'" class="hsvflat"></div>
+			<div ng-show="activeState === 'swatches'" class="hico-property-color-swatch-list">
+				<div class="hico-property-color-swatch-item" ng-repeat="color in colors" ng-style="{'background': color}" qva-activate="setColor(color)">
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

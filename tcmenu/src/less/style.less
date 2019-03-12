@@ -1,0 +1,51 @@
+.hico {
+	// Leonardo-UI
+	@import (less) '../../node_modules/leonardo-ui/dist/leonardo-ui.css';
+	@font-face {
+		font-family: 'hico-lui-icons';
+		src: url('../../node_modules/leonardo-ui/dist/lui-icons.woff') format('woff');
+	}
+
+	// Font Awesome
+	@import '../../node_modules/font-awesome/less/font-awesome.less';
+	@fa-font-path:	'../fonts';
+}
+
+/* colorsliders */
+@import (inline) '../../src/lib/colorsliders/bootstrap.colorpickersliders.css';
+
+
+/* Bootstrap (scoped) -> you have to use class="bootstrap" on desired elements to use it */
+.bootstrap {
+	// Core variables and mixins
+	@import '../../node_modules/bootstrap/less/variables.less';
+	@import '../../node_modules/bootstrap/less/mixins.less';
+
+	// Reset and dependencies
+	@import '../../node_modules/bootstrap/less/normalize.less';
+	@import '../../node_modules/bootstrap/less/print.less';
+
+	// Core CSS
+	@import '../../node_modules/bootstrap/less/scaffolding.less';
+	@import '../../node_modules/bootstrap/less/type.less';
+	@import '../../node_modules/bootstrap/less/code.less';
+	@import '../../node_modules/bootstrap/less/grid.less';
+
+	// Components
+	@import '../../node_modules/bootstrap/less/component-animations.less';
+
+	// Utility classes
+	@import '../../node_modules/bootstrap/less/utilities.less';
+	@import '../../node_modules/bootstrap/less/responsive-utilities.less';
+}
+
+/* codemirror styles */
+@import (inline) '../../node_modules/codemirror/lib/codemirror.css';
+
+//own css
+@import 'hicostyles.less';
+
+@import '~@highcoordination/common-sense/dist/resource/less/variables';
+@import '~@highcoordination/common-sense/dist/resource/less/common';
+@import '~@highcoordination/common-sense/dist/resource/less/hico-button';
+@import '~@highcoordination/common-sense/dist/resource/less/hico-media-library';

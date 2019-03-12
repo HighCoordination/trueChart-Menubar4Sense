@@ -1,0 +1,45 @@
+<div class="hico-fullHeight">
+	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.isMobileView || groupitem">
+		<div id="item_{{itemId}}" class="hico-item-horizontal-default">
+			<div class="accordion hico-button-html-fix"
+					ng-style="!item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': '56px'}
+					|| item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': item.props.height + px}">
+
+				<div class="hico-btn-container hico-fullHeight hico-flex-container-column hico-fontstyle-inherit">
+					<labeldirective class="hico-flex-column-100" item="item" layout="layout" type="'dropdownItem'"></labeldirective>
+					<div class="hico-flex hico-variable-slider-horizontal {{'hico-selectionstyle_' + uniqueId}}" id="slider_{{itemId}}"
+						 ng-if="item.props.variableSlider.orientation === 'horizontal'"
+						 ng-style="{'justify-content' : item.props.horAlignSelectionLabel, 'align-items' : item.props.verAlignSelectionLabel}">
+					</div>
+				</div>
+
+				<span class="hico-flex hico-flex-container-middle hico-item-vertical-left-element fa {{'hico-selectionstyle_' + uniqueId}}"
+					  id="slider_{{itemId}}"
+					  ng-if="item.props.variableSlider.orientation === 'vertical'"></span>
+
+				<div class="hico-absolute-overlay" ng-if="parentscope.isEditMode"></div>
+			</div>
+		</div>
+	</div>
+
+	<div id="hico-item-horizontal_{{itemId}}" class="hico-item-horizontal hico-item-horizontal-default"
+		 ng-if="layout.appearance.orientation==='btn-inline' && !utilService.isMobileView && !groupitem"
+		 ng-mouseleave="closeDropdown(item)">
+		<div class="accordion hico-button-html-fix hico-fullHeight"
+				ng-style="item.show && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor}
+                || {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor}">
+			<div class="hico-btn-container hico-fullHeight hico-flex-container-column hico-fontstyle-inherit">
+				<labeldirective class="hico-block hico-fullHeight hico-flex-column-100" item="item" layout="layout" type="'dropdownItem'"></labeldirective>
+				<div class="hico-flex hico-variable-slider-horizontal {{'hico-selectionstyle_' + uniqueId}}" id="slider_{{itemId}}"
+					 ng-if="item.props.variableSlider.orientation === 'horizontal'"
+					 ng-style="{'justify-content' : item.props.horAlignSelectionLabel, 'align-items' : item.props.verAlignSelectionLabel}"></div>
+			</div>
+
+			<span class="hico-flex hico-flex-container-middle hico-item-vertical-left-element fa {{'hico-selectionstyle_' + uniqueId}}"
+				  id="slider_{{itemId}}"
+				  ng-if="(item.props.variableSlider.orientation === 'vertical')"></span>
+
+			<div class="hico-absolute-overlay" ng-if="parentscope.isEditMode"></div>
+		</div>
+	</div>
+</div>

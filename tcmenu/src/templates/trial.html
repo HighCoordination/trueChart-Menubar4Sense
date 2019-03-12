@@ -1,0 +1,25 @@
+<div>
+	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.isMobileView">
+		<div class="hico-item-horizontal-default">
+			<a class="accordion hico-button-html-fix" href="https://www.truechart.com/menubar" target="_blank" title="www.truechart.com"
+					ng-style="groupBtnStyle"
+					change-background item="item" colors="colors">
+				<div class="hico-btn-container hico-fullHeight hico-flex-container-column hico-fontstyle-inherit">
+					<div class="hico-trial-image"></div>
+					<div class="hico-flex-centered hico-text-red">Trial Version</div>
+				</div>
+			</a>
+		</div>
+	</div>
+
+	<div class="hico-item-horizontal hico-item-horizontal-default"
+		 ng-if="layout.appearance.orientation==='btn-inline' && !utilService.isMobileView">
+		<a class="htm accordion hico-fullHeight hico-button-html-fix" href="https://www.truechart.com/menubar" target="_blank" title="www.truechart.com"
+				ng-style="groupBtnStyle" change-background item="item" colors="colors">
+			<div class="hico-btn-container hico-fullHeight">
+				<div class="hico-trial-image"></div>
+				<div class="hico-flex-centered hico-text-red">Trial Version</div>
+			</div>
+		</a>
+	</div>
+</div>

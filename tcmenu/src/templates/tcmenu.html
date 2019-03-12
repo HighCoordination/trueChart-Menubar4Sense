@@ -1,0 +1,122 @@
+<div ng-if="listItemsDub.length === 0" ng-class="{'hico-logo': initReady}" class=" hico-fullHeight hico-fullWidth">
+	<div class="menubar"></div>
+</div>
+
+<div class="hico hico-absolute-overlay hico-height-auto" ng-class="!utilService.isMobile ? ('hico-menu-vertical'):('hico-menu-vertical-mobile')"
+	 ng-if="listItemsDub.length > 0 && (layout.appearance.orientation==='btn-block' ||  utilService.isMobileView)"
+	 ng-style="menubarStyle"
+>
+	<div id="hico-menu-vertical_{{::layout.qInfo.qId}}" class="menubar hico-fullHeight"
+		 ng-class="!utilService.isMobile ? ('hico-menu-vertical'):('hico-menu-vertical-mobile')" scrollable
+		 ng-style="layout.appearance.vertHeightSetting === '100%' && {'background-color': colors.backgroundColor} || {'background-color': 'transparent'}">
+		<div  ng-class="
+	 {'hico-fullWidth':layout.appearance.widthSetting === 'full',
+	 'hico-container-vertical':layout.appearance.orientation==='btn-block' || utilService.isMobileView,
+	 'hico-alignLeft':layout.appearance.widthSetting === 'custom' && layout.appearance.verticalAlignment === 'left',
+	 'hico-alignRight':layout.appearance.widthSetting === 'custom' && layout.appearance.verticalAlignment === 'right',
+	 'hico-alignCenter':layout.appearance.widthSetting === 'custom' && layout.appearance.verticalAlignment === 'center'}"
+			 ng-style="layout.appearance.vertHeightSetting === '100%' && {'width': layout.appearance.width + 'px', 'color': colors.textColor, 'background-color': 'transparent', 'height': '100%'} ||
+				{'width': layout.appearance.width + 'px', 'color': colors.textColor, 'background-color': colors.backgroundColor, 'height': 'auto'}">
+
+			<div class="hico-border-bottom-default hico-overflow-hidden" ng-repeat="item in listItemsDub track by $index"
+				 ng-if="checkExpressionCondition(item.showCondition || '') && utilService.checkShowMobileCondition(item)"
+				 ng-style="{'border-bottom': 'solid ' + layout.appearance.borderSeparatorColor + ' 1px'}">
+
+				<group id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Group'" item="item" listitems="listItemsDub"
+						  itemindex="$index" first-item="$first" parentscope="this"></group>
+
+                <datepicker id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Date Picker'" item="item"
+                       itemindex="$index" first-item="$first" parentscope="this"></datepicker>
+
+				<variabledropdown title="{{item.props.tooltip}}" ng-if="item.type==='Variable Dropdown'" item="item" listitems="listItemsDub"
+								  itemindex="$first" parentscope="this"></variabledropdown>
+
+				<variableinput title="{{item.props.tooltip}}" ng-if="item.type==='Variable Input'" item="item" listitems="listItemsDub"
+								  itemindex="$first" parentscope="this"></variableinput>
+
+				<variableslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Variable Slider'" item="item"
+							itemindex="$index" first-item="$first" parentscope="this"></variableslider>
+
+				<fieldslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Field Slider'" item="item"
+								itemindex="$index" first-item="$first" parentscope="this"></fieldslider>
+
+				<div class="hico-relative" ng-if="item.type==='Button'" change-background item="item" colors="colors"
+					 ng-style="
+					!item.props.isCustomSize && { 'height': '56px', 'background-color': 'rgba(1,1,1,0)' , 'color': colors.textColor}
+					||item.props.isCustomSize && { 'height': item.props.height + px, 'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor}">
+					<div data-tcmenu-button id="item_{{layout.qInfo.qId}}-{{item.cId}}" states="item.stateItems"
+								   active-states="item.activeStates" evaluate-states="evaluateStates" on-states-update="handleButtonStates(states, item)"
+								   default-styles="item.buttonStyle"></div>
+				</div>
+
+				<singleselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Single Select'" item="item"
+							  type="item.type" listitems="listItemsDub" parentscope="this"></singleselect>
+
+				<senseselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Sense Select'" item="item"
+							 listitems="listItemsDub" parentscope="this"></senseselect>
+
+				<containerelement id="item_{{layout.qInfo.qId}}-{{item.cId}}" ng-if="item.type==='Button Container'" item="item"
+								  itemindex="$index" parentscope="this"></containerelement>
+			</div> <!--end repeat-->
+
+			<trial parentscope="this"></trial>
+		</div> <!--end hico-menu-vertical-->
+	</div>
+</div>
+
+
+
+<div class="hico hico-absolute-overlay hico-height-auto" id="hico-container-horizontal_{{layout.qInfo.qId}}"
+	 ng-if="listItemsDub.length > 0 && layout.appearance.orientation==='btn-inline' && !utilService.isMobileView"
+	 ng-style="menubarStyle">
+	<div ng-class="
+	{'hico-fullHeight':layout.appearance.heightSetting === 'full',
+	'hico-container-horizontal':layout.appearance.orientation==='btn-inline' && !utilService.isMobileView}"
+		 ng-style="layout.appearance.heightSetting === 'custom' && {'max-height': layout.appearance.height + 'px', 'color': colors.textColor, 'background-color': colors.backgroundColor} ||
+				{'color': colors.textColor, 'background-color': colors.backgroundColor}">
+		<div class="menubar hico-horizontal-items hico-flex-textwrap" ng-repeat="item in listItemsDub track by $index"
+			 ng-if="checkExpressionCondition(item.showCondition || '') && utilService.checkShowMobileCondition(item)"
+			 ng-style="{
+		 'flex': (!item.props.isCustomSize ? '1 0 0px' : '0 0 ' + item.props.width + item.props.sizeType),
+		 'border-left': (!$first ? 'solid ' + colors.borderSeparatorColor + ' 1px': 0)}">
+
+			<group class="hico-item-horizontal" title="{{item.props.tooltip}}" ng-if="item.type==='Group'"
+				   item="item" itemindex="$index" first-item="$first" listitems="listItemsDub" parentscope="this"></group>
+
+			<datepicker id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Date Picker'" item="item"
+						itemindex="$index" first-item="$first" parentscope="this"></datepicker>
+
+			<div class="hico-relative hico-fullHeight" ng-if="item.type==='Button'" change-background item="item" colors="colors"
+				 ng-style="{'background-color': 'rgba(1,1,1,0)', 'color': layout.appearance.textColor}">
+				<div data-tcmenu-button id="item_{{layout.qInfo.qId}}-{{item.cId}}" states="item.stateItems"
+					 active-states="item.activeStates" evaluate-states="evaluateStates" on-states-update="handleButtonStates(states, item)"
+					 default-styles="item.buttonStyle"></div>
+			</div>
+
+			<variabledropdown title="{{item.props.tooltip}}" ng-if="item.type==='Variable Dropdown'" item="item" listitems="listItemsDub"
+							  itemindex="$first" parentscope="this"></variabledropdown>
+
+			<variableinput id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Variable Input'" item="item"
+						   itemindex="$index" first-item="$first" parentscope="this"></variableinput>
+
+			<variableslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Variable Slider'" item="item"
+							itemindex="$index" first-item="$first" parentscope="this"></variableslider>
+
+			<fieldslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Field Slider'" item="item"
+						 itemindex="$index" first-item="$first" parentscope="this"></fieldslider>
+
+			<singleselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Single Select'" item="item"
+						  type="item.type" listitems="listItemsDub" parentscope="this"></singleselect>
+
+			<senseselect id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="item.type==='Sense Select'" item="item"
+						 listitems="listItemsDub" parentscope="this"></senseselect>
+
+			<containerelement class="hico-item-horizontal" id="item_{{layout.qInfo.qId}}-{{item.cId}}" ng-if="item.type==='Button Container'" item="item"
+							  itemindex="$index" parentscope="this"></containerelement>
+		</div>
+
+		<trial parentscope="this" class="hico-horizontal-items hico-flex-textwrap"
+			   ng-style="{'flex': '1 0 0px','border-left': (!$first ? 'solid ' + colors.borderSeparatorColor + ' 1px': 0)}">
+		</trial>
+	</div>
+</div>

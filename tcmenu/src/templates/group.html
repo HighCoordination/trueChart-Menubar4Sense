@@ -1,0 +1,115 @@
+<div class="hico-fullHeight hico-relative hico-lineheight-fix">
+    <div ng-if="layout.appearance.orientation==='btn-block' || utilService.isMobileView" class="hico-fullHeight">
+        <button class="accordion" qva-activate="handleDropdown(item, itemindex)" title="{{item.props.tooltip}}"
+                ng-style="groupBtnStyle"
+
+                change-background item="item" colors="colors">
+            <div class="hico-btn-container hico-fullHeight">
+                <labeldirective item="item" type="" layout="layout"></labeldirective>
+            </div>
+        </button>
+
+        <div ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')" ng-show="item.show"
+             ng-style="{'background-color': colors.backgroundColor}">
+            <div ng-repeat="groupItem in item.groupItems track by $index"
+                 ng-style="{'border-top': 'solid ' + colors.borderSeparatorColor + ' 1px'}"
+                 ng-if="parentscope.checkExpressionCondition(groupItem.showCondition || '') && utilService.checkShowMobileCondition(groupItem)">
+
+                <variabledropdown title="{{groupItem.props.tooltip}}" ng-if="groupItem.type==='Variable Dropdown'" item="groupItem" listitems="item.groupItems"
+                                  itemindex="$first" parentscope="parentscope"></variabledropdown>
+
+                <datepicker id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Date Picker'" item="groupItem"
+                            itemindex="$index" first-item="$first" parentscope="parentscope"></datepicker>
+
+				<variableinput id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Variable Input'"
+								item="groupItem" itemindex="$index" first-item="$first" parentscope="parentscope"></variableinput>
+
+                <variableslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Variable Slider'"
+                               item="groupItem" itemindex="$index" first-item="$first" parentscope="parentscope"></variableslider>
+
+                <fieldslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Field Slider'"
+                                item="groupItem" itemindex="$index" first-item="$first" parentscope="parentscope"></fieldslider>
+
+                <div class="hico-relative" ng-if="groupItem.type==='Button'" change-background item="groupItem" colors="colors"
+                     ng-style="
+					!groupItem.props.isCustomSize && { 'height': '56px', 'background-color': 'rgba(1,1,1,0)' , 'color': colors.textColor}
+					||groupItem.props.isCustomSize && { 'height': groupItem.props.height + px, 'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor}">
+                    <div data-tcmenu-button id="item_{{layout.qInfo.qId}}-{{groupItem.cId}}" states="groupItem.stateItems"
+                         active-states="groupItem.activeStates" evaluate-states="evaluateStates"
+                         on-states-update="parentscope.handleButtonStates(states, groupItem)"
+                         default-styles="groupItem.buttonStyle"></div>
+                </div>
+
+                <singleselect id="item_{{layout.qInfo.qId}}-{{groupItem.cId}}" title="{{groupItem.props.tooltip}}" ng-if="groupItem.type==='Single Select'" item="groupItem"
+                              type="groupItem.type" listitems="item.groupItems" parentscope="parentscope"></singleselect>
+
+                <containerelement id="item_{{layout.qInfo.qId}}-{{groupItem.cId}}" ng-if="groupItem.type==='Button Container'" item="groupItem"
+                                  itemindex="itemindex" subitemindex="$index" parentscope="parentscope" groupitem="true"></containerelement>
+
+                <senseselect id="item_{{layout.qInfo.qId}}-{{groupItem.cId}}" title="{{groupItem.props.tooltip}}" ng-if="groupItem.type==='Sense Select'" item="groupItem"
+                             listitems="item.groupItems" parentscope="parentscope"></senseselect>
+
+            </div> <!--end repeat-->
+
+        </div>
+    </div>
+
+    <div id="hico-item-horizontal_{{itemId}}" class="hico-item-horizontal hico-item-horizontal-default"
+         ng-if="layout.appearance.orientation==='btn-inline' && !utilService.isMobileView"
+         ng-mousemove="keepDropdown()" ng-mouseleave="closeDropdown(item)">
+        <button class="accordion" title="{{item.props.tooltip}}" qva-activate="handleDropdown(item, itemindex)"
+                ng-style="groupBtnStyle" change-background item="item" colors="colors">
+            <div class="hico-btn-container hico-fullHeight">
+                <labeldirective item="item" type="" layout="layout"></labeldirective>
+            </div>
+        </button>
+
+        <div id="panel_{{itemId}}" class="hico-panel-scrollcontainer tcmenu-scrollable hico-select-panel-horizontal-container"
+             ng-mousemove="keepDropdown()" ng-mouseleave="closeDropdown(item)"
+             ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')"  ng-show="item.show"
+             ng-style="{ 'top' : panelDropdownOffsetY + 'px', 'left':panelDropdownOffsetX + 'px', 'background-color' : colors.backgroundColor}">
+            <div  class="hico-panel-horizontal" ng-class="!utilService.isMobile ? ('hico-panel'):('hico-panel-mobile')" scrollable
+                  ng-style="{'background-color': colors.backgroundColor}">
+                <div  class="hico-selectdropdownitem" ng-repeat="groupItem in item.groupItems" title="{{dropdownItem.props.tooltip}}"
+                     ng-style="{'border-top': 'solid ' + colors.borderSeparatorColor + ' 1px'}"
+                      ng-if="parentscope.checkExpressionCondition(groupItem.showCondition || '') && utilService.checkShowMobileCondition(groupItem)">
+
+                    <variabledropdown title="{{groupItem.props.tooltip}}" ng-if="groupItem.type==='Variable Dropdown'" item="groupItem" listitems="item.groupItems"
+                                      itemindex="$first" parentscope="parentscope" groupitem="true"></variabledropdown>
+
+                    <datepicker id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Date Picker'" item="groupItem"
+                                itemindex="$index" first-item="$first" parentscope="parentscope" groupitem="true"></datepicker>
+
+                    <variableinput id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Variable Input'"
+                                    item="groupItem" groupitem="true" itemindex="$index" first-item="$first" parentscope="parentscope"></variableinput>
+
+                    <variableslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Variable Slider'"
+                                    item="groupItem" groupitem="true" itemindex="$index" first-item="$first" parentscope="parentscope"></variableslider>
+
+                    <fieldslider id="item_{{layout.qInfo.qId}}-{{item.cId}}" title="{{item.props.tooltip}}" ng-if="groupItem.type==='Field Slider'"
+                                 item="groupItem" itemindex="$index" first-item="$first" parentscope="parentscope"></fieldslider>
+
+                    <div class="hico-relative" ng-if="groupItem.type==='Button'" change-background item="groupItem" colors="colors" groupitem="true"
+                         ng-style="
+					!groupItem.props.isCustomSize && { 'height': '56px', 'background-color': 'rgba(1,1,1,0)' , 'color': colors.textColor}
+					||groupItem.props.isCustomSize && { 'height': groupItem.props.height + px, 'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor}">
+                        <div data-tcmenu-button id="item_{{layout.qInfo.qId}}-{{groupItem.cId}}" states="groupItem.stateItems"
+                             active-states="groupItem.activeStates" evaluate-states="evaluateStates"
+                             on-states-update="parentscope.handleButtonStates(states, groupItem)"
+                             default-styles="groupItem.buttonStyle"></div>
+                    </div>
+
+                    <singleselect id="item_{{layout.qInfo.qId}}-{{groupItem.cId}}" title="{{groupItem.props.tooltip}}" ng-if="groupItem.type==='Single Select'" item="groupItem"
+                                  type="groupItem.type" listitems="item.groupItems" parentscope="parentscope" groupitem="true"></singleselect>
+
+                    <containerelement id="item_{{layout.qInfo.qId}}-{{groupItem.cId}}" ng-if="groupItem.type==='Button Container'" item="groupItem"
+                                      itemindex="itemindex" subitemindex="$index" parentscope="parentscope" groupitem="true"></containerelement>
+
+                    <senseselect id="item_{{layout.qInfo.qId}}-{{groupItem.cId}}" title="{{groupItem.props.tooltip}}" ng-if="groupItem.type==='Sense Select'" item="groupItem"
+                                 listitems="item.groupItems" parentscope="parentscope" parentscope="parentscope" groupitem="true"></senseselect>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

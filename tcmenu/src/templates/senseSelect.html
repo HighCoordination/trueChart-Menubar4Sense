@@ -1,0 +1,74 @@
+<div class="hico-fullHeight hico-lineheight-fix">
+	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.isMobileView || groupitem" class="hico-fullHeight">
+		<button class="accordion" qva-activate="openSenseSelect(item)" ng-class="{'active':item.show}"
+				change-background item="item" colors="colors"
+				ng-style="
+					item.show && !item.props.isCustomSize && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor, 'height': '56px'}
+					|| !item.show && !item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': '56px'}
+					|| item.show && item.props.isCustomSize && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor, 'height': item.props.height + px}
+					|| !item.show && item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': item.props.height + px}">
+			<div class="hico-btn-container">
+				<labeldirective item="item" type="'Sense Select'" layout="layout"></labeldirective>
+			</div>
+		</button>
+		<div class="hico-senseselect-panel" ng-show="item.show" ng-mouseover="mouseOver()" ng-mouseleave="mouseLeave()">
+			<div id="toolbar_{{itemId}}" class="hico-select-toolbar hico-bottom-seperator"
+				 ng-show="parentscope._listObjects[item.props.dimId].layout.qListObject.qDimensionInfo.qGroupFieldDefs.length > 1">
+				<div class="hico-select-item">
+					<span class="lui-icon lui-icon--small lui-icon--back hico-select-padding" qva-activate="drillUp()" aria-hidden="true"></span>
+					<span class="lui-icon lui-icon--small lui-icon--select-alternative hico-leftspace-xl hico-rotate-180" qva-activate="showDrilldownDims()"
+						  aria-hidden="true"></span>
+					<span class="qv-object-title" >{{dimensionInfo.qGroupFieldDefs[dimensionInfo.qGroupPos]}}</span>
+				</div>
+				<div class="lui-popover hico-select-toolbar-popover hico-popover-evt" ng-if="showDimPopover" style="width: 250px;">
+					<div class="hico-select-toolbar-listitem hico-popover-evt" ng-repeat="field in fields | orderBy:'$index'" qva-activate="drillUp($index)">
+						{{field}}</div>
+				</div>
+			</div>
+			<div id="panel_{{itemId}}" class="hico-senseselect-panel" ng-mouseover="mouseOver()" ng-mouseleave="mouseLeave()" ng-show="item.show"
+				 qva-activate="changeSize(item,$event)">
+				<div class="hico-senseselect-content" id="QV05_{{itemId}}">
+
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<div id="hico-item-horizontal_{{itemId}}" class="hico-item-horizontal hico-item-horizontal-default"
+		 ng-if="layout.appearance.orientation==='btn-inline' && !utilService.isMobileView && !groupitem"
+		 ng-mouseover="keepDropdown()" ng-mouseleave="closeDropdown(item)">
+		<button class="accordion hico-fullHeight" qva-activate="openSenseSelect(item)" ng-class="{'active':item.show}"
+				change-background item="item" colors="colors"
+				ng-style="item.show && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor} ||
+				 		{'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor}">
+			<div class="hico-btn-container">
+				<labeldirective item="item" type="'Sense Select'" layout="layout"></labeldirective>
+			</div>
+		</button>
+		<div id="panel_container_{{itemId}}" class="hico-select-panel-horizontal-container hico-panel" ng-show="item.show"
+			 ng-mouseover="mouseOver(); keepDropdown()" ng-mouseleave="mouseLeave(); closeDropdown(item)"
+			 ng-style="{ 'top' : panelDropdownOffsetY + 'px', 'left':panelDropdownOffsetX + 'px'}">
+			<div class="hico-select-toolbar hico-bottom-seperator"
+				 ng-show="parentscope._listObjects[item.props.dimId].layout.qListObject.qDimensionInfo.qGroupFieldDefs.length > 1">
+				<div class="hico-select-item">
+					<span class="lui-icon lui-icon--small lui-icon--back hico-select-padding" qva-activate="drillUp()" aria-hidden="true"></span>
+					<span class="lui-icon lui-icon--small lui-icon--select-alternative hico-leftspace-xl hico-rotate-180" qva-activate="showDrilldownDims()"
+						  aria-hidden="true"></span>
+					<span class="qv-object-title" >{{dimensionInfo.qGroupFieldDefs[dimensionInfo.qGroupPos]}}</span>
+				</div>
+				<div class="lui-popover hico-select-toolbar-popover hico-popover-evt" ng-if="showDimPopover" style="width: 250px;">
+					<div class="hico-select-toolbar-listitem hico-popover-evt" ng-repeat="field in fields | orderBy:'$index'" qva-activate="drillUp($index)">
+						{{field}}</div>
+				</div>
+			</div>
+			<div id="panel_{{itemId}}" class="hico-senseselect-panel hico-senseselect-panel-horizontal">
+				<div class="hico-senseselect-content" id="QV05_{{itemId}}">
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>
+

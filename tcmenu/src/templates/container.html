@@ -1,0 +1,33 @@
+<div class="hico-fullHeight hico-relative">
+	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.isMobileView || groupitem" class="hico-item-vertical-default"
+		 ng-style="
+					!item.props.isCustomSize && {'height': '56px'}
+					||item.props.isCustomSize && {'height': item.props.height + px}">
+		<div class="hico-containers hico-containers-flex hico-fullHeight">
+			<div class="hico-subItem-vertical hico-subItem" title="{{subItem.props.tooltip}}"
+				 ng-repeat="subItem in item.subItems track by $index"
+				 ng-style="!$last && subItem.props.showBorder && {'border-right': 'solid ' + colors.borderSeparatorColor + ' 1px','background-color': 'rgba(1,1,1,0)', 'color': colors.textColor}
+				 || {'border-right': 0, 'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor}" change-background item="item" colors="colors">
+				<div class="hico-relative hico-fullHeight">
+					<div data-tcmenu-button states="subItem.stateItems" active-states="subItem.activeStates" evaluate-states="evaluateStates"
+								   on-states-update="handleButtonStates(states, subItem, itemindex)" default-styles="item.buttonStyle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="hico-fullHeight" ng-if="layout.appearance.orientation==='btn-inline' && !utilService.isMobileView && !groupitem">
+		<div class="action hico-text-center hico-btn-container hico-btn-container-padding" title="{{subItem.props.tooltip}}"
+				ng-repeat="subItem in item.subItems track by $index"
+				ng-style="!$last && subItem.props.showBorder && {'border-bottom': 'solid ' + colors.borderSeparatorColor + ' 1px','background-color': 'rgba(1,1,1,0)', 'height': (100 / item.subItems.length)+'%', 'color': colors.textColor} ||
+			   {'border-bottom': 0, 'background-color': 'rgba(1,1,1,0)', 'height': (100 / item.subItems.length)+'%', 'color': colors.textColor}"
+				change-background item="item" colors="colors">
+			<div class="hico-relative hico-item-horizontal-default">
+				<div data-tcmenu-button states="subItem.stateItems" active-states="subItem.activeStates" evaluate-states="evaluateStates"
+							   on-states-update="handleButtonStates(states, subItem, itemindex)" default-styles="item.buttonStyle"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+

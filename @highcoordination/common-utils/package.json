@@ -1,0 +1,70 @@
+{
+  "_from": "@highcoordination/common-utils@1.0.14",
+  "_id": "@highcoordination/common-utils@1.0.14",
+  "_inBundle": false,
+  "_integrity": "sha512-KMVl5j1yRtjm9IUk/6mOTLyrSZb2kDXysVUJSjbM0XKokn7G5ntIv6g7+NwiMvFC6/kDRagqX/roqAz8zv6UKw==",
+  "_location": "/@highcoordination/common-utils",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "@highcoordination/common-utils@1.0.14",
+    "name": "@highcoordination/common-utils",
+    "escapedName": "@highcoordination%2fcommon-utils",
+    "scope": "@highcoordination",
+    "rawSpec": "1.0.14",
+    "saveSpec": null,
+    "fetchSpec": "1.0.14"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/",
+    "/@highcoordination/common-sense"
+  ],
+  "_resolved": "http://registry.localhost:4873/@highcoordination%2fcommon-utils/-/common-utils-1.0.14.tgz",
+  "_shasum": "c62b84c75192ff9b965bffc72f9579d564b7363f",
+  "_spec": "@highcoordination/common-utils@1.0.14",
+  "_where": "C:\\hico\\codebase\\tcmenu\\build\\ted\\temp",
+  "author": {
+    "name": "jll, HighCoordination GmbH",
+    "email": "jll"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "es6-object-assign": "^1.1.0",
+    "es6-promise": "^4.2.5",
+    "file-saver": "^2.0.0",
+    "log4javascript": "^1.4.15",
+    "tslib": "^1.9.3"
+  },
+  "deprecated": false,
+  "description": "collection of global trueChart functions that can be useful in every project",
+  "devDependencies": {
+    "@types/file-saver": "^2.0.0",
+    "@types/jest": "^23.3.14",
+    "cloc": "^2.4.0",
+    "jest": "^23.6.0",
+    "ts-jest": "^23.10.5",
+    "tslint": "^5.12.1",
+    "typescript": "^3.3.1"
+  },
+  "keywords": [
+    "utils",
+    "helper",
+    "polyfills"
+  ],
+  "license": "ISC",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "name": "@highcoordination/common-utils",
+  "scripts": {
+    "build": "tsc",
+    "cloc": "cloc",
+    "lint": "tslint src/**/*.ts -p \".\" -o \"./reports/tslint.xml\" -t checkstyle",
+    "test": "jest --collectCoverage",
+    "test:dev": "jest --watch"
+  },
+  "sideEffects": false,
+  "types": "dist/index.d.ts",
+  "version": "1.0.14"
+}

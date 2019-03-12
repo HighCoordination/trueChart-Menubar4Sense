@@ -1,0 +1,50 @@
+<div class="hico-fullHeight">
+	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.isMobileView || groupitem">
+		<div id="item_{{itemId}}" class="hico-item-horizontal-default">
+			<div class="accordion hico-button-html-fix"
+				 ng-style="!item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': '56px'}
+					|| item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': item.props.height + px}">
+
+				<div class="hico-btn-container hico-fullHeight hico-flex-container-column">
+					<labeldirective class="hico-flex-column-100" item="item" layout="layout" type="'dropdownItem'"></labeldirective>
+					<div class="hico-flex hico-flex-column-100 hico-flex-container-middle hico-overflow-hidden"
+						 ng-style="{'align-items' : item.props.variableInput.verAlignLabel}">
+						<div class="hico-tooltip hico-container-vertical hico-variable-input-container">
+							<input ng-blur="inputChange()" ng-enter="doBlur($event)" ng-model="item.input.value"
+								   placeholder="{{item.props.variableInput.placeholder}}"
+								   ng-style="!item.input.valid && {'box-shadow': '0 0 1px 1px ' + colors.variableInputInvalid, 'border': '1px solid red!important', 'text-align': item.props.variableInput.horAlignLabel}
+									|| {'text-align': item.props.variableInput.horAlignLabel}"
+								   class="lui-input hico-variable-input {{'hico-variable-input_' + usedID}} {{'hico-selectionstyle_' + usedID}}"/>
+							<span class="hico-tooltiptext">{{item.props.variableInput.type === 'Date' ? item.props.variableInput.dateformat :
+							item.props.variableInput.type}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="hico-item-horizontal_{{itemId}}" class="hico-item-horizontal hico-item-horizontal-default"
+		 ng-if="layout.appearance.orientation==='btn-inline' && !utilService.isMobileView && !groupitem"
+		 ng-mouseleave="closeDropdown(item)">
+		<div class="accordion hico-button-html-fix hico-fullHeight"
+			 ng-style="item.show && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor}
+                || {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor}">
+			<div class="hico-btn-container hico-fullHeight hico-flex-container-column">
+				<labeldirective class="hico-block hico-fullHeight hico-flex-column-100" item="item" layout="layout" type="'dropdownItem'"></labeldirective>
+				<div class="hico-flex hico-flex-column-100 hico-overflow-hidden"
+					 ng-style="{'align-items' : item.props.variableInput.verAlignLabel}">
+					<div class="hico-tooltip hico-container-vertical hico-variable-input-container">
+						<input ng-blur="inputChange()" ng-enter="doBlur($event)" ng-model="item.input.value"
+							   placeholder="{{item.props.variableInput.placeholder}}"
+							   ng-style="!item.input.valid && {'box-shadow': '0 0 1px 1px ' + colors.variableInputInvalid, 'border': '1px solid red!important', 'text-align': item.props.variableInput.horAlignLabel}
+									|| {'text-align': item.props.variableInput.horAlignLabel}"
+							   class="lui-input hico-variable-input {{'hico-variable-input_' + usedID}} {{'hico-selectionstyle_' + usedID}}"/>
+						<span class="hico-tooltiptext">{{item.props.variableInput.type === 'Date' ? item.props.variableInput.dateformat :
+							item.props.variableInput.type}}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

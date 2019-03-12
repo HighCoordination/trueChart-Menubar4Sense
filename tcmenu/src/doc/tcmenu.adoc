@@ -1,0 +1,1459 @@
+= {menubar}: Documentation
+:author:    HighCoordination GmbH
+:email:     info@highcoordination.de
+:revnumber: {appversion}
+:revdate:   {docdate}
+:menubar:    Menubar
+:title-logo-image: image:wortbildmarke.png[Logo,400]
+// :title-page-background-image: image:background.jpg[]
+:tbd:       Yet to be done.
+:imagesdir: img
+:icons: font
+:toc: left
+:toclevels: 4
+:idprefix:
+:sectlinks:
+:sectanchors:
+:sectnums:
+:sectnumlevels: 3
+
+
+// :numbered!:
+// [abstract]
+// {menubar} is a Qlik Sense extension providing a customziable menu bar to interact with. This guide covers installation of the extension, creation of simple menu bars and settings of {menubar}'s items.
+<<<
+<<<
+:numbered:
+== Introduction
+**{menubar}** allows for vertical and horizontal buttons and selections
+(fields, drill-down dimensions, master dimensions and variables) as well as unlimited trigger based Actions.
+
+In addition, you can share apps with the current selection with a single click, as well as conveniently chain
+documents including current or changed selections to navigate between apps.
+
+.Qlik Sense showing a sheet in edit mode with a {menubar} (left) next to trueChart (center) with the menu bar's options in the properties panel (right).
+
+image::tcmenu-intro.png[{menubar} intro, 550]
+
+=== Qlik Sense® Support
+Menubar supports Qlik Sense® from version 3.0.0 up to currently latest version November 2018 including
+exporting and story mode capability.
+
+[options="header"]
+|===
+13+^| Menubar
+2+| | *v1.0.0-v1.0.4* | *v1.0.5-v1.0.6* | *v1.0.7* | *v1.0.8* | *v1.1.x* (Sense Export & expression migration needed!) | *v1.2.x* | *v1.3.0* | *v1.3.1* | *v1.3.2-v1.3.3* (incl. Support of nPrinting from June 2018) | *v1.3.4-v1.3.5* | *v1.4.x*
+.10+| *Qlik Sense* | < June 2017 | x | x | x | x | x | x | x | x | x | x | x
+| June 2017 | | x | x | x | x | x | x | x | x | x | x
+| September 2017 | | | x | x | x | x | x | x | x | x | x
+| November 2017 | | | | x | x | x | x | x | x | x | x
+| February 2018 | | | | | | x | x | x | x | x | x
+| April 2018 | | | | | | x | x | x | x | x | x
+| June 2018 | | | | | | | | x | x | x | x
+| September 2018 | | | | | | | | x | x | x | x
+| November 2018 | | | | | | | | | | x | x
+| February 2019 | | | | | | | | | | | x
+|===
+
+=== Printing & Export Support
+The Menubar fully supports nPrinting from version June 2018.
+
+The Menubar also fully supports with external partner solution Mail&Deploy.
+For more information on the Mail&Deploy export solution, click here: http://www.mail-and-deploy.com.
+
+=== Browser Support
+At present Menubar supports the browsers listed below:
+
+* Microsoft Internet Explorer 11
+* Microsoft Edge (lastest version - v41, at the time of writing)
+* Mozilla Firefox (latest version – v63, at the time of writing)
+* Google Chrome (latest version – v70, at the time of writing)
+* iOS 10.3.2 or later
+** We recommend upgrading to iOS 11.2.2 or later.
+
+[#whats_new]
+== What is new in {menubar} {appversion}?
+
+With version 1.4.0 of the {menubar} comes a bunch of new features. Here is a short introduction to the main features of this release.
+
+New name and logo::
+With version 1.4.0 the extension got renamed and is now called Menubar. With the new name the Menubar also got a brand new logo.
+
+.New Menubar logo.
+image::menubar-logo.png[]
+
+Field Slider::
+The _Field Slider_ allows to select values of a dimension with a slider component.
+
+.Field Slider examples.
+image::field-slider-examples.png[field-slider-examples]
+
+Dynamic font sizing::
+The option to set the font size dynamically allows for responsive font sizing depending on the width of the extension object.
+
+Hide elements in Sense mobile view::
+Now you can hide {menubar} elements when Qlik Sense is in mobile mode. Just activate the checkbox in the property panel and the element is not active in
+ Sense mobile mode. Inactive elements dont trigger any actions or behaviors such as the default selections.
+
+Individual colors for all elements::
+Individual colors can be defined for every element of the {menubar}. There is no limitation on what you want to style. Even the funkiest {menubar}s can now be
+designed.
+
+.Individual Colors.
+image::whats-new-colors.png[]
+
+Option to style sheet background::
+The option to style the sheet background allows you to style the Sense sheet background with an
+image, color or both. This also works in storymode if a {menubar} elements is placed on the slide and has an active background styling.
+
+.Sheet with Background styling.
+image::whats-new-background.png[]
+
+*For more information about the changes in this version, refer to the chapter <<release_notes_latest_version>>*
+
+[CAUTION]
+An upgrade from version less than v1.1.0 to the current version may require an migration. If this migration is not done
+carefully, apps may break. The procedure is described in detail in <<migration_older_110>>.
+
+=== Migration for published apps
+In the context of new versions, necessary adjustments within the apps are usually carried out automatically during
+loading. This is transparent for the users. An indication of this are corresponding logging entries in the development
+console of the browser.
+
+Since changes to published apps cannot be saved, these automatic changes must be made at every load, which can have a
+negative effect on the loading speed of the visualization.
+
+To avoid permanent migrations of the apps, we therefore recommend opening the corresponding apps as soon as possible
+in an unpublished mode, so that migration is then performed once and the changes are saved automatically. These apps
+should then be published again.
+
+
+[#migration_older_110]
+=== Migration from version less v1.1.0.
+
+With the release of version v1.1.0 we introduced the support of master and dynamic dimensions.
+To use this feature, you have to be sure that all expressions
+correspond to the expression syntax known from _Qlik Sense_, which means:
+
+* No `'` or `"` before and after field or dimension names
+* Expressions should begin with `=`
+* Correct spelling (upper-/lowercase) of field or dimension names
+
+After updating, {menubar} will guide you through this process.
+At first, navigate to the sheets where you use {menubar}.
+Now, it will automaticly check if you use expressions somewhere.
+If so, you will see the dialog below. Please make sure that all expressions comply with the above mentioned specifications.
+Once you have done this, you can confirm by clicking on the appropriate button.
+Only when all expressions have been confirmed, you are able to save the changes and close the dialog.
+
+.The dialog that leads you trough the migration process
+image::version1_1-migration-dialog.png[migration dialog, 320]
+
+[discrete]
+===== Automatic migration for published apps in production
+
+Changes to a published app cannot be persisted. So it is necessary to perform the migration in another way:
+
+.Process to migrate published apps
+image::migration-procedure.png[migration procedure, 670]
+
+1. Install the new {menubar} version in your testing environment.
+2. Now open all relevant apps. Check and confirm all expressions. But you will not be able to perform the save operation.
+3. Unzip the `menubar.zip` and copy the content of all apps from the _Config settings_ dialog in between the curly brackets at _expressionMigration_.
+   Make sure that the existing format is maintained.
+4. Finally, zip the complete `menubar` directory and upload the ZIP file to the _Qlik Management Console_ on the production environment.
+   For all expressions in the config file you will not be asked to reconfirm them.
+
+[CAUTION]
+====
+When you are using {menubar} in a publicated app or in mutiple apps with the same expressions, we recommend to update the `config.js`.
+The advantage of this variant is that expressions added in the config file do not have to be reconfirmed.
+
+[underline]#For published apps, this is the only way to persist changes on the expressions.#
+====
+
+[CAUTION]
+An update to the latest version of the {menubar} without prior adjustment of the dimension expressions
+leads to incorrect evaluation of the dimensions and therefore corrupt published apps!
+
+.The _Config settings_ dialog
+image::migration-config-settings.png[migration config settings dialog, 320]
+<<<
+== Installing {menubar}
+
+=== Installation on _Qlik Sense Desktop_
+
+To install {menubar} for _Qlik Sense Desktop_, you just have to put the contents of the {menubar} ZIP file into the directory `%USERPROFILE%\Documents\Qlik\Sense\Extensions`.
+
+=== Installation on _Qlik Sense Server_
+
+To install {menubar} for _Qlik Sense Server_, go into the _Qlik Sense Management Console_ (QMC) and navigate to _Extensions_ via the sidebar. Then click on the _Import_ button which opens the _Import extension file_ dialog where you can browse and import the {menubar} ZIP file.
+
+.Importing the extension ZIP file in the QMC.
+image::qmc-import.png[qmc-import]
+
+<<<
+== Creating a new menu bar
+
+After installing {menubar} you can add a new menu bar to your sheet in _Edit mode_ by dragging the entry from the extension sidebar into your sheet. You can add as many menus to your sheet as you need and each can be set up differently.
+
+[[new-menu]]
+.A new empty menu bar
+image::new-menu.png[new-menu,200]
+
+{menubar} features six panes in the properties panel -- _Dimensions_, _Dimensions Add-ons_, _Items_, _Add-ons_, _Appearance_ and _Info_ -- which are covered in
+ the
+following sections.
+
+<<<
+== Defining dimensions in the _Dimensions_ pane
+
+The _Dimensions_ pane is used to define all the dimensions needed for the _Select_ items of {menubar}.
+
+Dimensions can be added in the way known from Qlik Sense. The dimension’s name is subsequently used as the Dimension Title. This value is only for usage in {menubar} and can be changed if desired.
+
+.Adding a new dimension to the menu.
+image::adding-dimensions.png[adding-dimensions, 250]
+
+The dimensions defined here can be later used in the _Single Select_ or _Sense Select_ items.
+
+.Using the predefined dimensions in a Single Select.
+image::dimensions-select.png[adding-dimensions]
+
+== Dimensions Add-ons
+A corresponding entry can be found within this area for each dimension created. Further definitions for these dimensions can be made here. Currently, alternative statuses can be adjusted and sorting settings made here.
+
+=== Alternate State
+
+Every Dimension can have a different selection state also called alternate state. The alternate state is defined above the sort settngs in the _Dimension
+Settings_ menu.
+
+The available states are defined in the appearance section of the property panel or the master item settings in _Sense_ versions later than November 2018.
+
+The standard usecase of alternate state is to use the same dimension multiple times with different states in a menubar. By default the menubar is not able to
+ work with the same dimension multiple times. Please look at the Dimension calculation section
+for more information on using the same dimension mutiple times in the menubar.
+
+.Dimension Add-on stettings to change the alternate state for one dimension
+image::alternate-state-settings-dimensions.png[dimension-add-on-stettings]
+
+=== Sorting
+
+The sorting of dimensions can be edited in the _Dimensions Add-ons_ pane.
+
+The sort order can be set to _Automatic_ or _User Defined_. When the latter is chosen, you can set your desired sorting order which can be one or multiple of:
+
+Load Order:: This is the original order of the records in the data source.
+Selection State:: Shows the currently selected values first. For _Sense Selects_ this is the default.
+Frequency:: Sorts the values by the frequency of occurrence.
+Numeric:: Sorts the values numerically.
+Alphabet:: Sorts the values alphabetically.
+Expression:: Use a custom expression to control sorting.
+
+.User-defined sorting options for dimensions
+image::dimensions-sorting.png[dimensions-sorting,200]
+
+<<<
+== Items of {menubar}
+
+=== Adding items
+
+{menubar} features ten different item types:
+
+ * <<Button>>
+ * <<button_container>>
+ * <<Date Picker>>
+ * <<Single Select>>
+ * <<Sense Select>>
+ * <<Field Slider>>
+ * <<Variable Dropdown>>
+ * <<Variable Slider>>
+ * <<Variable Input>>
+ * <<Group>>
+
+To create a new item, open _Items_ in the properties panel and click on _Add Items_. This will create a new _Button Container_ including a new button called _My Button_ by default. The item type can be changed by clicking on the _Type_ drop-down list, which gives you the selection between the different types mentioned above.
+
+.Adding items
+image::add-item.png[add-item,200]
+
+.Initial items
+image::initial-items.png[initial-items,200]
+
+The first thing you want to do every time you create a new item is giving them distinctive names in the properties panel by using the field _Name (only Property Panel)_. This will help you to identify your items in the properties panel when the configuration of your menu bar grows larger.
+
+==== Recurring properties
+
+There are some properties that {menubar}'s items have in common. These are:
+
+|====
+| Duplicate, Copy/Paste | Actions to duplicate, copy and paste current element. Please read for further explanations
+in the following chapter <<Copy/Paste and duplicating Items>>.
+| Type | Specifies the item type for current element. Available types are:
+_Button_, _Button Container_, _Date Picker_, _Single Select_, _Sense Select_, _Field Slider_, _Variable Dropdown_, _Variable Slider_, _Variable Input_, _Group_.
+| Name (only Property Panel) | This is the name of the item used in the property panel.
+| Show condition | This element will only be shown if this condition evaluates to true.
+| Show on mobile | By default, this element will be shown when qlik sense is in mobile mode. If the checkbox is not checked the element is not visible or
+evaluated in the qlik sense mobile mode.
+| Use Custom Size | By default,  the item spans over the entire available area. Set this to _Custom_ to define a custom height or width depending on the menu's orientation.
+| Text Layout | Can be set to _Single_ for a single line or _Multi_ for a multi-line to show a selection in a _Select_ item.
+| Label: Alignment horizontal | Sets the horizontal alignment of the item's label.
+| Label: Alignment Vertical | Sets the vertical alignment of the item's label.
+| Selection Label | For selectable items sets the preferred label of the selection displayed on the item.
+| Icon | Many item labels can have icons you can select from a list.
+| Tooltip | The tooltip's text to appear when the user hovers over the item.
+| Individual Colors | Every item can define a set of individual colors to create specific designs in your menubar.
+|====
+
+=== Copy/Paste and duplicating Items
+
+For easy editing of the {menubar} Copy/Paste and Duplicating items offers a fast way to create a {menubar}. Once
+you have one item defined Copy/Paste and Duplicating allows you to easily create other items with the exact same
+definition.
+
+.From left to right: _duplicate_, _copy_, _paste_ button.
+image::copypaste.png[copypaste, 200]
+
+You can either duplicate an item to create an exact copy of the item in the current element.
+Or you can copy an item and paste it later to replace any item you want.
+
+Furthermore, this function can be used to paste a previously copied element on an element of another {menubar} object and
+thus to transfer definitions from one {menubar} object to another one.
+
+=== Button
+
+_Buttons_ are grouped by states that are defined by conditional expressions. This allows you to use different settings for the button depending on which of the given conditions is true.
+
+.Default properties of a newly created button with one state. Additional states can be created by clicking on Add State.
+image::default-button.png[default-button]
+
+NOTE: If more than one condition returns `true` at the same time the first (i.e. uppermost) state will be chosen.
+
+TIP: If you don't need your button to act differently on given conditions just use a single state with the condition `='true'` which is also the default when creating a new button.
+
+==== The Button Editor
+
+The _Button Editor_ is a powerful tool for setting both a button's appearance and its behavior, i.e. the action triggered when the button is pressed. It will be opened when you click on _State Settings_ in one of the button's states.
+
+===== Features
+
+The settings are divided into five categories (General, Layout, Style, Color and Actions) covered in the following sections.
+
+====== General
+
+The _General_ tab features five options:
+
+.Type
+The _Type_ list gives you a selection of various predefined button appearances, all of which can be fine-tuned in the adjacent tabs. Apart from that, you can choose between _simple_, _image_, and _custom_ in the _General_ section. The latter two of which can be used to create an image-based or custom-CSS-based button respectively.
+
+.State
+The _State_ list is a sub-list of the _Type_ list and covers the _normal_, _active_ and _disabled_ state of the previously chosen type.
+
+.Icon
+Using the _Icon_ option you can define an additional icon for the button out of the Font Awesome or Qlik Sense icon repository.
+
+.Text
+The _Text_ field is the text used as the label on the button.
+
+.Tooltip
+With the _Tooltip_ option, you can define the text shown when the user hovers over the button.
+
+[TIP]
+Help other users to understand your button's effect by describing it in the tooltip.
+
+.The Button Editor showing the first tab (General).
+image::button-general.png[button-general]
+
+.Image
+If you've chosen the _image_ type you can additionally define an _Image url_, the _Position_, and _Size_ of your background image in the _Image_ section.
+
+.The Button Editor as Image type with specific input elements.
+image::image-button-editor.png[image-button-editor]
+
+To be able to display images with an image button, these images must first be saved (uploaded) to the trueChart Image Library and selected from there. All images of the trueChart Image Library are stored within the Sense app and are automatically available in duplicated and exported apps.
+
+[CAUTION]
+The trueChart Image Library could not changed in published apps since theese are read only in Sense. Existiing images still could be reused.
+
+.The trueChart Image Libary dialog to import, export, insert, rename and delete images.
+image::trueChart-media-library.png[trueChart-media-library]
+
+The _trueChart Image Library_ offers the possibility to import images from
+different sources, so you can upload one or more files directly or via a URL.
+To use images from the Qlik Sense media library, it is necessary to manually store
+the URL of the individual images as image URL in the button or to import them into
+the _trueChart Image Library_ using the URL import function.
+
+Other features available in the trueChart Image Library are: Rename, Replace / Update, Delete.
+The image download is not supported in ie11.
+
+[CAUTION]
+Since the contents of the image library are saved globally in an app, they can not be copied to an other app when copying an extension object.
+The recommended way to do this is: first export the necessary images in the source app and then import them again into the target mage library. Since the used image has the same names, these images then will be displayed correctly in the copied objects.
+
+.Custom css
+If you've chosen the _custom_ type you can define your own CSS rules on the button, giving you the maximal flexibility for the button's appearance.
+
+====== Layout
+
+The _Layout_ tab is for defining the metrics of the button. You can set...
+
+.Dimension
+In the _Dimension_ section, you can set the width and height of the button inside its boundaries. This is set to `100%` by default but can be set to any value using CSS units or `auto` to make the button as large as its contents demands.
+
+.Position
+In the _Position_ section, you can set the horizontal and vertical alignment of the button inside its boundaries, which is only effective if the respective width or height is set to a value other than `100%`.
+
+.Content alignment
+In the _Content alignment_ section, you can define the alignment of the button's text and the icon. The _Text_ alignment is only effective for multiple lines of text on the button.
+
+.Content position
+In the _Content position_ section, you can set the horizontal and vertical alignment of the content itself (i.e. the text and the icon together). This is only effective if the respective width or height of the button is not set to `auto`.
+
+.Padding
+With the _Padding_ setting, you can disable a predefined padding by choosing _Off_ or override the default padding by choosing _On_ which allows you to set the values in CSS `padding` syntax.
+
+.Margin
+With the _Margin_ setting, you can disable a predefined margin by choosing _Off_ or override the default margin by choosing _On_ which allows you to set the values in CSS `margin` syntax.
+
+.An example showing the different layout settings and its effects on the button's appearance.
+image::button-layout.png[button-layout]
+
+====== Style
+
+In the _Style_ tab, you can set the visual appearance of the button's content including:
+
+.Font settings
+In the _Font_ section, you can set the font properties, i.e. _Family_, _Weight_, _Style_, and _Size_.
+For _Size_ we suggest you use *px*, *em* or *%* as the unit of measurement. If you use units like *vw* and *vh* you may have problems with the export function
+of Sense.
+
+
+.Icon size
+Icons have a fixed size, but you can change the scaling in the _Icon_ section using the _Size_ slider to choose between 1x, 1.5x, 2x, 3x, 4x or 5x.
+
+.Background repetition
+If you defined a background on your button you can control how the background is repeated with the _Repeat_ setting in the _Background_ section.
+
+.Border
+With the _Border_ setting, you can disable a predefined border by choosing _Off_ or override the default border by choosing _On_ which allows you to set the border's color, radius, width, and style. The radius is given in CSS `border-radius` syntax.
+
+.Shadow
+The same applies for the button's shadow in the _Shadow_ section. By using _On_ you can define a custom border according to the CSS `box-shadow` syntax: +
+`none|_h-shadow v-shadow blur spread color_ |inset|initial|inherit`.
+
+.An example showing the different style settings and its effects on the button's appearance.
+image::button-style.png[button-style]
+
+====== Color
+
+The _Color_ tab is used to set the colors for the _normal_ and _hover_ state of the button. This overrides the colors you've set in the _Colors_ section of the _Appearance_ pane and those given by the button type in the _General_ tab of the _Button Editor_. For a detailed list of accepted color expressions, refer to Appendix A.1.
+
+.An example showing the different color settings and its effects on the button's appearance with the button in the hover state.
+image::button-color-hover.png[button-style]
+
+====== Actions
+
+In the _Actions_ tab, you can define triggers, that is the actions to take effect when a certain event on the button is triggered.
+
+Possible events to attach actions are:
+
+On click:: Triggered when the user clicks the button.
+
+[CAUTION]
+Buttons without triggers and actions, for example, when used as text or image placeholders, do not apply hover effects. In order to achieve this behavior, all triggers must be removed via the delete icon.
+
+Before navigation:: Triggered when the sheet is closed or changed.
+On load:: Triggered when the element loads. This can be used to define initial actions like making selections.
+
+[CAUTION]
+To avoid critical actions being scattered all over other different items, _On load_ actions like those for initial selections should be defined on a designated element (such as an otherwise non-functional button that serves to show the company's logo).
+
+On selection:: Triggered when the button is selected.
+Custom:: Define your own event you can give a custom name. This can be used by involving `HiCo.performCustomTrigger("_triggername_", "_triggerdata_")` in a custom action.
+
+For every event, you can define one or multiple actions, such as _Go to sheet_ to change the view to a different sheet or _Select match_ to alter the current selection.
+
+A full list of provided actions can be found in Appendix B.
+
+.This example establishes an action that sets the City field to New York for the current selection on click of the button.
+image::button-action.png[button-action]
+
+====== Execution Order
+
+Actions of a specific trigger are executed in the order they are defined (from top to bottom) without explicitly waiting for each other to be finished before executing the next one. In case of asynchronous calls this may lead to a different execution order.
+
+For most actions (like selecting fields, setting variables, etc.) this is the best option, because they will be performed as fast as possible. This leads to less requests to the "Qlik Sense Engine" and results in better performance/stability.
+
+For use cases were the execution order is important, every action can be defined as "sequential" where the execution order will then be respected, by executing them one by one.
+
+==== Using Expressions
+
+Apart from static values, every input box that features Qlik Sense's _fx_ icon also accepts Sense expressions.
+
+[[button_container,Button Container]]
+=== Arranging buttons using _Button Container_
+
+The _Button Container_ is an item to group multiple buttons together while inverting the orientation. That means, if your menu is oriented vertically, the buttons in the container will be arranged horizontally and vice verse.
+
+.Button Container Settings.
+image::button-container-settings.png[]
+
+Each button of the container has the option to disable the border. This allows creating individual borders through the button settings.
+
+.A vertically and horizontally arranged menu bar, each featuring two plain buttons and another two buttons in a Button Container in between.
+image::ver-hor-menu.png[ver-hor-menu,800]
+
+=== Date Picker
+
+The _Date Picker_ allows selecting single dates, multiple dates and date ranges for sense fields. With the support of dynamic date formats the _Date Picker_
+can select almost every possible date.
+
+.Date Picker Element in Property Panel.
+image::datepicker-config.png[datepicker-config]
+
+The _Date Picker_ uses the default general settings. The only difference is that the selection label positioning is only available for single and multi _Date Picker_. In the appearance section you can customize the colors used in the _Date Picker_.
+
+<<<
+
+Specific settings for the _Date Picker_ are at the bottom of the properties for the element.
+
+The _Date Picker_ supports three different types:
+
+ * Single only allows one selected date.
+ * Multi allows multiple dates to be selected.
+ * Range selects a range of dates after picking a start and end date.
+
+Defining a date format is required and the format needs to match the selected dimension. The standard format uses the format from the app settings.
+When Setting the format to custom it is possible to define other formats. Valid formats include MM/YYYY, DD/YYYY, D/M/YYYY.
+
+Depending on the format the _Date Picker_ will only show certain Elements. When defining the format DD/MM/YYYY the datepicker will show a Daypicker. The format
+MM/YYYY only uses months and years therefore the _Date Picker_ will only show months and years.
+
+The default value is the value that is always selected if nothing else is selected. With the calendar symbol you can open a _Date Picker_ and choose a date
+there or you can enter a Sense expression.
+
+Predefines are specific date ranges. There are several default ranges but you can also define custom ranges.
+
+.Predefines Options.
+image::datepicker-predefines.png[datepicker-predefines]
+
+Range Date Picker::
+The range _Date Picker_ allows selecting a start and end date. The start date is on the left and the end date is on the right. On the far right are
+the predefines. On a mobile device the predefines are located in in the header instead. The header also has inputs for the start and end date.
+
+.Range Date Picker.
+image::datepicker-range.png[datepicker-range]
+
+Single and Multi Date Picker::
+The single _Date Picker_ consists of just one date element and the close and ok button.
+It only allows one selection and will remove all other selections beside the clicked date.
+Multi _Date Picker_ allows multiple selected dates.
+
+.Single Date Picker.
+image::datepicker-single.png[datepicker-single]
+
+Colors::
+To show different states of the dates the _Date Picker_ uses several default colors.
+
+ * Dark grey: out of allowed range
+ * Green: currently selected in Sense
+ * Orange: start or end date
+ * Light orange: date between start and end date
+
+All date picker related colors can be configured in general for all date picker elements in the <<Colors>> section.
+
+=== Selects
+
+_Selects_ are drop-down lists that can be prefilled with existing data from previously defined dimensions. {menubar} offers two different types of selects, explained in the following sections.
+
+==== Single Select
+
+A _Single Select_ is a drop-down list that allows the user to make selections for *one* dimension defined in the _Dimension_ input box.
+
+.Examples for a Single Select when using dimension without drilldown (left) and with drilldown-dimensions (right)
+image::comparison-single-select-with-drilldowns.png[single-select, 450]
+
+The element can have a custom icon defined via the _Icon_ list and label using the _Label_ input box. The latter can be arranged by using the label alignment options for horizontal and vertical alignment (_Label: Alignment Horizontal_ and _Label: Alignment Vertical_).
+
+The _Text Layout_ option can be set to either _Single_ or _Multi_ which switches between a single-line and multi-line arrangement of label and selection label.
+
+The allow deselect function enables the single select to clear the selection of the dimension by clicking the selected element again.
+
+The _Single Select_ item also allows to set a _Default Value_ from a fixed string or a evaluated expression. This value is automatically set when opening or changing to the sheet and can be changed afterwards but ensures that the corresponding dimension can never be unset in the selection.
+
+.Properties of Single Select with some example settings.
+image::single-select-prop.png[single-select-prop, 200]
+
+Just like the _Label_, the _Selection Label_ is customizable. By default (_Predefined_) it shows the current selection or the number of items selected if they don't fit on the element, but can be also set to a custom values or expression.
+
+If you use the _Single Select_ with drilldown dimensions, you get some more options:
+
+[%header,cols="^.^45, <.^625"]
+|===
+
+| Icon
+| Functionality
+
+| image:icon-drillup-return.png[icon-drillup-return, 30]
+| The _arrow left_ icon clears the selection on the lowest level.
+
+| image:icon-drillup-field-select.png[icon-drillup-field-select, 30]
+| When you click on the _field select_ icon, select a certain level. Selections below this level will be removed.
+
+|===
+
+==== Sense Select
+
+_Sense Selects_ use the native selection widget of Qlik Sense and is otherwise configured the same way as a _Single Select_ but you cannot define a default value.
+
+.Examples for a Sense Select when using dimension without drilldown (right) and drilldown-dimensions (left)
+image::comparison-sense-select-with-drilldowns.png[sense-select, 450]
+
+For drilldown dimensions, the same settings apply as when used in a _Single Select_ item.
+
+=== Field Slider
+
+The _Field Slider_ allows to select values of a dimension with a slider component. Currently the _Field Slider_ has two different slider types.
+
+The two types are single and range slider.
+
+ * Single allows to set one value just like a single select.
+ * Range sets a start and end value and everything between the two values.
+
+.Field Slider examples.
+image::field-slider-examples.png[field-slider-examples]
+
+
+Each slider type has unique settings  and some general settings that are the same as selects. General settings include the type, orientation,
+visibility of min/max and the default values.
+A _Field Slider_ always requires a selected value therefore a default selection is always required. Each type of the _Field Slider_ requires different
+default values. The single type requires just one default value but, a range type requires a start and end default value of the dimension.
+
+There can be some special cases with selections and _Field Sliders_. When the type of
+the slider is single but there are more values selected the slider will only show the first selected value. Otherwise when the type is range and the
+selection is not done with the slider it can happen that a range is not complete, meaning not every value between start and end value is selected. In that
+case the _Field Slider_ is rendered with the complete range selected even though not all values are selected. Best practice would be to only use the slider to
+guarantee useful selections.
+
+.Field Slider Range Properties.
+image::field-slider-range-properties.png[field-slider-range-properties]
+
+Colors::
+All slider related colors can be configured in general for all slider elements in the <<Colors>> section.
+
+=== Variable Dropdown
+
+The _Variable Dropdown_ element is a drop-down list that allows setting custom values to Qlik Sense variables. Every item in the list represents a value that will be set when the user selects the item. These variables can be used to control other aspects of your apps.
+
+.The definition for a variable value in the properties panel setting the number `10` to the defined variable `results`.
+image::variable-dropdown-var.png[variable-dropdown-var,150]
+
+Before using variables you need to create them. This can be done by opening _Variables_ and clicking the _Create new_ button to create a new variable.
+
+.Creating a new variable in the Variables dialog.
+image::creating-variable.png[creating-variable,500]
+
+In the properties panel of the _Variable Dropdown_ element, define the variable name in the _Variable Name_ input box and add as many selectable values as desired by clicking on _Add Variable Value_. There you can define the value itself, the label and all the custom alignment settings for each of the added values separately.
+
+.A bar chart that uses a variable as the number of displayed results.
+image::bar-chart-variable.png[bar-chart-variable]
+
+=== Variable Slider
+
+The _Variable Slider_ allows to modify the value of variables. Currently the _Variable Slider_ has three different types of variable values.
+
+The three types are single, range and multi slider.
+
+ * Single allows to set one variable in a specific range.
+ * Range sets a start and end value to two different variables.
+ * Multi slider allows setting multiple variables in a specific range.
+
+.Variable Slider example.
+image::variableslider-examples.png[variableslider-examples]
+
+Each slider type has unique settings and some general settings.
+General settings include the type, orientation, min and max value, step frequency, visibility of min/max and step values and the date settings. Date
+settings allow the slider to not only modify number values but also dates. When using dates it's important to change the date toggle to true and then define
+the correct date format. Furthermore all general settings need to be in the specified date format or else it will not work.
+
+*Single slider* requires a variable and its default value.
+
+.Variable Slider Single.
+image::variableslider-single.png[variableslider-single]
+
+*Range slider* requires a start and end variable and a default value for both.
+
+.Variable Slider Range.
+image::variableslider-range.png[variableslider-range]
+
+*Multi slider* support a list of variables. Each entry consists of the name of the variable to me modified and its default value.
+It's important to note that multi sliders will always be in the defined order. E.g. the third variable in the list will always be the third handle on the
+ slider.
+
+.Variable Slider Multi.
+image::variableslider-multi.png[variableslider-multi]
+
+Colors::
+All slider related colors can be configured in general for all slider elements in the <<Colors>> section.
+
+=== Variable Input
+
+The _Variable Input_ allows to modify the value of variables. _Variable Inputs_  blend in with the menu and are only visible when
+the input is clicked.
+
+.Variable Inputs in a menu.
+image::variableinput-display.png[variableinput-example]
+
+The _Variable Input_ can be restricted by a type, so that users can only enter certain values.
+
+The restriction types are:
+
+ * No type: no restriction, all inputs are allowed
+ * Numeric: only numeric values are allowed
+ * Decimal: only decimal values are allowed
+ * Date: only dates that follow a specified format are allowed
+
+The property panel for the _Variable Input_ has the standard general settings and a unique section at the bottom.
+In the _Variable Input_ section you can define the type, variable name, default value, vertical alignment and horizontal alignment.
+When defining a date type it's also required to define a date format.
+
+.Variable Input options.
+image::variableinput-options.png[variableinput-options]
+
+=== Group
+
+The _Group Element_ is a dropdown list that allows to combine different  {menubar} elements into a single dropdown.
+
+.Group element in property panel.
+image::group-example.png[group-example]
+
+<<<
+_Group Element_ makes it possible to create dropdowns with multiple button actions (button dropdowns), dropdowns with multiple single and
+sense selects (multi selects) or completely new combinations of the different {menubar} elements.
+
+.Multiple elements in a single group.
+image::group-add-element.png[group-add]
+
+Button dropdowns can be created by adding multiple buttons to the _group element_ and Multi Selects can be created by adding multiple single or sense selects
+ to the _group element_
+
+.Multi Select group example.
+image::group-multi-example.png[group-multi]
+
+Currently the _Group Element_ supports
+
+ * <<Button>>
+ * <<button_container>>
+ * <<Date Picker>>
+ * <<Single Select>>
+ * <<Sense Select>>
+ * <<Variable Dropdown>>
+ * <<Variable Slider>>
+ * <<Variable Input>>
+ * <<Field Slider>>
+
+<<<
+[#add-ons]
+== The _Add-ons_ pane
+
+In the _Data handling_ section of the _Add-ons_ pane there are two options to control calculation and rendering of either {menubar} itself or other charts/extensions that support _calculation conditions_.
+
+.Calculation condition
+Use the _Calculation condition_ input box to define a Sense variable that is checked to be `true` before the actual rendering ('`calculation`') takes place. It's also possible to use any function or expression here. The _Displayed message_ is the message to be shown unless the condition is `true` and can be customized.
+
+.Calculation condition variable
+The _Calculation condition variable_ is the opposite of the _Calculation condition_: It is do define a variable that is set to `true` as soon as {menubar} initialized all the default selections you may have set in _Single Selects_ and to be used by other extensions supporting this _Data handling_ feature.
+
+[CAUTION]
+To set the calculation condition variable automatically to `true`, at least one defined default selection is required in a single select. Button actions are currently not supported in connection with this function. A implementation will take place in one of the next versions.
+
+.Dimension calculation
+The _Dimension calculation_ switch toggles the calculation for dimensions used in Menubar.
+
+The Calculation is *disabled* by default, but in this mode it is not possible to use the same dimension multiple
+times.
+
+If you have to use multiple dimensions or if you have a drilldown dimension, which contains
+some dimensions, which are already in the dimension list, you have to *enable* the calculation.
+In this case you could have some performance drawbacks.
+
+.The calculation condition properties in the _Data handling_ section.
+image::calc-cond2.png[calc-cond]
+
+<<<
+== The _Appearance_ pane
+
+=== General
+
+The _General_ pane features the following options:
+
+* Show titles
+  - Show titles (title, subtitle and footnote) in the menu box.
+* Title
+  - Enter a title for the menu bar. The title is also displayed above the menu when _Show titles_ is set to _On_.
+* Subtitle and Footnote
+  - Enter and display an additional subtitle and footnote (only if _Show titles_ is set to _On_).
+* Show details
+  - This option has currently no effects.
+
+=== Alternate State
+The object alternate state is defined in this section. When changing the value of the state dropdown a dialog is shown to confirm the change for all current definied dimension entries within the menubar object.
+
+To change a alternate state only for one particular dimension, this can be done through the area _Dimension Add-ons_.
+
+.Dimension Add-on stettings to change the alternate state for one dimension
+image::alternate-state-settings-dimensions.png[dimension-add-on-stettings]
+
+.Edit global alternate states
+The input area below this drop-down allows to add, edit and delete application wide alternate states. Through this, menubar also supports alternate states not only within Qlik Sense November, but all supported versions from v3.0 can also be used.
+
+Starting with version November 2018, the regular configuration via the Master Item section can of course also be used.
+
+.Delete an alternate state
+A state can be deleted by clicking the trash can icon on the right. When a deleted state was used in a dimension, this dimension will then use the 'inherit' state, which means the object wide alternate state is used.
+
+For more information please check the official Qlik Sense
+link:++https://help.qlik.com/en-US/sense/Subsystems/Hub/Content/Sense_Hub/Visualizations/alternate-states-comparative-analysis.htm++[documentation].
+
+.The alternate state settings.
+image::alternate-state-settings.png[alt-state]
+
+=== Layout
+
+.Orientation
+Define the orientation of the menu which can be either horizontal or vertical. This has no effect on small mobile devices where the orientation is adjusted automatically to vertical.
+
+.Width Setting
+When the menu is oriented vertically the items can be set to be stretched to the maximum width (_Fill_) or you can define a custom width (_Custom_).
+
+.Height Setting
+When the menu is oriented horizontally the menu bar can take all the available height (_Fill_) or you can define a custom height (_Custom_).
+
+In vertical orientation this setting is used to use the background color over entire height (_Fill_) or only to the last menu item (_Automatic_).
+
+.The _Layout_ section in the _Appearance_ pane
+image::appearance-layout.png[appearance-layout,200]
+
+
+=== Border & Padding & Margin
+
+The {menubar} allows setting border, padding and margin for the extension object. Border is a colored line around the element. Padding is a space inside the
+border. And margin is a space outside of the border.
+
+.{menubar} with border, padding and margin
+image::border-padding-margin-example.png[border-padding-margin-example]
+
+Border, padding and margin are defined in the property panel under the appearance section. All three types have an option for uniform or individual settings.
+Uniform defines the setting for all directions and individual allows settings the properties for all directions (top, bottom, left, right).
+The border settings also allow settings the color for each individual direction.
+
+.Border, padding and margin settings
+image::border-padding-margin-properties.png[border-padding-margin-properties]
+
+=== Position
+
+In the _Position_ section, you can set the position of the menu bar inside its boundaries when the width or height is set to values in pixel other than _Automatic_. For example, the value 0 for Top removes the distance to the edge or next object above the menu completely.
+
+.The _Position_ section showing default and individual settings.
+image::appearance-position.png[appearance-position,200]
+
+=== Colors
+
+The _Colors_ section is to define the default colors of the menu to be inherited by its items.
+These can be configured by entering color expressions, setting predefined colors or choosing with the color picker.
+
+In this area, numerous color definitions can be made for the following elements:
+
+* Main elements (generic), with area and text colors for background, hover and active states, borders and separators
+* Subelements (generic), with area and text colors for background, hover and active states, borders and separators
+* Selections (generic - currently only for <<Date Picker>> and <<Variable Slider>>), with colors for normal, alternative and
+excluded selections areas and texts
+* <<Date Picker>> elements, with colors for buttons, selections, active or not allowed fields, texts, normal
+and hover states
+* Slider elements (<<Variable Slider>>), with colors for background, slider track and handle, normal and active steps
+
+For a detailed list of accepted color expressions, refer to Appendix A.1.
+
+.Part of the _Colors_ section in the _Appearance_ pane showing preselected colors and the color picker.
+image::appearance-colors.png[appearance-colors,200]
+
+=== Text
+
+The _Text_ section features all settings to take effect on the font, such as:
+
+* Font family
+* Font weight
+* Font style
+* Font size
+
+These are set separately for general _Labels_ and also _Selection Labels_, i.e. selected values showing on {menubar}'s elements.
+
+The option to set the font size dynamically allows for responsive font sizing depending on the width of the extension object. Dynamic font sizing requires a
+scaling
+factor to determine the font size change relating to the extension width.
+
+When there are two separate menus the font size and scaling factor need to be changed to display the font size in both menus in the same way.
+However even then the scaling of the menus will be different unless the menus have the exact same width. Since the deciding factor for the font size is the
+width of the extension the result will always be slightly different.
+
+In dynamic mode the font size is calculated by using the font size and the scaling factor. The font size will determine the initial and minimal height of the
+font and the scaling factor decides by how much the size is changed relative to the extension size.
+
+.The _Text_ section in the _Appearance_ pane.
+image::appearance-text.png[appearance-text,200]
+
+=== Background
+
+The _Background_ section has options to change the visualization if the qlik sense sheets. It is possible to change the background of the worksheet on which the
+{menubar} is displayed.
+
+The background can have a color and an image, you can set the opacity of the background for both background types. Image backgrounds have
+some additional settings, which allow to display the image in in the optimal size and position.
+
+The background is only applied in the normal qlik sense mode and the play mode in qlik sense stories. The background is also only applied to the current
+worksheet. When the sheet is changed and there is no {menubar} the background is set back to default.
+
+.The _Background_ section in the _Appearance_ pane.
+image::worksheet-settings-background.png[worksheet-background,200]
+
+=== Display
+
+In the _Display_ section, you can set the visibility of the Sense menu, selection, title bar, snapshot button and maximize button. The elements can be
+permanently hidden (_Hide_), shown (_Show_ = default setting) or displayed depending on an expression.
+Snapshot button and maximize button options are only applied to the current menu extension.
+
+.Sense navbar buttons.
+image::sense-navbarbuttons.png[sense-navbarbuttons]
+
+[TIP]
+If the Sense menu is not visible and the Edit mode is not available for this reason, it can be simply activated by Ctrl + E.
+
+[CAUTION]
+When using several menu objects on a sheet, ensure that all menus are defined identically for these settings. Otherwise, one menu could hide a bar and another could show this bar again, depending on which menu object is loaded as last one by Sense.
+
+.Define visibility of Sense menu, selection and title bar
+image::display_prop.png[display_prop,200]
+
+=== Info
+
+The _Info_ section shows general information, such as version number of {menubar}.
+
+It also provides a link to open this documentation.
+
+// [glossary]
+// == Glossary
+// Brauchen::
+//   Wir ein Glossar
+// Oder::
+//   Werden alle Begriffe im Text deutlich?
+
+<<<
+[appendix]
+== List of useful CSS definitions for button styling
+The _Button Editor_ makes heavy use of CSS definitions for styling buttons. The following lists give an overview on frequently used CSS properties.
+
+=== Colors
+
+The following color expressions can be used in {menubar}:
+
+* Color names: `black`, `white`, `red`, etc.
+* Hex values, three or six digits: `#f80`, `#ff8800`
+* Hex values, four or eight digits (alpha channel): `#f087`, `#ff008877`
+* RGB and RGBA: `rgb(255,127,0)`, `rgba(255,127,0,.5)` or `rgb(255 127 0)`, `rgba(255 127 0 / .5)`
+* HSL and HSLA: `hsl(360,100%,50%)`, `hsla(360,100%,50%,.8)` or `hsl(360 100% 50%)`, `hsla(360 100% 50% / .8)`
+* ARGB: `=argb(127,255,63,15)` with the alpha channel being a value between `0` and `255`.
+
+[appendix]
+== White- and Blacklist for Actions
+
+[CAUTION]
+The config file will be reset after every update. Please make a backup of your config file and edit the new config file after every update.
+
+With the _config.js_ file located in the extension folder, actions of the button can either be black- or whitelisted.
+Blacklisted actions are not available while whitelisted actions are. The combination of both methods is necessary to create specific scenarios,
+where all actions are blacklisted for a user group but some users have whitelisted actions.
+
+The listing rules can be defined for user directories and users. Just enter the user directory name(s) and the user name(s). Writing a "*" will target all
+users or user directories depending on where the "*" is used.
+
+If there are no actions available after setting the config make sure that the action "none" is set as a whitelisted action. Also, it's important to note that
+the trigger is not visible and can not be reused when the trigger is already defined but is blocked because of the config.
+For example, an onClick trigger cannot be set two times. The only exception are custom triggers which can be defined multiple times.
+
+.Listing example.
+image::config-listing-example.png[listing-example]
+
+[appendix]
+== List of actions for triggers
+
+The following actions can be attached to events that trigger a button.
+
+=== None
+
+[%header,cols="30%,70%"]
+|===
+| Action | Parameters
+| None | _No parameters._
+|===
+
+=== Custom
+
+[%header,cols="30%,70%"]
+|===
+| Action | Parameters
+| Custom | A custom JS function to be executed with the _Custom_ event.
+|===
+
+=== Navigation
+
+[%header,cols="30%,70%"]
+|===
+| Action | Parameters
+| Next sheet/page | _No parameters._
+| Previous sheet/page | _No parameters._
+| Go to sheet | _Sheet id_ of the sheet to go to; can be entered manually or automatically by using the drop-down list.
+| Go to story | _Story id_ of the story to go to; can be entered manually or automatically by using the drop-down list.
+| Go to url | Specify the URL in the _Url_ input box and the target in the _Target_ list. The _Mashup only_ option restricts the action to mashups.
+| Go to app a| Specify the id of the app you'd like to navigate to in the _App ID_ input box
+and the id of the specific sheet in the _Sheet ID_ input.
+
+image:buttoneditor-actions-gotoapp.png[buttoneditor-actions-gotoapp, 738]
+
+If you select _Email_ as the target you can further specify an _email address_, _email subject_
+and _email body_. You can use _{0}_ as a placeholder for the generated link. You can also add a custom text for the link.
+The link will then show the text as specified.
+If omitted, it will be inserted at the end of the body.
+You can also specify the link to be opened in the _same, new, custom named window_
+or just be copied to the clipboard.
+
+If you use the email option, the email will be generated as an eml file. That way the email can have custom html and allows the option for the individual link.
+In order to download the eml file, the system administrators have to enable the option to download the generated eml file in the browsers. Currently all
+browsers handle the download of eml files differently. In general all browsers need to allow downloads. Then either save the eml file or open it directly.
+
+It is possible to _clear all selections_ or apply _current selections_
+in the target app by checking the corresponding checkboxes.
+For _current selections_ to work, the currently selected fields/dimensions need to be present in the target app as well.
+
+Additionally you can add optional parameters to apply specific selections
+or a bookmark.
+
+.Limitations:
+* In "Qlik Sense Desktop" the _Email_ target doesn't work.
+* Eml files are necessary because direct emails can not handle the sense links correctly
+* Generated eml files are shown as possible bad software by some browsers
+* Links in outlook don't open selections correctly when using the link directly, to open the links use the copy hyperlink option
+* Fields/Dimensions containing "%" characters, they will not be applied.
+* When importing apps from another system, their ID changes. So, for example,
+ if you designed a target app locally and push it to a server, this action will
+ no longer work since the target app ID has changed. It needs to be manually
+ repaired. This is also the case when publishing.
+| Share app a| Specify the _target_ of a generated link to be shared as email or added to clipboard.
+
+If you select _Email_ as the target you can further specify an _email address_, _email subject_ and _email body_.
+You can use _{0}_ as a placeholder for the generated link. You can also add a custom text for the link.
+The link will then show the text as specified.
+If omitted, it will be inserted at the end of the body.
+
+If you use the email option, the email will be generated as an eml file. That way the email can have custom html and allows the option for the individual link.
+In order to download the eml file, the system administrators have to enable the option to download the generated eml file in the browsers. Currently all
+browsers handle the download of eml files differently. In general all browsers need to allow downloads. Then either save the eml file or open it directly.
+
+Target clipboard adds the generated link to the clipboard and shows a message to the user.
+
+.Limitations:
+ * In "Qlik Sense Desktop" the _Email_ target doesn't work.
+ * In mashup/story mode the URL can't be properly generated.
+ * Eml files are necessary because direct emails can not handle the sense links correctly
+ * Generated eml files are shown as possible bad software by some browsers
+ * Links in outlook don't open selections correctly when using the link directly, to open the links use the copy hyperlink option
+|===
+
+=== Sense
+
+[%header,cols="30%,70%"]
+|===
+| Action | Parameters
+| Set variable | Specify the variable and value to be set in the _Sense variable_ and _Variable content_ input box. The _Keep_ option keeps the value unchanged if it's already set.
+| Select value(s) | Select the field and value(s) in the _Field name_ and _Value(s)_ input box. The _Toggle_ option will toggle between selected states. The _Soft lock_ option sets locked selections to be overridden. The _Keep_ option sets existing selections for the selected field to remain unchanged. The _Add_ option sets the values to be added to the existing selection.
+| Select match | Specify the field to be selected and value(s) in the _Field name_ and _Value(s)_ input box. The _Soft lock_ option sets locked selections to be overridden. The _Keep_ option sets existing selections for the selected field to remain unchanged.
+| Select alternative | Specify the field to be selected in the _Field name_ input box. The _Soft lock_ option sets locked selections to be overridden.
+| Select excluded | Specify the field to be selected in the _Field name_ input box. The _Soft lock_ option sets locked selections to be overridden.
+| Select possible | Specify the field to be selected in the _Field name_ input box. The _Soft lock_ option sets locked selections to be overridden.
+| Select all | Specify the field to be selected in the _Field name_ input box. The _Soft lock_ option sets locked selections to be overridden.
+| Selection backward |_No parameters._
+| Selection forward |_No parameters._
+| Clear field | Select the field to be cleared in the _Field name_ input box.
+| Clear other | Select the field in the _Field name_ input box. The _Soft lock_ option sets locked selections to be overridden.
+| Clear all | Set the _Locked also_ option to also clear locked selections.
+| Lock field | Select the field in the _Field name_ input box.
+| Lock all | Set the _Locked also_ option to also clear locked selections.
+| Unlock field |Select the field in the _Field name_ input box.
+| Unlock all | _No parameters._
+| Apply bookmark | _Bookmark id_ which can be entered manually or automatically by using the drop-down list.
+| Reload data | Set the desired mode in the _Mode_ list. Set the _Partial_ option to do only a partial reload.
+
+|===
+
+[CAUTION]
+The _Reload data_ action should be used with extreme care as reloading the app triggers a sheet reload which can result in the complete loss of unsaved comments on this sheet.
+Additionally, in the case of publicated apps, it is neccessary to create a corresponding _Security Rule_ on the _Qlik Sense_ server.
+
+=== Other
+
+[%header,cols="30%,70%"]
+|===
+| Action | Parameters
+| Toggle fullscreen | Expression which must result 0 (disable fullscreen), 1 (go to fullscreen) or can be empty (toggles current fullscreen mode). This action is only on click trigger avaliable, due to browser security restrictions.
+|===
+
+<<<
+[appendix]
+== Releases Notes
+
+:sectnums!:
+[#release_notes_latest_version]
+=== {menubar} v1.4.0
+2019-03-08
+
+* Features and Improvements
+** Element item: Field slider (single / range) [HICO-2534]
+** Option to style sheet background (color / image) [HICO-40682]
+** Responsive adjustment of the font size (granular) depending on the object width [HICO-41302]
+** Add hyperlink text for "Share app" and "Go to app" actions [HICO-41053]
+** Deselectable single select [HICO-41452]
+** Update logo, rename to "menubar", free (branded) version on branch/git [HICO-41873]
+** Option to hide elements in mobile view [HICO-41874]
+** Option, for individual background colors for Menubar elements [HICO-42224]
+** White list configuration for button actions [HICO-42317]
+** High CPU Load / Crash while working with a Menubar containing many elements from Qlik Sense September 2018 [HICO-42659]
+
+* Bugs
+** trueChart Menubar download page broken in Edge [HICO-41932]
+** Hiding sense elements (selection-/edit bar etc.) is broken, when optional condition is defined (and true -> hide) but the current setting is "show" [HICO-42155]
+** Navigating to a sheet without tcmenu from sheet with "hide sense element settings" breaks the UI [HICO-42312]
+** Visualization results from "dynamic font size calculation" are divergent. [HICO-42706]
+** Onload Trigger Bookmark does not work with F5 [HICO-42722]
+** Hidden search icon in Sense Select for Surface Devices [HICO-42728]
+** Button as sub-item (Group) don't show input field for "Use custom size" [HICO-42731]
+** Color settings for sub-item (button) don't work [HICO-42732]
+** IE11 labels in dropdown menus aren't displayed [HICO-42738]
+** Make new slider-feature compatible with Qlik Sense versions <09/2018 [HICO-42742]
+** Sequential selection does not work as expected [HICO-42784]
+** Hiding Sense elements (display condition: false) is broken in latest Qlik Sense version (2019/02) [HICO-42832]
+** Hiding sense elements (selection-/edit bar etc.) is broken, when optional condition is defined (and true -> hide) but the current setting is "show" [HICO-42155]
+** Preview of buttons state settings doesn't work [HICO-42582]
+** Group element of horizontal menu wrong height in mobile view [HICO-43015]
+** Individual Colors for Variable Input not completely correct [HICO-43024]
+** Drilldown toolbar dropdown is rendered wrong [HICO-43031]
+** Editing "title" don't work properly and results in error [HICO-43018]
+** Problems with dynamically calculated font size [HICO-42924]
+** Button Action White-/Blacklisting does not work [HICO-43049]
+** Export (png/pdf) of menubar and trueChart results in "invalid visualization" [HICO-42830]
+** Selected LUI Icons leads to wrong icon in element [HICO-43009]
+
+=== {menubar} v1.3.5
+2018-12-05
+
+* Bug
+** App sharing link contains invalid characters within Qlik Sense Septemer 2018 [HICO-42175]
+** Button Action 'Select Possible' does not work correctly [HICO-42222]
+** Leonardo UI icons are broken after update to v1.3.4 (standalone menubar objects and within export scenarios) [HICO-42491]
+
+=== {menubar} v1.3.4
+2018-11-26
+
+* New Feature
+** Support for Qlik Sense November 2018
+** Support for alternate states (in all supported Qlik Sense Versions) [HICO-40727]
+** Extension of the size steps regarding font adaptation for small devices (landscape phones, 576px and up) [HICO-42132]
+
+* Bugs
+** Menubar dropdowns are overlapped by trueChart comment reference numbers [HICO-41118]
+** Menubar dropdowns remains while navigation with incomplete content [HICO-42252]
+** Position adjustment feature causes scrollbars on sheets from Qlik Sense September 2018 [HICO-42299]
+
+=== {menubar} v1.3.3
+2018-09-13
+
+* Bugs
+** Rendering in Edge browser does not work correctly if position adjustment feature is used [HICO-41304]
+** Color defined in menu for text hover does not work for button elements [HICO-41399]
+** Main element colors are not applied to element group [HICO-41755]
+
+=== {menubar} v1.3.2
+2018-07-31
+
+* Features and Improvements
+** Support of NPrinting for Menubar [HICO-40539]
+
+* Bugs
+** Default sorting for Sense Select elements are alphabetically instead of "selection state" [HICO-41437]
+
+=== {menubar} v1.3.1
+2018-07-04
+
+* Features and Improvements
+** Support for Qlik Sense June 2018 [HICO-41107]
+
+* Bugs
+** Date picker not working in horizontal orientation [HICO-41156]
+** Action "Toggle fullscreen" not disables in auto mode (no condition) [HICO-41183]
+
+=== {menubar} v1.3.0
+2018-05-31
+
+* Features and Improvements
+** New element item: Date Range Picker (single, multi, range) [HICO-2562]
+** New element item: Variable slider (single, multi, range) [HICO-2460]
+** New element item: Inputbox [HICO-2561]
+** Options to disable sense snapshot and maximize object buttons [HICO-2931]
+** New button action "Unlock field" [HICO-40891]
+** Selection based color configuration for single select elements [HICO-40931]
+
+* Bugs
+** Button Action "Select Value(s)" not working for all field types (numeric vs. text) [HICO-40918]
+
+=== {menubar} v1.2.6
+2018-05-22
+
+* Bugs
+** Pop up windows at bottom opens down, so they not usable [HICO-40732]
+** Filters in app chaining break the URL if the dimension values contain backslashes [HICO-40852]
+** Incorrect behavior in connection with the sense engine with opened sense selections that are hidden by a dynamic display condition [HICO-41017]
+** Menubar dropdowns are overlapped by trueChart comment cells [HICO-41033]
+
+=== {menubar} v1.2.5
+2018-05-08
+
+* Bugs
+** Menubar selections not showing in any cases [HICO-40903]
+** SelectValues action in button do not select, when field already has selections [HICO-40944]
+** Trigger action "clear Field" is not executed [HICO-40950]
+** onSelection trigger of a button skips the first onSelection event [HICO-40967]
+
+=== {menubar} v1.2.4
+2018-04-09
+
+* Bugs
+** Select items remain "unselected" even if corresponding fields have selections [HICO-40884]
+** Button does not perform any further actions if a previous action was defined incorrectly and cannot be executed [HICO-40885]
+** Full screen action do not toggle after the toggle condition was edited [HICO-40888]
+** Failed upgrade (to 1.1.0) leads to repetitive update tries [HICO-40890]
+
+=== {menubar} v1.2.3
+2018-04-03
+
+* Bugs
+** Pop up windows at bottom opens down, so they not usable [HICO-40732]
+** Filters in app chaining break the URL if the dimension values contain backslashes [HICO-40852]
+** Incorrect behavior in connection with the sense engine with opened sense selections that are hidden by a dynamic display condition [HICO-41017]
+** Menubar dropdowns are overlapped by trueChart comment cells [HICO-41033]
+
+=== {menubar} v1.2.2
+2018-02-27
+
+* Features and Improvements
+** Disable calculations in tcmenus HyperCube [HICO-40853]
+
+[CAUTION]
+Properties updates can not be applied when the app is published! To upgrade {menubar} properly,
+you have to open the published app in a writable stream (i.e. by duplicating it),
+open a sheet containing the {menubar}, so that updates can be performed.
+Afterwards you can (re-)publish the updated app.
+
+=== {menubar} v1.2.1
+2018-02-09
+
+* Bugs
+** Select sorting after migration to v1.2 not correct (custom expression is missing) [HICO-40731]
+
+=== {menubar} v1.2.0
+2018-2-5
+
+* Features and Improvements
+** *New action "Go to app" (document chaining)* [HICO-2564]
+** *New action "Share app" (email | clipboard)* [HICO-40703]
+** *Responsive font sizes* (menubar and buttons) [HICO-2901]
+** *Grouping of elements*: Single & Sense Select, Variable Dropdown, Button & Button Container [HICO-40496]
+*** Migration of multi and button dropdown elements to group elements [HICO-40533]
+** *Option to duplicate and copy/paste existing elements and sub elements* [HICO-2233]
+** Trigger default selection when showing single select again [HICO-40576]
+
+* Bugs
+** Exception when creating new dimensions in extension as master item [HICO-40671]
+
+=== {menubar} v1.1.3
+2018-1-31
+
+** Bugs
+* Exception when creating new dimensions in extension as master item [HICO-40671]
+* Inline icon in button text is not displayed [HICO-40712]
+
+=== {menubar} v1.1.2
+2018-1-22
+
+** Bugs
+* Sense export was broken with version 1.1.1 [HICO-40659]
+
+=== {menubar} v1.1.1
+2018-1-18
+
+** Bugs
+* General text settings do not affect correctly [HICO-40627]
+* JS-Exception while migration from v.1.0.4 to v1.1.0 [HICO-40646]
+
+=== {menubar} v1.1.0
+2018-1-4
+
+** Features and Improvements
+* *Support of Sense PDF export function* [HICO-2178]
+* *Support of drill-down dimensions* in selections (Single, Sense and Multi) [HICO-2560]
+* *Conditional display and hiding of menu elements* [HICO-2890]
+* Improvement when using master item dimensions and expression-based dimensions [HICO-2524]
+* Specify expressions for dimension definition directly [HICO-2601]
+* Option to enter title, subtitle or footnote [HICO-2889]
+* Mark button+ actions for parallel (faster) or sequential (in order)execution [HICO-40445]
+* New position of edit button state in properties panel [HICO-40461]
+* Performance: Reduced initial loading time [HICO-40463]
+
+** Bugs
+* Menubar destroys representation of Sense filter pane objects in same sheet [HICO-2726]
+* Button+ UI code editor not working [HICO-2905]
+* [JS-Exception] due to incorrect default value expressions in single select items [HICO-2939]
+* Custom actions are not visible initially after reopening button+ editor [HICO-40454]
+* [JS-Exception] TypeError: Cannot read property 'layout' of undefined [HICO-40487]
+
+=== {menubar} v1.0.8
+2017-11-22
+
+** Features and Improvements
+* *Support of Sense 2017.11 Release* (works also with v1.0.7)
+* Button+: Automatic line breaks in button+ text [HICO-2324]
+
+** Bugs
+* Button+ overwrites default hover color of the tCMenu, although no hover color is defined in Button+ [HICO-2897]
+* Button+ code editor not working in tc menubar [HICO-2905]
+* Scrolling with the mouse wheel in Sense Select does not work with IE11 [HICO-2933]
+* Single select description text im menubar not initial visible on iPad [HICO-28625]
+* Sense select breakes after selection with dynamic dimensions [HICO-31517]
+
+=== {menubar} v1.0.7
+2017-09-28
+
+** Features and Improvements
+* *Support of Sense 2017.09 Release* [HICO-2572]
+* Button+: Custom CSS can defined as expression [HICO-2718]
+* HiCo.API: Code-Notification after {menubar} painting [HICO-2834]
+
+=== {menubar} v1.0.6
+2017-08-15
+
+** Features and Improvements
+* *Option to hide sense navigation, title and selection bar* [HICO-2559]
+* Button+: Definition of padding & margin [HICO-2301]
+* Button+: Image library (apps include used images for export) [HICO-2506]
+* Button+: Add new toggle fullscreen action [HICO-2687]
+
+=== {menubar} v1.0.5
+2017-07-27
+
+** Features and Improvements
+* *Support of Sense 2017.07 Release* [HICO-2571]
+
+** Bug
+* Initial logo does not match the object size [HICO-2419]
+* Change of background color not applied [HICO-2598]
+* JS Exception on click on button dropdown [HICO-2675]
+
+=== {menubar} v1.0.4
+2017-06-28
+
+** Features and Improvements
+* Improvement in handling session timeouts (selections fail, display not correct) [HICO-2612]
+* Add option to apply default selections sequentially [HICO-2620]
+
+** Bug
+* Sense Select and Single Select broken with Error from Engine after toggeling qlikSense Mode [HICO-2453]
+* Sense Dropdown is sometimes empty [HICO-2584]
+* Accumulation of the QlikSense error "Internal error" with trueChart4Sense-3.2.4 [HICO-2618]
+
+
+=== {menubar} v1.0.3
+2017-06-15
+
+** Features and Improvements
+* Copy dimension name as default value to label [HICO-2369]
+* Show action cursor and hover color only if button actions defined [HICO-2450]
+* Renaming tc-Menu > {menubar} [HICO-2473]
+* Hidden field support for select actions in button+ [HICO-2531]
+
+** Bug
+* Initial selection is not reset correctly when using dynamic (expression) default selection value for Single Selects [HICO-2413]
+* Wrong selection count / undefined in selection label [HICO-2416]
+* Dropdown placeholder in menu to long [HICO-2417]
+* ButtonPlus IE overlay in DropDown General State [HICO-2434]
+* Select value(s) action not working correct with some number values [HICO-2440]
+* Button not updated after setting new state condition [HICO-2441]
+* Menu elements in IE differs from Chrome [HICO-2443]
+* Dropdown backround longer than element size [HICO-2444]
+* Hover color isn't working in Button Dropdown IE [HICO-2456]
+* Extension repaint while open/close sense select [HICO-2470]
+* Performance issues in "edit" mode, in combination with Qlik Sense v3.2SR3 or v3.2SR4 [HICO-2498]
+* Error while perform selection based on master item with expression [HICO-2514]
+* Expression based dimensions not working correct, selected dimension on item could be removed [HICO-2523]
+* New menu property calculation variable is not visible [HICO-2537]
+* Vertical Multi-Select scrolls to top when opening Single Select [HICO-2553]
+
+=== {menubar} v1.0.2
+2017-05-05
+
+** Features and Improvements
+*  Performance Improvement: Improve variable updates [HICO-2386]
+*  Indication of running selections as calculation variable and
+minor improvements on button action editor (sorting & add new action) [HICO-2391]
+*  User documentation in "Apperance/Info" section in properties panel [HICO-2392]
+
+** Bug
+* Default selections lead to endles loop when fields hidden by data script [HICO-2393]
+
+=== {menubar} v1.0.1
+2017-04-25
+
+** Features and Improvements
+* Position adjustment settings for trueChart & {menubar} to remove spaces in sense grid object layout [HICO-1949]
+* Horizontal menu is displayed in the small device (less iPad) as a vertical menu [HICO-2224]
+* Font-Family and Text-Style Settings [HICO-2225]
+* MashUp Support for Button+ and {menubar} (incl. HiCo MashUp Template Update) [HICO-2226]
+* Custom Scrolling for TCMenu [HICO-2227]
+* Touch support for trueChart & {menubar} [HICO-2243]
+* Performance improvement regarding button+ and trueChart communication with sense [HICO-2255]
+
+** Bug
+* Selection label is empty after opening sheet [HICO-2216]
+* Variable dropdown selection lable switch has no effect, if custom label was defined [HICO-2230]
+* Qlik color expression (argb) is evaluated wrong [HICO-2234]
+* Horizontal seperator is repeated on the right [HICO-2235]
+* Single Select scroll position for selected element is not as expected (for long lists) [HICO-2236]
+* No seperator between element and subelement in vertical menu [HICO-2238]
+* No scrolling in long horizontal Button Dropdown elements [HICO-2239]
+* Button Dropdown selection label is not working [HICO-2241]
+* Multi Select name can't be an expression -> no expression support for elements name anymore [HICO-2245]
+* Menu element icons can't be removed [HICO-2247]
+* Scrollbar doesn't disapear after reseting scrolling condition [HICO-2257]
+* Buttons not clickable in IE11 and wrong styles displayed (trueChart and {menubar}) [HICO-2271]
+* Sorting at sense selection incorrect -> [HICO-2319]
+    * If sorting is set to automatic, the sorting by selection status (ascending) is set internally
+    * If sorting is defined manually, the user has to define the sorting himself and, if necessary,
+      he must also specify the sorting by selection status. With this sort, the selection behavior
+      corresponds to the Qlik Sense standard.
+    * The recommendation is to define sorting by selection status for Sense Selects and
+      never for single selection (corresponds to the automatic behavior).
+* Performance improvement: Single Selects default selections are triggered multiple times [HICO-2357]
+
+=== {menubar} v1.0.0
+2017-03-23
+
+** Epic
+* {menubar} Extension [HICO-1983]
+* *Trigger Action Button* (Button+), supports multiple trigger actions (OnLoad, OnSelection, OnClick, BeforNavigation) and advanced button styling [HICO-1984]
+* *User based customizable button+ actions* per extension ({menubar} & trueChart) [HICO-2193]

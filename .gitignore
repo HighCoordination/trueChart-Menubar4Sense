@@ -1,7 +1,7 @@
 .vscode
 /.idea/workspace.xml
-/node_modules
-/build
-/builds
+node_modules
+build
+builds
 /github
 /npm-debug.log

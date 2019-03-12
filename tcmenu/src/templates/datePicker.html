@@ -1,0 +1,31 @@
+<div class="hico-fullHeight hico-lineheight-fix">
+	<div ng-if="layout.appearance.orientation==='btn-block' || utilService.isMobileView || groupitem" class="">
+		<div id="item_{{itemId}}" class="">
+			<button class="accordion" qva-activate="openDatePicker($event)"
+					ng-style="
+					item.show && !item.props.isCustomSize && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor, 'height': '56px'}
+					|| !item.show && !item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': '56px'}
+					|| item.show && item.props.isCustomSize && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor, 'height': item.props.height + px}
+					|| !item.show && item.props.isCustomSize && {'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor, 'height': item.props.height + px}"
+					change-background item="item" colors="colors">
+
+				<div class="hico-btn-container hico-fullHeight">
+					<labeldirective item="item" layout="layout" type="'dropdownItem'"></labeldirective>
+				</div>
+			</button>
+		</div>
+	</div>
+
+	<div id="hico-item-horizontal_{{itemId}}" class="hico-item-horizontal hico-item-horizontal-default"
+		 ng-if="layout.appearance.orientation==='btn-inline' && !utilService.isMobileView && !groupitem"
+		 ng-mouseleave="closeDropdown(item)">
+		<button class="accordion hico-fullHeight" qva-activate="openDatePicker($event)"
+				ng-style="item.show && {'background-color': colors.hoverActiveColor, 'color': colors.textHoverColor} ||
+				 		{'background-color': 'rgba(1,1,1,0)', 'color': colors.textColor}"
+				change-background item="item" colors="colors">
+			<div class="hico-btn-container hico-fullHeight">
+				<labeldirective class="hico-block hico-fullHeight" item="item" layout="layout" type="'dropdownItem'"></labeldirective>
+			</div>
+		</button>
+	</div>
+</div>

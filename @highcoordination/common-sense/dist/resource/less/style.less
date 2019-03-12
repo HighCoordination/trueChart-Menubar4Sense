@@ -1,0 +1,50 @@
+/* Leonardo-UI */
+@font-face {
+  font-family: 'hico-lui-icons';
+  src: url('~leonardo-ui/dist/lui-icons.woff') format('woff'),
+  url('~leonardo-ui/dist/lui-icons.ttf') format('truetype');
+}
+.hico-lui {
+  @import '~leonardo-ui/dist/variables';
+  @import (less) '~leonardo-ui/dist/leonardo-ui.css';
+}
+
+/* Font-Awesome */
+.hico-fa {
+  @import '~font-awesome/less/font-awesome.less';
+}
+
+/* Bootstrap (scoped) -> you have to use class="bootstrap" on desired elements to use it */
+.bootstrap {
+  // Core variables and mixins
+  @import "~bootstrap/less/variables.less";
+  @import "~bootstrap/less/mixins.less";
+
+  // Reset and dependencies
+  @import "~bootstrap/less/normalize.less";
+  @import "~bootstrap/less/print.less";
+
+  // Core CSS
+  @import "~bootstrap/less/scaffolding.less";
+  @import "~bootstrap/less/type.less";
+  @import "~bootstrap/less/code.less";
+  @import "~bootstrap/less/grid.less";
+
+  // Components
+  @import "~bootstrap/less/component-animations.less";
+
+  // Utility classes
+  @import "~bootstrap/less/utilities.less";
+  @import "~bootstrap/less/responsive-utilities.less";
+  @import '~bootstrap/less/alerts.less';
+}
+
+@import (inline) '~codemirror/lib/codemirror.css';
+
+/* Custom variables */
+@import 'variables.less';
+
+/* Custom styles */
+@import 'common.less';
+@import 'hico-button.less';
+@import 'hico-media-library.less';
