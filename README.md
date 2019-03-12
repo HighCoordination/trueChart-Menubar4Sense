@@ -52,18 +52,17 @@ The _Field Slider_ allows to select values of a dimension with a slider componen
 The option to set the font size dynamically allows for responsive font sizing depending on the width of the extension object.
 
 **Hide elements in Sense mobile view**
-Now you can hide {menubar} elements when Qlik Sense is in mobile mode. Just activate the checkbox in the property panel and the element is not active in
+Now you can hide Menubar elements when Qlik Sense is in mobile mode. Just activate the checkbox in the property panel and the element is not active in
  Sense mobile mode. Inactive elements dont trigger any actions or behaviors such as the default selections.
 
 **Individual colors for all elements**
-Individual colors can be defined for every element of the {menubar}. There is no limitation on what you want to style. Even the funkiest {menubar}s can now be
-designed.
+Individual colors can be defined for every element of the Menubar. There is no limitation on what you want to style. Even the funkiest Menubars can now be designed.
 
 ![Individual Colors](./assets/whats-new-colors.png)
 
 **Option to style sheet background**
 The option to style the sheet background allows you to style the Sense sheet background with an
-image, color or both. This also works in storymode if a {menubar} elements is placed on the slide and has an active background styling.
+image, color or both. This also works in storymode if a Menubar elements is placed on the slide and has an active background styling.
 
 ![Sheet with Background styling](./assets/whats-new-background.png)
 
