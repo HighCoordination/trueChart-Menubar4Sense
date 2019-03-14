@@ -7,7 +7,7 @@ In addition, you can share apps with the current selection with a single click, 
 documents including current or changed selections to navigate between apps.
 
 This visualization extension supports [Qlik Sense®](http://www.qlik.com/us/products/qlik-sense)
-from version 3.0.0 up to currently latest version June and upcoming version February 2019 including exporting and story mode capability.
+from version 3.0.0 up to latest version February 2019 including exporting and story mode capability.
 
 [Get menubar!](https://www.truechart.com/downloads/menubar/)
 
@@ -39,9 +39,9 @@ from version 3.0.0 up to currently latest version June and upcoming version Febr
 ### What is new in menubar v1.4.x
 
 **New name and logo**
-With version 1.4.0 the extension got renamed and is now called Menubar. With the new name the Menubar also got a brand new logo.
+With version 1.4.0 the extension got renamed and is now called menubar. With the new name the menubar also got a brand new logo.
 
-![New Menubar logo](./assets/menubar-logo.png)
+![New menubar logo](./assets/menubar-logo.png)
 
 **New Element Field Slider**
 The _Field Slider_ allows to select values of a dimension with a slider component.
@@ -52,17 +52,18 @@ The _Field Slider_ allows to select values of a dimension with a slider componen
 The option to set the font size dynamically allows for responsive font sizing depending on the width of the extension object.
 
 **Hide elements in Sense mobile view**
-Now you can hide Menubar elements when Qlik Sense is in mobile mode. Just activate the checkbox in the property panel and the element is not active in
+Now you can hide menubar elements when Qlik Sense is in mobile mode. Just activate the checkbox in the property panel and the element is not active in
  Sense mobile mode. Inactive elements dont trigger any actions or behaviors such as the default selections.
 
 **Individual colors for all elements**
-Individual colors can be defined for every element of the Menubar. There is no limitation on what you want to style. Even the funkiest Menubars can now be designed.
+Individual colors can be defined for every element of the menubar. There is no limitation on what you want to style. Even the funkiest menubars can now be
+designed.
 
 ![Individual Colors](./assets/whats-new-colors.png)
 
 **Option to style sheet background**
 The option to style the sheet background allows you to style the Sense sheet background with an
-image, color or both. This also works in storymode if a Menubar elements is placed on the slide and has an active background styling.
+image, color or both. This also works in storymode if a menubar elements is placed on the slide and has an active background styling.
 
 ![Sheet with Background styling](./assets/whats-new-background.png)
 
