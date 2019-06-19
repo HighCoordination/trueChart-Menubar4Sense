@@ -9,7 +9,7 @@ documents including current or changed selections to navigate between apps.
 This visualization extension supports [Qlik Sense®](http://www.qlik.com/us/products/qlik-sense)
 from version 3.0.0 up to latest version February 2019 including exporting and story mode capability.
 
-[Get menubar!](https://www.truechart.com/downloads/menubar/)
+[Get menubar!](https://www.truechart.com/portal)
 
 ![menubar Example](./assets/example.gif)
 
@@ -107,7 +107,7 @@ provides a link to the trueChart homepage (https://www.truechart.com/menubar).
 
 For information about the full licensing or trial version of the menubar, please get in contact: info@highcoordination.de.
 
-[Get menubar!](https://www.truechart.com/downloads/menubar/)
+[Get menubar!](https://www.truechart.com/portal)
 
 ### _Qlik Sense Desktop_
 
