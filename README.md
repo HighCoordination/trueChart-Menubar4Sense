@@ -9,7 +9,7 @@ documents including current or changed selections to navigate between apps.
 This visualization extension supports [Qlik Sense®](http://www.qlik.com/us/products/qlik-sense)
 from version 3.0.0 up to latest version February 2019 including exporting and story mode capability.
 
-[Get MENUBAR!](https://www.truechart.com/demos-products/menubar/)
+[Get MENUBAR!](https://www.truechart.com/software/menubar/)
 
 ![MENUBAR Example](./assets/example.gif)
 
@@ -105,7 +105,7 @@ provides a link to the trueChart homepage (https://www.truechart.com/demos-produ
 
 For information about the full licensing or trial version of the MENUBAR, please get in contact: info@highcoordination.de.
 
-[Get MENUBAR!](https://www.truechart.com/portal)
+[Get MENUBAR!](https://www.truechart.com/software/menubar/)
 
 ### _Qlik Sense Desktop_
 
@@ -137,7 +137,7 @@ and watch for changes.
 The MENUBAR also includes a complete user documentation and from
 installation, configuration to use everything is explained.
 The documentation can be accessed through properties panel **Display** → **Info**
-via link **Online Manual** or directly here [User Manual](https://www.trueChart.com/guides/menubar/current/).
+via link **Online Manual** or directly here [User Manual](https://kb.truechart.com/wiki/display/tckb/menubar).
 
 ## Contacts
 * Product [TRUECHART](http://www.truechart.com)
