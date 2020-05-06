@@ -142,7 +142,7 @@ via link **Online Manual** or directly here [User Manual](https://kb.truechart.c
 ## Contacts
 * Product [TRUECHART](http://www.truechart.com)
 * Web: [HICO-Group](https://www.hico-group.com/)
-* Email: [info@hico-group.com](mailto:info@highcoordination.de)
+* Email: [info@hico-group.com](mailto:info@hico-group.com)
 * Twitter: [Hi_Coordination](https://twitter.com/Hi_Coordination)
 * Facebook: [HighCoordination](https://www.facebook.com/HighCoordination)
 * LinkedIn: [highcoordination-gmbh](https://www.linkedin.com/company/highcoordination-gmbh)
