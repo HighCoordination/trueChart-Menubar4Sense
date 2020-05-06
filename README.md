@@ -61,7 +61,7 @@ Individual colors can be defined for every element of the MENUBAR. There is no l
 
 **Option to style sheet background**
 The option to style the sheet background allows you to style the Sense sheet background with an
-image, color or both. This also works in storymode if a menubar elements is placed on the slide and has an active background styling.
+image, color or both. This also works in storymode if a MENUBAR elements is placed on the slide and has an active background styling.
 
 ![Sheet with Background styling](./assets/whats-new-background.png)
 
@@ -78,14 +78,14 @@ image, color or both. This also works in storymode if a menubar elements is plac
 ## Prerequisites
 
 ### Qlik Sense® Support
-menubar supports Qlik Sense® from version 3.0.0 up to currently
+MENUBAR supports Qlik Sense® from version 3.0.0 up to currently
 latest version June and upcoming version February 2019 including exporting and story mode capability.
 
 #### nPrinting Support
-The menubar does support nPrinting from version June 2018.
+The MENUBAR does support nPrinting from version June 2018.
 
 ### Browser Support
-At present menubar supports the browsers listed below:
+At present MENUBAR supports the browsers listed below:
 
 * Microsoft Internet Explorer 11
 * Microsoft Edge (lastest version - v42, at the time of writing)
@@ -100,7 +100,7 @@ version is to be preferred.
 ## Download and installation
 
 Here you will find the free trial version, which can be used directly in Qlik Sense®. The free trial version contains
-the full feature set of MENUBAR, but has as an addition a fix menubar element at the end which shows the logo and
+the full feature set of MENUBAR, but has as an addition a fix MENUBAR element at the end which shows the logo and
 provides a link to the trueChart homepage (https://www.truechart.com/demos-products/menubar/).
 
 For information about the full licensing or trial version of the MENUBAR, please get in contact: info@highcoordination.de.
